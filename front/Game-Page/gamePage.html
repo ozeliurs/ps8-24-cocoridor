@@ -13,6 +13,34 @@
     <section id="game">
 
     </section>
+
+    
+    <button onclick="openChat()">
+        chat
+    </button>
+ 
+    <div id="chatPopup" style="display: none;">
+        <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
+        <button onclick="sendMessage()">Envoyer</button>
+        <button onclick="closeChat()">Fermer</button>
+    </div>
+
+    <script>
+        function openChat() {
+            document.getElementById("chatPopup").style.display = "block";
+            
+        }
+
+        function closeChat() {
+            document.getElementById("chatPopup").style.display = "none";
+        }
+
+        function sendMessage() {
+            
+            var message = document.getElementById("chatInput").value;
+            console.log("Message envoyé : " + message);
+        }
+    </script>
     <script>
         init();
     </script>
