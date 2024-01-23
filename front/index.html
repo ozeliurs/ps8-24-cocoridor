@@ -1,11 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>TEST</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="Main-Page/mainPage.css">
+    <title>GamePage</title>
 </head>
-<body>
-    TEST
-    <button href="./gamePage.html"> Commencer une partie</button>
+<body id=GamePlaySelection>
+    <div id=playerCard>
+        <img class=shell src="Main-Page/mapFichier1.svg" alt="Coquille gauche">
+        <div id=playerProfile>
+            <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
+            <div id=playerInfo>
+                <div id=playerName>
+                    player
+                </div>
+                <div id=playerRank>
+                    Elo 1511
+                </div>
+            </div>
+        </div> 
+        <img class=shell src="Main-Page/mapFichier2.svg" alt="Coquille droite">
+    </div>
+    <div class=buttonContainer>
+        <button class=btn class=gameModeButton>
+            Local Game
+        </button>
+        <button class=btn>
+            Multiplayer Game
+        </button>
+    </div>
+    <div class=buttonContainer>
+        <button class=btn>
+            Test 1
+        </button>
+        <button class=btn>
+            Test 2
+        </button>
+    </div>    
+
+    <script src="Main-Page/mainPage.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script>
+        var socket = io();
+    </script>
 </body>
 </html>
