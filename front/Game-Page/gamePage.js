@@ -92,7 +92,6 @@ class Border {
   }
   generateElement(lng, lat) {
     this.element = document.createElement("div");
-    this.element.addEventListener("click", this.buildWall.bind(this));
     switch ((lng ? 1 : 0) + (lat ? 2 : 0)) {
       case 1: // horizontal border
         this.element.classList.add("verticalBorder");
