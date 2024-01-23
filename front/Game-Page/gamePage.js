@@ -319,7 +319,8 @@ function actionDone(){
 
   let gameCover = document.getElementById("gameCover");
   gameCover.style.cssText = "display : block; font-size: 50px;";
-  gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+  if (turnNb%2==0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+  else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
 }
 
 
