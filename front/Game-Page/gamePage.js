@@ -92,7 +92,6 @@ class Border {
   }
   generateElement(lng, lat) {
     this.element = document.createElement("div");
-    this.element.addEventListener("click", this.buildWall.bind(this));
     switch ((lng ? 1 : 0) + (lat ? 2 : 0)) {
       case 1: // horizontal border
         this.element.classList.add("verticalBorder");
@@ -170,18 +169,6 @@ function screenTurn(player) {}
  * @param {Action} action action que le joueur veut effectuer
  */
 function actionIsValid(player, action) {
-  let x = action.X;
-  let y = action.Y;
-  function spaceAvailable(action) {
-    if (action.ActionType == ActionType.WallVertical) y = y++;
-    borderUp = getTile(x, y).BorderR.wall;
-    borderDown = getTile(x, y - 1).BorderR.wall;
-    borderLeft = getTile(x, y).BorderD.wall;
-    borderRight = getTile(x + 1, y).BorderD.wall;
-    if (action.ActionType == ActionType.WallVertical)
-      return !((borderLeft && borderRight) || borderDown || borderUp);
-    else return !(borderLeft || borderRight || (borderDown && borderUp));
-  }
   switch (action.actionType) {
     case ActionType.MovePlayer:
       if(canMoveTo(getPlayerPos(currentPlayer()), getTile(action.X,action.Y))) move(player,action.X,action.Y);
@@ -189,8 +176,17 @@ function actionIsValid(player, action) {
         
       break;
     case ActionType.WallVertical:
+      if (!(getTile(action.X,action.Y+1).Edge.wall 
+      || getTile(action.X,action.Y).BorderR.wall
+      || getTile(action.X,action.Y+1).BorderR.wall)
+      ) createWall(action);
+      break;
     case ActionType.WallHorizontal:
-      if (spaceAvailable(action)) createWall(action);
+      if (!(getTile(action.X,action.Y).Edge.wall 
+      || getTile(action.X,action.Y).BorderD.wall
+      || getTile(action.X+1,action.Y).BorderD.wall)
+      ) createWall(action);
+      
       break;
   }
 }
@@ -217,12 +213,7 @@ function canMoveTo(from,to){
  */
 function move(player, x, y) {
   getTile(x, y).occupiedBy(player);
-  remainingAction--
-  if(remainingAction<=0){
-    remainingAction=numActions;
-    turnNb++;
-  }
-  if(player = GameWinner()!=null) alert(player.num+" won")
+  actionDone();
 }
 /**
  * 
@@ -244,11 +235,8 @@ function createWall(action) {
       getTile(x, y + 1).BorderR.buildWall();
       break;
   }
-  remainingAction--
-  if(remainingAction<=0){
-    remainingAction=numActions
-    turnNb++;
-  }
+  actionDone();
+  
 }
 
 function init(lng = 9, lat = 9) {
@@ -272,6 +260,8 @@ function init(lng = 9, lat = 9) {
   getTile(Math.round(boardLength/2)-1,0).occupiedBy(playerList[0]);
   getTile(Math.round(boardLength/2+0.5)-1,boardHeight-1).occupiedBy(playerList[1]);
   //GameStart();
+
+
 }
 
 function GameWinner(){
@@ -307,4 +297,20 @@ function getPlayerPos(player) {
 
 function currentPlayer(){
   return playerList[turnNb%2];
+}
+
+function actionDone(){
+  remainingAction--;
+  
+
+  if(remainingAction<=0){
+    remainingAction=numActions;
+    turnNb++;
+  }
+  
+  if(player = GameWinner()!=null) alert(player.num+" won");
+  let playeTurn = document.getElementById("playerplaying");
+  if (turnNb%2==0) playeTurn.innerHTML = "Au tour de Player 1 ...";
+  else playeTurn.innerHTML = "Au tour de Player 2 ...";
+
 }
