@@ -169,18 +169,6 @@ function screenTurn(player) {}
  * @param {Action} action action que le joueur veut effectuer
  */
 function actionIsValid(player, action) {
-  let x = action.X;
-  let y = action.Y;
-  function spaceAvailable(action) {
-    if (action.ActionType == ActionType.WallVertical) y = y++;
-    borderUp = getTile(x, y).BorderR.wall;
-    borderDown = getTile(x, y - 1).BorderR.wall;
-    borderLeft = getTile(x, y).BorderD.wall;
-    borderRight = getTile(x + 1, y).BorderD.wall;
-    if (action.ActionType == ActionType.WallVertical)
-      return !((borderLeft && borderRight) || borderDown || borderUp);
-    else return !(borderLeft || borderRight || (borderDown && borderUp));
-  }
   switch (action.actionType) {
     case ActionType.MovePlayer:
       if(canMoveTo(getPlayerPos(currentPlayer()), getTile(action.X,action.Y))) move(player,action.X,action.Y);
@@ -188,8 +176,17 @@ function actionIsValid(player, action) {
         
       break;
     case ActionType.WallVertical:
+      if (!(getTile(action.X,action.Y+1).Edge.wall 
+      || getTile(action.X,action.Y).BorderR.wall
+      || getTile(action.X,action.Y+1).BorderR.wall)
+      ) createWall(action);
+      break;
     case ActionType.WallHorizontal:
-      if (spaceAvailable(action)) createWall(action);
+      if (!(getTile(action.X,action.Y).Edge.wall 
+      || getTile(action.X,action.Y).BorderD.wall
+      || getTile(action.X+1,action.Y).BorderD.wall)
+      ) createWall(action);
+      
       break;
   }
 }
