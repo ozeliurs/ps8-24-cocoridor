@@ -216,12 +216,7 @@ function canMoveTo(from,to){
  */
 function move(player, x, y) {
   getTile(x, y).occupiedBy(player);
-  remainingAction--
-  if(remainingAction<=0){
-    remainingAction=numActions;
-    turnNb++;
-  }
-  if(player = GameWinner()!=null) alert(player.num+" won")
+  actionDone();
 }
 /**
  * 
@@ -243,11 +238,8 @@ function createWall(action) {
       getTile(x, y + 1).BorderR.buildWall();
       break;
   }
-  remainingAction--
-  if(remainingAction<=0){
-    remainingAction=numActions
-    turnNb++;
-  }
+  actionDone();
+  
 }
 
 function init(lng = 9, lat = 9) {
@@ -271,6 +263,8 @@ function init(lng = 9, lat = 9) {
   getTile(Math.round(boardLength/2)-1,0).occupiedBy(playerList[0]);
   getTile(Math.round(boardLength/2+0.5)-1,boardHeight-1).occupiedBy(playerList[1]);
   //GameStart();
+
+
 }
 
 function GameWinner(){
@@ -306,4 +300,20 @@ function getPlayerPos(player) {
 
 function currentPlayer(){
   return playerList[turnNb%2];
+}
+
+function actionDone(){
+  remainingAction--;
+  
+
+  if(remainingAction<=0){
+    remainingAction=numActions;
+    turnNb++;
+  }
+  
+  if(player = GameWinner()!=null) alert(player.num+" won");
+  let playeTurn = document.getElementById("playerplaying");
+  if (turnNb%2==0) playeTurn.innerHTML = "Au tour de Player 1 ...";
+  else playeTurn.innerHTML = "Au tour de Player 2 ...";
+
 }
