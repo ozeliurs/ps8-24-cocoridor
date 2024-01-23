@@ -44,10 +44,11 @@ class Tile {
     let right = x != maxX;
     let down = y != 0;
 
-    if(y<boardHeight/2) this.visibility = -1;
-    else if(y==(boardHeight/2)+0.5) this.visibility = 0;
+    if(y+1<boardHeight/2) this.visibility = -1;
+    else if(y+1==(boardHeight/2)+0.5) this.visibility = 0;
     else this.visibility = 1;
 
+    this.element.innerHTML=this.visibility
     this.BorderR = new Border(x, y, true, false);
     this.groupElement.appendChild(this.BorderR.element);
     if (!right) {
@@ -62,11 +63,16 @@ class Tile {
     if (!right || !down) this.Edge.element.style.width = 0;
   }
   occupiedBy(player) {
+    //let playerModif = currentPlayer.num%2==0?1:-1;
     if(player==null) this.occupied = player;
     else{
       if(player.OnTile != null) player.OnTile.occupiedBy(null);
       this.occupied = player;
       player.OnTile = this;
+      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
+      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
+      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
+      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
   
     } 
     this.updateTile()
@@ -81,6 +87,10 @@ class Tile {
     } else {
       this.element.style=""
     }
+  }
+  changeVisibility(value){
+    this.visibility+=value;
+    this.element.innerHTML=this.visibility
   }
 }
 class Border {
@@ -136,7 +146,7 @@ const ActionType = {
 };
 
 Board = [];
-const numActions = 1;
+const numActions = 2;
 let remainingAction = numActions;
 let boardLength = 0;
 let boardHeight = 0;
@@ -222,31 +232,63 @@ function move(player, x, y) {
 function createWall(action) {
   x = action.X;
   y = action.Y;
+  playerModif = currentPlayer().num%2==0?-1:1;
   switch (action.actionType) {
     case ActionType.WallHorizontal:
+      //block path
       getTile(x, y).BorderD.buildWall();
       getTile(x, y).Edge.buildWall();
       getTile(x + 1, y).BorderD.buildWall();
+      //light tiles
+      getTile(x,y).changeVisibility(playerModif*2);
+      getTile(x+1,y).changeVisibility(playerModif*2);
+      getTile(x,y-1).changeVisibility(playerModif*2);
+      getTile(x+1,y-1).changeVisibility(playerModif*2);
+      
+      getTile(x,y+1).changeVisibility(playerModif*1);
+      getTile(x+1,y+1).changeVisibility(playerModif*1);
+      getTile(x-1,y).changeVisibility(playerModif*1);
+      getTile(x+2,y).changeVisibility(playerModif*1);
+      getTile(x-1,y-1).changeVisibility(playerModif*1);
+      getTile(x+2,y-1).changeVisibility(playerModif*1);
+      getTile(x,y-2).changeVisibility(playerModif*1);
+      getTile(x+1,y-2).changeVisibility(playerModif*1);
       break;
 
     case ActionType.WallVertical:
+      //block path
       getTile(x, y).BorderR.buildWall();
       getTile(x, y + 1).Edge.buildWall();
       getTile(x, y + 1).BorderR.buildWall();
+      //light tiles
+      getTile(x,y+1).changeVisibility(playerModif*2);
+      getTile(x+1,y+1).changeVisibility(playerModif*2);
+      getTile(x,y).changeVisibility(playerModif*2);
+      getTile(x+1,y).changeVisibility(playerModif*2);
+
+      getTile(x,y+2).changeVisibility(playerModif*1);
+      getTile(x+1,y+2).changeVisibility(playerModif*1);
+      getTile(x-1,y+1).changeVisibility(playerModif*1);
+      getTile(x+2,y+1).changeVisibility(playerModif*1);
+      getTile(x-1,y).changeVisibility(playerModif*1);
+      getTile(x+2,y).changeVisibility(playerModif*1);
+      getTile(x,y-1).changeVisibility(playerModif*1);
+      getTile(x+1,y-1).changeVisibility(playerModif*1);
+
       break;
   }
   actionDone();
   
 }
 
-function init(lng = 9, lat = 9) {
+function init(lng = 21, lat = 21) {
   boardLength = lng;
   boardHeight = lat;
   //CreateBoard
   for (y = boardHeight-1; y >= 0; y--) {
     Board[y] = [];
     for (x = 0; x < boardLength; x++) {
-      let elemtCreated = new Tile(x, y, boardLength, boardHeight);
+      let elemtCreated = new Tile(x, y, boardLength-1, boardHeight);
 
       let gameDiv = document.getElementById("game");
       gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
@@ -294,7 +336,10 @@ function getPlayerPos(player) {
   let tile = player.OnTile;
   return { X: tile.X, Y: tile.Y };
 }
-
+/**
+ * 
+ * @returns {Player} player that must play
+ */
 function currentPlayer(){
   return playerList[turnNb%2];
 }
