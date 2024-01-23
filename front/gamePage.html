@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="gamePage.css">
+    <title>GamePage</title>
+    <script src="./gamePage.js">init()</script>
+</head>
+<body>
+    <h1>Cocoridor</h1>
+    <section id="game">
+
+    </section>
+
+<!-- fenetetre contextuelle pour le chat -->
+    <button onclick="openChat()">
+        chat
+    </button>
+
+
+
+ 
+    <div id="chatPopup" style="display: none;">
+        <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
+        <button onclick="sendMessage()">Envoyer</button>
+        <button onclick="closeChat()">Fermer</button>
+    </div>
+
+    <script>
+        function openChat() {
+            document.getElementById("chatPopup").style.display = "block";
+            
+        }
+
+        function closeChat() {
+            document.getElementById("chatPopup").style.display = "none";
+        }
+
+        function sendMessage() {
+            // Logique pour envoyer le message (à implémenter selon vos besoins)
+            var message = document.getElementById("chatInput").value;
+            console.log("Message envoyé : " + message);
+        }
+    </script>
+
+    <script>
+        init();
+    </script>
+</body>
+</html>
