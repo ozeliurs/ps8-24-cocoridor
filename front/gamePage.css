@@ -1,42 +1,45 @@
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #552200;
-    margin: 0;
-    padding: 0;
+:root{
+    --SIZETILE : 50px;
+    --SPACEBETWEENTILES : 20px;
+    --TILECOLOR : rgb(255, 220, 155);
+    --BORDERCOLOR : rgb(255, 200, 99);
+    --EDGECOLOR : rgb(255, 182, 46);
 }
 
-h1 {
-    color: #f4f4f4;
-    text-align: center;
+div {
+    color: cadetblue;
 }
 
 #game {
-    margin: 20px;
-    padding: 20px;
-    background-color: #fff;
-    border: 1px solid #ccc;
+    display : inline-grid;
 }
 
-button {
-    padding: 10px;
-    margin: 5px;
-    cursor: pointer;
-}
 
-#chatPopup {
+.tileGroup{
     display: grid;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 10px;
-    resize: none;
+    grid-template-columns: repeat(2, max-content);
+    grid-template-rows: repeat(2, max-content);
 }
-
-#chatInput {
-    width: 100%;
-    margin-bottom: 10px;
-    display: grid;
-    resize: none;
+.tile {
+    width: var(--SIZETILE) ; 
+    height: var(--SIZETILE);
+    background-color: var(--TILECOLOR)
+}
+.verticalBorder {
+    width: var(--SPACEBETWEENTILES); 
+    height: var(--SIZETILE); 
+    background-color: var(--BORDERCOLOR)
+}
+.horizontalBorder {
+    width: var(--SIZETILE); 
+    height: var(--SPACEBETWEENTILES); 
+    background-color: var(--BORDERCOLOR)
+}
+.edge {
+    width: var(--SPACEBETWEENTILES);
+    height: var(--SPACEBETWEENTILES);
+    background-color: var(--EDGECOLOR);
+}
+.wall{
+    background-color: black;
 }
