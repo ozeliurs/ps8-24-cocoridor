@@ -11,10 +11,12 @@
 <body>
     <h1>Coucou</h1>
     <h2 id="playerplaying"></h2>
-    <section id="game">
-
-    </section>
-
+    <div id ="gameDiv">
+        <section id="game">
+        </section>
+        <section id = "gameCover" onclick="hideCover()">   
+        </section>
+    </div>
     
     <button onclick="openChat()">
         chat
@@ -40,6 +42,9 @@
             
             var message = document.getElementById("chatInput").value;
             console.log("Message envoyé : " + message);
+        }
+        function hideCover() {
+            document.getElementById("gameCover").style.display = "none";
         }
     </script>
     <script>
