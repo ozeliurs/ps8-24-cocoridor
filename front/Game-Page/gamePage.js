@@ -146,7 +146,7 @@ const ActionType = {
 };
 
 Board = [];
-const numActions = 2;
+const numActions = 1;
 let remainingAction = numActions;
 let boardLength = 0;
 let boardHeight = 0;
