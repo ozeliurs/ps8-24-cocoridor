@@ -78,7 +78,6 @@ class Tile {
       this.occupied = player;
       player.OnTile = this;
     } 
-    console.log("update")
     this.updateTile()
   }
 
@@ -318,7 +317,6 @@ function canMoveTo(from,to){
   let dist = Math.abs(from.X-to.X) + Math.abs(from.Y-to.Y);
   if(dist==0 || dist>travelDist) return false;
   let border = wallBetween(from,to)
-  console.log(border)
   if(border==null) {console.error("border not found"); return false;}
   return !border.wall;
 }
@@ -348,16 +346,27 @@ function init(lng = 11, lat = 11) {
 }
 
 function GameWinner(){
-  playerList.forEach(player => {
-    switch(player.startSide){
+  for (let i=0;i<playerList.length;i++){
+    let player = playerList[i]
+    switch(player.side){
       case Direction.Up:
-        if(player.OnTile.Y==0)return player;
+        console.log("player Up")
+        console.log(player.OnTile.Y==0)
+        if(player.OnTile.Y==0){
+          console.info("Are you winning son?")
+          return player;
+        }
         break;
       case Direction.Down:
-        if(player.OnTile.Y==boardHeight-1)return player;
+        console.log("player Down")
+        console.log(player.OnTile.Y==boardHeight-1)
+        if(player.OnTile.Y==boardHeight-1){
+          console.info("who's the good boy")
+          return player;
+        }
         break;
     }
-  });
+  }
   return null;
 }
 
@@ -437,7 +446,7 @@ function actionDone(){
     remainingAction=numActions;
     turnNb++;
   }
-  
+  console.log(GameWinner());
   if(GameWinner()!=null) alert(GameWinner().modifier+" won");
   let playeTurn = document.getElementById("playerplaying");
   let player = currentPlayer();
