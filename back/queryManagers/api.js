@@ -1,8 +1,36 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
 function manageRequest(request, response) {
-    response.statusCode = 200;
-    response.end(`Thanks for calling ${request.url}`);
+    // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
+    let url = new URL(
+        request.url,
+        `https://0.0.0.0:${ 8000}`
+    );
+    let endpoint = url.pathname.split('/')[2]; // Supposant que l'URL est sous la forme /api/endpoint
+
+    switch (endpoint) {
+        case 'signup':
+           signup(request, response);
+            break;
+        case 'login':
+           login(request, response);
+            break;
+        case 'updateBord':
+            updateBoard(request, response);
+            break;
+        
+        case 'startGame':
+            startGame(request, response);
+            break;
+
+        case 'endGame':
+            endGame(request, response);
+            break;    
+        default:
+            response.writeHead(404, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Endpoint non trouvé' }));
+    }
 }
+
 
 /* This method is a helper in case you stumble upon CORS problems. It shouldn't be used as-is:
 ** Access-Control-Allow-Methods should only contain the authorized method for the url that has been targeted
@@ -21,3 +49,4 @@ function addCors(response) {
 }
 
 exports.manage = manageRequest;
+
