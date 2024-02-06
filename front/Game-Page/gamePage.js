@@ -291,7 +291,7 @@ function init(lng = 21, lat = 21) {
       let elemtCreated = new Tile(x, y, boardLength-1, boardHeight);
 
       let gameDiv = document.getElementById("game");
-      gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
+      gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content); justify-content: center;";
       gameDiv.appendChild(elemtCreated.groupElement);
       Board[y][x] = elemtCreated;
     }
@@ -375,4 +375,10 @@ function actionDone(){
   if (turnNb%2==0) playeTurn.innerHTML = "Au tour de Player 1 ...";
   else playeTurn.innerHTML = "Au tour de Player 2 ...";
 
+  let gameCover = document.getElementById("gameCover");
+  gameCover.style.cssText = "display : block; font-size: 50px;";
+  if (turnNb%2==0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+  else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
 }
+
+
