@@ -353,7 +353,24 @@ function actionDone(){
     turnNb++;
   }
   
-  if(player = GameWinner()!=null) alert(player.num+" won");
+ /* if(player = GameWinner()!=null) {
+    // switcher sur endPage.html et donner le gagnant
+    window.location.href = "../EndGame/endPage.html";
+
+
+
+  }*/
+  let winningPlayer = GameWinner();
+  
+  if(winningPlayer != null) {
+    // Afficher l'alerte avec le numéro du joueur gagnant
+    alert("Le joueur " + (winningPlayer.num + 1) + " a gagné !");
+    
+    // Rediriger vers une nouvelle page HTML avec le nom du joueur gagnant
+    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (winningPlayer.num + 1);
+    return; // Arrêter le déroulement de la fonction si un joueur a gagné
+  }
+
   let playeTurn = document.getElementById("playerplaying");
   if (turnNb%2==0) playeTurn.innerHTML = "Au tour de Player 1 ...";
   else playeTurn.innerHTML = "Au tour de Player 2 ...";
