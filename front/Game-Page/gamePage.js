@@ -1,26 +1,42 @@
 class Player {
-  constructor(modifier,startSide) {
+  /**
+   * 
+   * @param {Number} modifier 
+   * @param {Tile} startPos 
+   * @param {Tile[]} endPos 
+   */
+  constructor(modifier,startPos,endPos) {
     this.modifier = modifier;
-    this.side = startSide;
+    this.start = startPos;
+    this.end = endPos;
     this.OnTile = null;
     switch (modifier) {
       case -1:
         this.image = "./image1.png";
-        this.Color = "rgb(0, 0, 255);"
+        this.color = "rgb(0, 0, 255)"
         break;
 
       case 1:
         this.image = "./image2.png";
-        this.Color = "rgb(255, 0, 0);"
+        this.color = "rgb(255, 0, 0)"
         break;
 
       default:
         console.error("unknown player modifier")
         break;
     }
+    if(endPos==null)console.error("ce joueur ne peux pas gagner")
+    if(startPos!=null) startPos.occupiedBy(this);
   }
   /**
    * 
+   * @returns {{X:Number,Y:Number}}
+   */
+  getPos(){
+    let tile = getTile();
+    return {X:tile.X,Y:tile.Y};
+  }
+  /**
    * @returns {Tile}
    */
   getTile(){
@@ -72,12 +88,11 @@ class Tile {
    * @param {Player} player 
    */
   occupiedBy(player) {
-    if(player==null) this.occupied = player;
-    else{
+    if(player!=null){
       if(player.OnTile != null) player.OnTile.occupiedBy(null);
-      this.occupied = player;
       player.OnTile = this;
     } 
+    this.occupied = player;
     this.updateTile()
   }
 
@@ -86,16 +101,30 @@ class Tile {
   }
   updateTile() {
     if (this.occupied != null) {
-      this.element.style="background-color:"+this.occupied.Color;
-    } else {
-      this.element.style=""
-    }
+      this.element.style="background-color:"+this.occupied.color;
+    } else this.element.style=""
   }
   changeVisibility(value){
     this.visibility+=value;
     this.element.innerHTML=this.visibility
   }
+  /**
+   * @returns {Tile[]}
+   */
+  getNeighbour(jumpWalls=false, fictionnalWalls = []){
+    let result = [];
+    let current = getTile(this.X,this.Y+1);
+    if(current!=null && (jumpWalls || current.BorderD.wall==0) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
+    current = getTile(this.X+1,this.Y);
+    if(current!=null && (jumpWalls || this.BorderR.wall==0 ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
+    current = getTile(this.X,this.Y-1);
+    if(current!=null && (jumpWalls || this.BorderD.wall==0 ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
+    current = getTile(this.X-1,this.Y);
+    if(current!=null && (jumpWalls || current.BorderR.wall==0 ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
+    return result;
+  }
 }
+
 class Border {
   constructor(x, y, lng, lat) {
     this.X = Math.floor(x);
@@ -109,12 +138,12 @@ class Border {
       case 1: // vertical border
         this.element.classList.add("verticalBorder");
         this.influence = [[0,0],[0,1],[-1,0],[0,-1],[1,0],[1,1],[2,0],[1,-1]];
-        this.element.addEventListener("click", () => this.onClick(true, new Wall(currentPlayer(), this.X,this.Y,Direction.Right)));
+        this.element.addEventListener("click", () => this.onClick(true));
         break;
       case 2: // horizontal border
         this.element.classList.add("horizontalBorder");
         this.influence = [[0,0],[-1,0],[0,1],[1,0],[0,-1],[-1,-1],[0,-2],[1,-1]];
-        this.element.addEventListener("click", () => this.onClick(false, new Wall(currentPlayer(), this.X,this.Y,Direction.Down)));
+        this.element.addEventListener("click", () => this.onClick(false));
         break;
       case 3: // edge
         this.element.classList.add("edge");
@@ -139,22 +168,28 @@ class Border {
   /**
    * 
    * @param {Boolean} vertical
-   * @param {Wall} action 
+   * @param {Wall} this 
    */
-  onClick(vertical, action) {
-    
+  onClick(vertical) {
+    if(wallLength==0)return;
+    let borders = []
     if(vertical) {
-      if ((getTile(action.X,action.Y+1).Edge.wall ==0
-      || getTile(action.X,action.Y).BorderR.wall
-      || getTile(action.X,action.Y+1).BorderR.wall)
-      ) action.execute();
+      borders = [getTile(this.X,this.Y).BorderR]
+      for(let i=0;i<wallLength-1;i++){
+        borders.push(getTile(this.X,this.Y+1+i).Edge)
+        borders.push(getTile(this.X,this.Y+1+i).BorderR)
+      }
     }
     else {
-      if (!(getTile(action.X,action.Y).Edge.wall 
-      || getTile(action.X,action.Y).BorderD.wall
-      || getTile(action.X+1,action.Y).BorderD.wall)
-      ) action.execute();
+      borders = [getTile(this.X,this.Y).BorderD]
+      for(let i=0;i<wallLength-1;i++){
+      borders.push(getTile(this.X+i,this.Y).Edge);
+      borders.push(getTile(this.X+1+i,this.Y).BorderD);
+      }
     }
+    for(let border of borders) if(border.wall!=0) return;
+    if(playersCanReachEnd(borders)) new Wall(currentPlayer(),borders).execute();
+      
     
   }
 }
@@ -219,53 +254,31 @@ class Wall extends Action{
   /**
    * 
    * @param {Player} player
-   * @param {Number} x 
-   * @param {Number} y 
-   * @param {Direction} direction 
+   * @param {Border[]} borders 
    */
-  constructor(player,x,y,direction){
+  constructor(player,borders){
     super(player)
-    this.X = x;
-    this.Y = y;
-    this.direction = direction;
+    this.borders = borders;
   }
   execute(){
     if(!this.canExecute())return null;
-    let x = this.X;
-    let y = this.Y;
-    switch(this.direction) {
-      case Direction.Up:
-        y++;
-        this.direction = Direction.Down;
-      case Direction.Down:
-        getTile(x, y).BorderD.buildWall(this.player);
-        getTile(x, y).Edge.buildWall(this.player);
-        getTile(x + 1, y).BorderD.buildWall(this.player);
-        break;
-      case Direction.Left:
-        x--;
-        direction = Direction.Right;
-      case Direction.Right:
-        getTile(x, y).BorderR.buildWall(this.player);
-        getTile(x, y + 1).Edge.buildWall(this.player);
-        getTile(x, y + 1).BorderR.buildWall(this.player);
-        break;
-
-
-    }
-    actionDone();
+    for(let border of this.borders) border.buildWall(this.player)
     
+    actionDone();
   }
 }
 
 Board = [];
-const numActions = 2;
-const travelDist =1
+const numActions = 1;
+const travelDist = 1;
+const SightDistance = 1;
+const lineOfSight = false; // marche po
+const wallLength = 2;
 let remainingAction = numActions;
 let boardLength = 0;
 let boardHeight = 0;
 let turnNb = 0;
-playerList = [];
+let playerList = [];
 validAction = null;
 
 const Direction = {
@@ -313,12 +326,7 @@ function getTileIn(Tile,dir){
  * @param {Tile} to 
  */
 function canMoveTo(from,to){
-  if(from==null || to ==null) {console.error("tiles not found");return false;}
-  let dist = Math.abs(from.X-to.X) + Math.abs(from.Y-to.Y);
-  if(dist==0 || dist>travelDist) return false;
-  let border = wallBetween(from,to)
-  if(border==null) {console.error("border not found"); return false;}
-  return !border.wall;
+  return aStar(from,to,travelDist)!=null;
 }
 
 function init(lng = 11, lat = 11) {
@@ -337,37 +345,24 @@ function init(lng = 11, lat = 11) {
     }
   }
   //Place Player
-  playerList[0] = new Player(-1,Direction.Down);
-  playerList[1] = new Player(1,Direction.Up);
-  getTile(Math.round(boardLength/2)-1,0).occupiedBy(playerList[0]);
-  getTile(Math.round(boardLength/2+0.5)-1,boardHeight-1).occupiedBy(playerList[1]);
-
-
+  let topTiles = [];
+  let bottomTiles = [];
+  for (var i = 0; i < boardLength; i++) {
+    topTiles.push(Board[boardHeight-1][i]);
+    bottomTiles.push(Board[0][i])
+  }
+  playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles);
+  playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles);
 }
 
 function GameWinner(){
+  let winners = []
   for (let i=0;i<playerList.length;i++){
     let player = playerList[i]
-    switch(player.side){
-      case Direction.Up:
-        console.log("player Up")
-        console.log(player.OnTile.Y==0)
-        if(player.OnTile.Y==0){
-          console.info("Are you winning son?")
-          return player;
-        }
-        break;
-      case Direction.Down:
-        console.log("player Down")
-        console.log(player.OnTile.Y==boardHeight-1)
-        if(player.OnTile.Y==boardHeight-1){
-          console.info("who's the good boy")
-          return player;
-        }
-        break;
-    }
+    if(player.end.includes(player.getTile())) winners.push(player);
   }
-  return null;
+  
+  return winners.length==0?null:winners;
 }
 
 function playerTurn(player) {
@@ -422,15 +417,6 @@ function wallBetween(from,to){
 }
 
 /**
- *
- * @param {Player} player player
- * @return {{X:Number,Y:Number}} coords of the tile
- */
-function getPlayerPos(player) {
-  let tile = player.OnTile;
-  return { X: tile.X, Y: tile.Y };
-}
-/**
  * 
  * @returns {Player} player that must play
  */
@@ -439,6 +425,7 @@ function currentPlayer(){
 }
 
 function actionDone(){
+
   remainingAction--;
   
 
@@ -446,15 +433,14 @@ function actionDone(){
     remainingAction=numActions;
     turnNb++;
   }
-  console.log(GameWinner());
-  if(GameWinner()!=null) alert(GameWinner().modifier+" won");
+  if(GameWinner()!=null) return;
   let playeTurn = document.getElementById("playerplaying");
   let player = currentPlayer();
-  playeTurn.innerHTML = player.modifier;
+  playeTurn.innerHTML = playerList.indexOf(player)+1;
   for(let y=0;y<boardHeight;y++) for (let x = 0; x<boardLength; x++){
     let tile = getTile(x,y);
     if(tile.visibility * player.modifier>=0) tile.element.style.visibility="visible";
-    else if(Math.abs(tile.X-player.OnTile.X) + Math.abs(tile.Y-player.OnTile.Y) <= 1) tile.element.style.visibility="visible";
+    else if(Math.abs(tile.X-player.OnTile.X) + Math.abs(tile.Y-player.OnTile.Y) <= SightDistance) tile.element.style.visibility="visible";
     else tile.element.style.visibility = "hidden";
   }
 
@@ -464,11 +450,113 @@ function actionDone(){
  * 
  * @param {Tile} from 
  * @param {Tile} to 
- * @returns {Boolean} if possible
+ * @returns {Number} dist between the two tiles
  */
-function FindPath(from,to){
-  tabDone = []
-  tabOk = [from]
-  
-   
+function distTo(from,to){
+  return Math.abs(from.X-to.X) + Math.abs(from.Y-to.Y);
+}
+/**
+ * 
+ * @param {Border[]} additionnalWalls 
+ * @returns 
+ */
+function playersCanReachEnd(additionnalWalls = []){
+  console.log("PCRE")
+  for(let player of playerList){
+    console.log(player);
+    if(player.end==null|| player.end.length==0)continue;
+    let foundPath = false
+    for(let obj of player.end){
+      let path = aStar(player.getTile(),obj,null, false, additionnalWalls);
+      if(path!=null){
+        foundPath=true;
+        console.log("path found)");
+        break;}
+    }
+    if(!foundPath)return false;
+  }
+  return true;
+}
+
+/**
+ * 
+ * @param {Tile} start 
+ * @param {Tile} end 
+ */
+function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
+  let killTimer =500;
+  /**
+   * 
+   * @param {Tile} tile 
+   * @returns {Number}
+   */
+  function heuristic(tile){
+    return distTo(tile,end);
+  }
+
+  /**
+   * 
+   * @param {Tile} tile 
+   * @returns 
+   */
+  function progressOf(tile){
+    return Math.abs(Math.abs((tile.X - start.X)/(end.X - start.X))-Math.abs((tile.Y - start.Y)/(end.Y - start.Y)))
+  }
+
+  let explored= [];
+
+  let frontier =[{
+    node : start,
+    cost : 0,
+    estimate : heuristic(start),
+    previous : null
+  }]
+
+
+  while(frontier.length>0){
+    if(killTimer--<=0)return null;
+
+    frontier.sort((a,b)=>{
+      let diff = a.estimate-b.estimate;
+      if(diff!=0) return diff;
+      else {
+        if(progressOf(a.node)<progressOf(b.node)) return -1;
+        else return 1;
+      }
+    });
+
+    let currentBest = frontier.shift();
+
+    if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
+      if(maxCost!=null && maxCost<currentBest.cost)return null; 
+      else return currentBest;
+    }
+
+    explored.push(currentBest)
+    
+    for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
+
+      let isExplored = (explored.find( e => {
+          return e.node.X == step.X && 
+              e.node.Y == step.Y;
+      }))
+
+      let isFrontier = (frontier.find( e => {
+          return e.node.X == step.X && 
+              e.node.Y == step.Y;
+      }))
+
+      if (!isExplored && !isFrontier) {
+        let cost = currentBest.cost+1;
+        frontier.push({
+          node: step,
+          cost: cost,
+          estimate: cost + heuristic(step),
+          previous : currentBest
+        });
+      }
+    }
+  }
+  console.log("impossible")
+  return null;
 }
