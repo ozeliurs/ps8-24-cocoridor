@@ -1,3 +1,5 @@
+import io from "socket.io-client";
+
 class Player {
   constructor(num,startSide) {
     this.num = num;
