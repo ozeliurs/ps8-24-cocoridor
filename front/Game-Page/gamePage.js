@@ -43,6 +43,7 @@ class Player {
     return this.OnTile;
   }
 }
+
 class Tile {
   /**
    *
@@ -96,6 +97,7 @@ class Tile {
   }
 
   onClick() {
+    if(currentPlayer()==this.occupied) return;
     new Move(currentPlayer(),this.X,this.Y).execute();
   }
   updateTile() {
@@ -121,8 +123,29 @@ class Tile {
     if(current!=null && (jumpWalls || current.BorderR.wall==0 ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
     return result;
   }
+  /**
+   * 
+   * @param {Direction} tile 
+   */
+    tileInDir(tile){
+      let result = [];
+      let xDiff = this.X - tile.X;
+      let yDiff = this.Y - tile.Y;
+      if(Math.abs(xDiff)>Math.abs(yDiff)){
+        if(xDiff<0) result.push(Direction.Right);
+        else result.push(Direction.Left);
+      }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+        if(yDiff<0) result.push(Direction.Up);
+        else result.push(Direction.Down);
+      }else{
+        if(xDiff<0) result.push(Direction.Right);
+        else result.push(Direction.Left);
+        if(yDiff<0) result.push(Direction.Up);
+        else result.push(Direction.Down);
+      }
+    return result;
+  }
 }
-
 class Border {
   constructor(x, y, lng, lat) {
     this.X = Math.floor(x);
@@ -214,6 +237,7 @@ class Action {
     console.error("execute not defined in sub class")
   }
 }
+
 class Move extends Action{
   /**
    * 
@@ -225,35 +249,22 @@ class Move extends Action{
     super(player);
     this.X = x;
     this.Y = y;
-    if(getTile(this.X,this.Y).occupied!=null){
-      let tile = currentPlayer().getTile();
-      let xDiff = this.X - tile.X;
-      let yDiff = this.Y - tile.Y;
-      let newX = this.X;
-      let newY = this.Y;
-      let addCost = 1;
-      if(Math.abs(xDiff)>Math.abs(yDiff)){
-        if(xDiff<0) newX--;
-        else newX++;
-      }else if(Math.abs(xDiff)<Math.abs(yDiff)){
-        if(yDiff<0) newY--;
-        else newY++;
-      }else{
-        if(xDiff<0) newX--;
-        else newX++;
-        if(yDiff<0) newY--;
-        else newY++;
-        addCost=2;
-      }
-      if(aStar(getTile(this.X,this.Y),getTile(newX,newY),addCost,jumpOverWall)!=null){
-        return new Move(player,newX,newY);
-      }
+    let tile = getTile(this.X,this.Y);
+    while(tile.occupied!=null){
+      let dirs = currentPlayer().getTile().tileInDir(getTile(this.X,this.Y));
+      let addCost=dirs.length;
+      let coords = {X: tile.X,Y: tile.Y}
+      coords = convertDirInCoords(coords,dirs)
+      tile = getTile(coords.X,coords.Y);
+      if(aStar({start:tile,end:getTile(this.X,this.Y),addCost,jumpwall:jumpOverWall})){
+        return new Move(player,this.X,this.Y);
+      } else return undefined;
     }
 
   }
   
   execute(){
-    if(!this.canExecute()) return null;
+    if(!this.canExecute()) return;
     if(canMoveTo(this.player.getTile(),getTile(this.X,this.Y))){
       getTile(this.X,this.Y).occupiedBy(this.player);
       actionDone();
@@ -287,7 +298,7 @@ const travelDist = 1;
 const SightDistance = 1;
 const lineOfSight = false; // po implemente
 const wallLength = 2;
-const jumpOverWall = false;
+const jumpOverWall = true;
 let remainingAction = numActions;
 let boardLength = 0;
 let boardHeight = 0;
@@ -340,7 +351,8 @@ function getTileIn(Tile,dir){
  * @param {Tile} to 
  */
 function canMoveTo(from,to){
-  return aStar(from,to,travelDist)!=null;
+  if(from==null || to==null || from==to)return false;
+  return aStar({start:from,end:to,maxCost:travelDist})!=null;
 }
 
 function init(lng = 11, lat = 11) {
@@ -491,7 +503,7 @@ function playersCanReachEnd(additionnalWalls = []){
     if(player.end==null|| player.end.length==0)continue;
     let foundPath = false
     for(let obj of player.end){
-      let path = aStar(player.getTile(),obj,null, false, additionnalWalls);
+      let path = aStar({start:player.getTile(),end:obj,addWalls: additionnalWalls});
       if(path!=null){
         foundPath=true;
         break;}
@@ -501,12 +513,7 @@ function playersCanReachEnd(additionnalWalls = []){
   return true;
 }
 
-/**
- * 
- * @param {Tile} start 
- * @param {Tile} end 
- */
-function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
+function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls = []}= {}){
   let killTimer =500;
   /**
    * 
@@ -558,7 +565,11 @@ function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
     explored.push(currentBest)
     
     for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
-
+      while(step.occupied!=null){
+        let coords = {X:step.X,Y:step.Y}
+        coords = convertDirInCoords(coords,start.tileInDir(step))
+        step = getTile(coords.X,coords.Y);
+      }
       let isExplored = (explored.find( e => {
           return e.node.X == step.X && 
               e.node.Y == step.Y;
@@ -570,7 +581,7 @@ function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
       }))
 
       if (!isExplored && !isFrontier) {
-        let cost = currentBest.cost+(step.occupied!=null?0:1);
+        let cost = currentBest.cost+1;
         frontier.push({
           node: step,
           cost: cost,
@@ -582,4 +593,29 @@ function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
   }
   console.log("impossible to reach")
   return null;
+}
+/**
+ * 
+ * @param {{X:Number,Y:Number}} coords 
+ * @param {Direction[]} dirs 
+ * @returns {{X:Number,Y:Number}} return the new coords 
+ */
+function convertDirInCoords(coords,dirs){
+  for(let dir of dirs) {
+    switch(dir){
+    case Direction.Up:
+      this.Y++;
+      break;
+    case Direction.Right:
+      this.X++
+      break;
+    case Direction.Down:
+      this.Y--;
+      break;
+    case Direction.Left:
+      this.X--;
+      break;
+    }
+  }
+  return coords;
 }
