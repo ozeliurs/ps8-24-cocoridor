@@ -1,3 +1,5 @@
+import io from "socket.io-client";
+
 class Player {
   /**
    * 
@@ -465,7 +467,14 @@ function actionDone(){
     let player = currentPlayer();
     playeTurn.innerHTML = playerList.indexOf(player)+1;
   }
-  if(turnNb%playerList.length==0 && GameWinner()!=null) return;
+    
+  if(turnNb%playerList.length==0 && GameWinner()!=null) {
+    alert("Le joueur " + (winningPlayer.num + 1) + " a gagné !");
+    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (winningPlayer.num + 1);
+    
+    
+    
+  }
   let player = currentPlayer();
   updateBoardVisibility(player)
 }
