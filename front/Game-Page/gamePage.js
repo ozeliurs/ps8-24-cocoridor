@@ -41,7 +41,8 @@ class Player {
     this.modifier = modifier;
     this.start = startPos;
     this.end = endPos;
-    this.OnTile = null;
+    this.OnTile = {X:this.start.X,Y:this.start.Y};
+    this.nbWalls = nbWallsPerPlayer;
     switch (modifier) {
       case -1:
         this.image = "./image1.png";
@@ -65,14 +66,13 @@ class Player {
    * @returns {{X:Number,Y:Number}}
    */
   getPos(){
-    let tile = getTile();
-    return {X:tile.X,Y:tile.Y};
+    return this.OnTile;
   }
   /**
    * @returns {Tile}
    */
   getTile(){
-    return this.OnTile;
+    return getTile(this.OnTile.X,this.OnTile.Y);
   }
   getColorStyle(){
     return this.color;
@@ -124,8 +124,8 @@ class Tile {
    */
   occupiedBy(player) {
     if(player!=null){
-      if(player.OnTile != null) player.OnTile.occupiedBy(null);
-      player.OnTile = this;
+      if(player.getTile() != null) player.getTile().occupiedBy(null);
+      player.OnTile = {X:this.X,Y:this.Y};
     } 
     this.occupied = player;
     this.updateTile()
@@ -133,12 +133,19 @@ class Tile {
 
   onClick() {
     if(currentPlayer()==this.occupied) return;
-    new Move(currentPlayer(),this.X,this.Y).execute();
+    console.log(this.X+"-"+this.Y)
+    let move = new Move(currentPlayer(),this.X,this.Y);
+    if(move == undefined)return;
+    move.execute();
   }
   updateTile() {
     if (this.occupied != null) {
+      console.log("add on ("+this.X+","+this.Y+") = "+this.occupied.color.toStyle());
       this.element.style.backgroundColor=this.occupied.color.toStyle();
-    } else this.element.style.backgroundColor=""
+    } else {
+      console.log("remove on ("+this.X+","+this.Y+")");
+      this.element.style.backgroundColor="";
+    }
   }
   changeVisibility(value){
     this.visibility+=value;
@@ -160,26 +167,54 @@ class Tile {
   }
   /**
    * 
-   * @param {Direction} tile 
+   * @param {Tile} tile 
+   * @return {Direction[]}
    */
-    tileInDir(tile){
-      let result = [];
-      let xDiff = this.X - tile.X;
-      let yDiff = this.Y - tile.Y;
-      if(Math.abs(xDiff)>Math.abs(yDiff)){
-        if(xDiff<0) result.push(Direction.Right);
-        else result.push(Direction.Left);
-      }else if(Math.abs(xDiff)<Math.abs(yDiff)){
-        if(yDiff<0) result.push(Direction.Up);
-        else result.push(Direction.Down);
-      }else{
-        if(xDiff<0) result.push(Direction.Right);
-        else result.push(Direction.Left);
-        if(yDiff<0) result.push(Direction.Up);
-        else result.push(Direction.Down);
-      }
+  tileInDir(tile){
+    let result = [];
+    let xDiff = this.X - tile.X;
+    let yDiff = this.Y - tile.Y;
+    if(Math.abs(xDiff)>Math.abs(yDiff)){
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+    }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }else{
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }
     return result;
   }
+  /**
+   * 
+   * @param {Direction[]} dirs 
+   */
+  getTileInDir(dirs){
+    let x = this.X;
+    let y = this.Y
+    for(let dir of dirs) {
+      switch(dir){
+      case Direction.Up:
+        y++;
+        break;
+      case Direction.Right:
+        x++
+        break;
+      case Direction.Down:
+        y--;
+        break;
+      case Direction.Left:
+        x--;
+        break;
+      }
+    }
+    return getTile(x,y);
+  }
+
+
 }
 
 class Border {
@@ -225,7 +260,6 @@ class Border {
   /**
    * 
    * @param {Boolean} vertical
-   * @param {Wall} this 
    */
   onClick(vertical) {
     if(wallLength==0)return;
@@ -283,30 +317,28 @@ class Move extends Action{
    */
   constructor(player, x,y){
     super(player);
-    this.X = x;
-    this.Y = y;
-    let tile = getTile(this.X,this.Y);
-    while(tile.occupied!=null){
-      let dirs = currentPlayer().getTile().tileInDir(getTile(this.X,this.Y));
-      let addCost=dirs.length;
-      let coords = {X: tile.X,Y: tile.Y}
-      coords = convertDirInCoords(coords,dirs)
-      tile = getTile(coords.X,coords.Y);
-      if(aStar({start:tile,end:getTile(this.X,this.Y),addCost,jumpwall:jumpOverWall})){
-        return new Move(player,this.X,this.Y);
-      } else return undefined;
+    let start = currentPlayer().getTile();
+    let end = getTile(x,y);
+    let dirs = start.tileInDir(end);
+    let path = aStar({start:start,end:end,maxCost:travelDist});
+    if(path==null) return undefined;
+    while(path.node.occupied!=null){
+      path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
+      if(path==null) return undefined;
+      start = end;
+      end = path.node.getTileInDir(dirs);
     }
+    this.X = path.node.X;
+    this.Y = path.node.Y;
 
   }
   
   execute(){
     if(!this.canExecute()) return;
-    if(canMoveTo(this.player.getTile(),getTile(this.X,this.Y))){
-      getTile(this.X,this.Y).occupiedBy(this.player);
-      actionDone();
-    }else console.log("cannot move")
-
-
+    let tile = getTile(this.X,this.Y);
+    if(tile==null)return;
+    tile.occupiedBy(this.player);
+    actionDone();
   }
 }
 
@@ -329,12 +361,16 @@ class Wall extends Action{
 }
 
 Board = [];
-const numActions = 1;
-const travelDist = 1;
-const SightDistance = 1;
+//Game rules
+const numActions = 5; //number of action per turn
+const travelDist = 1; //number of tiles a player can travel in one action
+const SightDistance = 1; //number of tiles the player has visibility around him
 const lineOfSight = false; // po implemente
-const wallLength = 2;
-const jumpOverWall = true;
+const wallLength = 2; // length of the wall built
+const jumpOverWall = false; // if players can jump above walls by jumping on another player
+const nbWallsPerPlayer = 10 //number max of wall a player can place
+
+//Games data
 let remainingAction = numActions;
 let boardLength = 0;
 let boardHeight = 0;
@@ -356,6 +392,7 @@ const Direction = {
  * @returns {Tile} la tuile correspondante ou null.
  */
 function getTile(x, y) {
+  if(x==null || y==null)return null;
   if(x<0 || x>=boardLength || y<0 || y>=boardHeight) return null;
   return Board[y][x];
 }
@@ -381,15 +418,6 @@ function getTileIn(Tile,dir){
   }
 }
 
-/**
- * 
- * @param {Tile} from 
- * @param {Tile} to 
- */
-function canMoveTo(from,to){
-  if(from==null || to==null || from==to)return false;
-  return aStar({start:from,end:to,maxCost:travelDist})!=null;
-}
 
 function init(lng = 11, lat = 11) {
   boardLength = lng;
@@ -558,6 +586,7 @@ function playersCanReachEnd(additionnalWalls = []){
 }
 
 function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls = []}= {}){
+  if(start==null || end ==null)return null;
   let killTimer =500;
   /**
    * 
@@ -588,7 +617,7 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
 
 
   while(frontier.length>0){
-    console.log(explored);
+    let killTimer=boardLength*boardHeight;
     if(killTimer--<=0)return null;
 
     frontier.sort((a,b)=>{
@@ -603,20 +632,18 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
     let currentBest = frontier.shift();
 
     if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
-      console.log("finish")
-      if(maxCost!=null && maxCost<currentBest.cost)return null; 
-      else return currentBest;
+      if(maxCost!=null && maxCost<currentBest.cost){
+        return null;
+      } 
+      else {
+        console.log(currentBest)
+        return currentBest;
+      }
     }
 
     explored.push(currentBest)
     
     for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
-      /*while(step.occupied!=null){
-        let coords = {X:step.X,Y:step.Y}
-        coords = convertDirInCoords(coords,start.tileInDir(step))
-        console.log("old: ("+step.X+","+step.Y+") new : ("+coords.X+","+coords.Y+")");
-        step = getTile(coords.X,coords.Y);
-      }*/
       let isExplored = (explored.find( e => {
           return e.node.X == step.X && 
               e.node.Y == step.Y;
@@ -640,37 +667,4 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
   }
   console.log("impossible to reach")
   return null;
-}
-/**
- * 
- * @param {{X:Number,Y:Number}} coords 
- * @param {Direction[]} dirs 
- * @returns {{X:Number,Y:Number}} return the new coords 
- */
-function convertDirInCoords(coords,dirs){
-  for(let dir of dirs) {
-    switch(dir){
-    case Direction.Up:
-      this.Y++;
-      break;
-    case Direction.Right:
-      this.X++
-      break;
-    case Direction.Down:
-      this.Y--;
-      break;
-    case Direction.Left:
-      this.X--;
-      break;
-    }
-  }
-  return coords;
-}
-/**
- * 
- * @param {*} c1 
- * @param {*} c2 
- */
-function colorMoy(c1,c2){
-
 }
