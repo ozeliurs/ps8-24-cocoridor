@@ -363,9 +363,9 @@ class Wall extends Action{
     this.borders = borders;
   }
   execute(){
-    if(!this.canExecute())return null;
+    if(!this.canExecute() || this.player.nbWalls<=0)return null;
     for(let border of this.borders) border.buildWall(this.player)
-    
+    this.player.nbWalls--;
     actionDone();
   }
 }
@@ -454,7 +454,6 @@ function init(lng = 11, lat = 11) {
   playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
   playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
   updateBoardVisibility()
-
 }
 
 function GameWinner(){
