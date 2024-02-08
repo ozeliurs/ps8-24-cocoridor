@@ -155,7 +155,11 @@ function login(request, response) {
 function startGame(request, response) {
     // Logique pour démarrer une nouvelle partie
     // Ici, vous pouvez initialiser le jeu et retourner les données nécessaires au client, par exemple l'identifiant de la partie
-    const gameId = initializeGame(); // Fonction à implémenter pour initialiser une nouvelle partie
+    const gameId = initializeGame = () => {
+        return '123456'; // Exemple d'identifiant de partie
+    }
+     
+     // Fonction à implémenter pour initialiser une nouvelle partie
 
     // Exemple de réponse réussie avec l'identifiant de la partie
     response.writeHead(200, { 'Content-Type': 'application/json' });

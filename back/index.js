@@ -36,6 +36,6 @@ const server=http.createServer(function (request, response) {
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-io.of("/api/game").on('connection', (socket) => {
+io.of("/Game-Page").on('connection', (socket) => {
     console.log('a user connected');
   });
