@@ -1,5 +1,7 @@
 //import io from "socket.io-client";
 
+
+
 class Color{
 
 static black = new Color(0  ,0  ,0  );
@@ -36,8 +38,11 @@ class Player {
    * @param {Number} modifier 
    * @param {Tile} startPos 
    * @param {Tile[]} endPos 
+   * @param {Number} id
    */
-  constructor(modifier,startPos,endPos) {
+  constructor(modifier,startPos,endPos,id) {
+    
+    this.id = id;
     this.modifier = modifier;
     this.start = startPos;
     this.end = endPos;
@@ -76,6 +81,9 @@ class Player {
   }
   getColorStyle(){
     return this.color;
+  }
+  getid(){
+    return this.id;
   }
 }
 
@@ -280,6 +288,8 @@ class Border {
     }
     for(let border of borders) if(border.wall!=0) return;
     if(playersCanReachEnd(borders)) new Wall(currentPlayer(),borders).execute();
+    //server : envoyer le wall au server
+
       
     
   }
@@ -441,8 +451,8 @@ function init(lng = 11, lat = 11) {
     topTiles.push(Board[boardHeight-1][i]);
     bottomTiles.push(Board[0][i])
   }
-  playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles);
-  playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles);
+  playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
+  playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
   updateBoardVisibility()
 
 }

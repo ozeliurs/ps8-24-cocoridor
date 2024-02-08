@@ -50,5 +50,22 @@
     <script>
         init();
     </script>
+    <script src="../js/socket.io.js"> </script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        var socket;
+        switch (mode) {
+            case "local":
+                socket=io('/Game-Page');
+                break;
+            case "ia":
+                socket=io('/api/game');
+                break;
+            default:
+                console.log("Mode inconnu");
+                break;
+        }
+    </script>
 </body>
 </html>

@@ -1,4 +1,6 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
+
+
 function manageRequest(request, response) {
     // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
     let url = new URL(
@@ -15,6 +17,7 @@ function manageRequest(request, response) {
            login(request, response);
             break;
         case 'game':
+
             startGame(request, response);
             break;
         
@@ -153,9 +156,14 @@ function login(request, response) {
 
 // Fonction pour démarrer une nouvelle partie
 function startGame(request, response) {
+
     // Logique pour démarrer une nouvelle partie
     // Ici, vous pouvez initialiser le jeu et retourner les données nécessaires au client, par exemple l'identifiant de la partie
-    const gameId = initializeGame(); // Fonction à implémenter pour initialiser une nouvelle partie
+    const gameId = initializeGame = () => {
+        return '123456'; // Exemple d'identifiant de partie
+    }
+     
+     // Fonction à implémenter pour initialiser une nouvelle partie
 
     // Exemple de réponse réussie avec l'identifiant de la partie
     response.writeHead(200, { 'Content-Type': 'application/json' });

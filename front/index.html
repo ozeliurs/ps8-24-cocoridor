@@ -30,19 +30,52 @@
         </div>
     </div>
     <div class=buttonContainer>
-        <a href="Game-Page/index.html">
+        <a href="Game-Page?mode=local">
             <button class=btn class=gameModeButton >
                 Jouer en local
             </button>
         </a>
-        <button class=btn>
+        <button class=btn onclick="createGame()">
             Jouer en ligne
         </button>
     </div>
     <div class=buttonContainer>
-        <a href="api/game">
+        <a href="Game-Page?mode=ia">
             <button class=btn>
                 Jouer contre l'ia
+            </button>
+        </a>
+    </div>
+
+    <script src="Main-Page/mainPage.js"></script>
+    <script src="
+    "></script>
+    <script>
+        // var socket = io();
+/*
+        function createGame() {
+            fetch('api/creategame', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    // Add any data you want to send to the server
+                })
+            })
+            .then(response => {
+                // Handle the response from the server
+                
+            })
+            .catch(error => {
+                // Handle any errors
+                console.log("erreur")
+            });
+        }*/
+    </script>
+</body>
+</html>
+                
             </button>
         </a>
         <button class=btn>
@@ -51,9 +84,10 @@
     </div>    
 
     <script src="Main-Page/mainPage.js"></script>
-    <script src="js/socket.io.js"></script>
+    <script src="
+    "></script>
     <script>
-        var socket = io();
+      //  var socket = io();
     </script>
 </body>
 </html>
