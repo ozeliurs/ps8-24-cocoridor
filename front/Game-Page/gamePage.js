@@ -1,4 +1,4 @@
-import io from "socket.io-client";
+//import io from "socket.io-client";
 
 class Player {
   /**
@@ -148,6 +148,7 @@ class Tile {
     return result;
   }
 }
+
 class Border {
   constructor(x, y, lng, lat) {
     this.X = Math.floor(x);
@@ -287,6 +288,7 @@ class Wall extends Action{
     this.borders = borders;
   }
   execute(){
+    console.log("wall execute")
     if(!this.canExecute())return null;
     for(let border of this.borders) border.buildWall(this.player)
     
@@ -467,10 +469,11 @@ function actionDone(){
     let player = currentPlayer();
     playeTurn.innerHTML = playerList.indexOf(player)+1;
   }
-    
-  if(turnNb%playerList.length==0 && GameWinner()!=null) {
-    alert("Le joueur " + (winningPlayer.num + 1) + " a gagné !");
-    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (winningPlayer.num + 1);
+  let winners = GameWinner();
+  if(turnNb%playerList.length==0 && winners!=null) {
+    if(winners.length==1) alert("Le joueur " + (playerList.indexOf(winners[0])+1) + " a gagné !");
+    else alert("Il y a égalité");
+    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (playerList.indexOf(winners[0])+1);
     
     
     
@@ -553,6 +556,7 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
 
 
   while(frontier.length>0){
+    console.log(explored);
     if(killTimer--<=0)return null;
 
     frontier.sort((a,b)=>{
@@ -567,6 +571,7 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
     let currentBest = frontier.shift();
 
     if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
+      console.log("finish")
       if(maxCost!=null && maxCost<currentBest.cost)return null; 
       else return currentBest;
     }
@@ -574,11 +579,12 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
     explored.push(currentBest)
     
     for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
-      while(step.occupied!=null){
+      /*while(step.occupied!=null){
         let coords = {X:step.X,Y:step.Y}
         coords = convertDirInCoords(coords,start.tileInDir(step))
+        console.log("old: ("+step.X+","+step.Y+") new : ("+coords.X+","+coords.Y+")");
         step = getTile(coords.X,coords.Y);
-      }
+      }*/
       let isExplored = (explored.find( e => {
           return e.node.X == step.X && 
               e.node.Y == step.Y;
