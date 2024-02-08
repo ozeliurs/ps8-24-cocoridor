@@ -52,10 +52,20 @@
     </script>
     <script src="../js/socket.io.js"> </script>
     <script>
-        const socket=io("/Game-Page");
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
-        socket.emit("mode",mode);
+        var socket;
+        switch (mode) {
+            case "local":
+                socket=io.of('/Game-Page');
+                break;
+            case "ia":
+                socket=io.of('/api/game');
+                break;
+            default:
+                console.log("Mode inconnu");
+                break;
+        }
     </script>
 </body>
 </html>
