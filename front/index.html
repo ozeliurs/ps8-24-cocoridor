@@ -7,20 +7,27 @@
     <title>GamePage</title>
 </head>
 <body id=GamePlaySelection>
-    <div id=playerCard>
-        <img class=shell src="Main-Page/mapFichier1.svg" alt="Coquille gauche">
-        <div id=playerProfile>
-            <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
-            <div id=playerInfo>
-                <div id=playerName>
-                    player
+    <div id=upperZone>
+        <a href="api/signup">
+            <button id=signUp>
+                Se connecter
+            </button>
+        </a>
+        <div id=playerCard>
+            <img class=shell src="Main-Page/mapFichier1.svg" alt="Coquille gauche">
+            <div id=playerProfile>
+                <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
+                <div id=playerInfo>
+                    <div id=playerName>
+                        player
+                    </div>
+                    <div id=playerRank>
+                        Elo 1511
+                    </div>
                 </div>
-                <div id=playerRank>
-                    Elo 1511
-                </div>
-            </div>
-        </div> 
-        <img class=shell src="Main-Page/mapFichier2.svg" alt="Coquille droite">
+            </div> 
+            <img class=shell src="Main-Page/mapFichier2.svg" alt="Coquille droite">
+        </div>
     </div>
     <div class=buttonContainer>
         <a href="Game-Page/index.html">
@@ -33,9 +40,11 @@
         </button>
     </div>
     <div class=buttonContainer>
-        <button class=btn>
-            Jouer contre l'ia
-        </button>
+        <a href="api/game">
+            <button class=btn>
+                Jouer contre l'ia
+            </button>
+        </a>
         <button class=btn>
             Test 2
         </button>
