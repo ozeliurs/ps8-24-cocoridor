@@ -37,11 +37,10 @@ const { Server } = require("socket.io");
 const io = new Server(server);
 
 io.of("/Game-Page").on('connection', (socket) => {
-    socket.on('mode', (msg) => {
-        console.log('mode: ' + msg);
-  });
+    console.log('a user connected local');
+
 });
 
-  io.of("/api/game").on('connection', (socket) => {
-    console.log('a user connected');
-  });
+io.of("/api/game").on('connection', (socket) => {
+    console.log('a user connected api');
+});

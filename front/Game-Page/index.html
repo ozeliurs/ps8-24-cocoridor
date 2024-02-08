@@ -57,10 +57,10 @@
         var socket;
         switch (mode) {
             case "local":
-                socket=io.of('/Game-Page');
+                socket=io('/Game-Page');
                 break;
             case "ia":
-                socket=io.of('/api/game');
+                socket=io('/api/game');
                 break;
             default:
                 console.log("Mode inconnu");
