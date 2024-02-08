@@ -53,6 +53,9 @@
     <script src="../js/socket.io.js"> </script>
     <script>
         const socket=io("/Game-Page");
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        socket.emit("mode",mode);
     </script>
 </body>
 </html>
