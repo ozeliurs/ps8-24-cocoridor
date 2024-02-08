@@ -25,7 +25,7 @@ class Player {
         console.error("unknown player modifier")
         break;
     }
-    if(endPos==null)console.error("ce joueur ne peux pas gagner")
+    if(endPos==null)console.info("ce joueur ne peux pas gagner")
     if(startPos!=null) startPos.occupiedBy(this);
   }
   /**
@@ -69,7 +69,6 @@ class Tile {
     else if(y+1==(boardHeight/2)+0.5) this.visibility = 0;
     else this.visibility = 1;
 
-    this.element.innerHTML=this.visibility
     this.BorderR = new Border(x, y, true, false);
     this.groupElement.appendChild(this.BorderR.element);
     if (!right) {
@@ -106,7 +105,6 @@ class Tile {
   }
   changeVisibility(value){
     this.visibility+=value;
-    this.element.innerHTML=this.visibility
   }
   /**
    * @returns {Tile[]}
@@ -219,7 +217,7 @@ class Action {
 class Move extends Action{
   /**
    * 
-   * @param {playeTurn} player 
+   * @param {Player} player 
    * @param {Number} x 
    * @param {Number} y 
    */
@@ -229,12 +227,27 @@ class Move extends Action{
     this.Y = y;
     if(getTile(this.X,this.Y).occupied!=null){
       let tile = currentPlayer().getTile();
-      var angle = Math.atan2(this.Y - tile.Y, this.X - tile.X) * (180 / Math.PI);
-      if( 314<angle || angle<46 ) y++
-      else if(angle<134)x++
-      else if(angle<226)y--
-      else if(angle<314)x--
-      else console.error("Pas possible de creer le mouvement")
+      let xDiff = this.X - tile.X;
+      let yDiff = this.Y - tile.Y;
+      let newX = this.X;
+      let newY = this.Y;
+      let addCost = 1;
+      if(Math.abs(xDiff)>Math.abs(yDiff)){
+        if(xDiff<0) newX--;
+        else newX++;
+      }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+        if(yDiff<0) newY--;
+        else newY++;
+      }else{
+        if(xDiff<0) newX--;
+        else newX++;
+        if(yDiff<0) newY--;
+        else newY++;
+        addCost=2;
+      }
+      if(aStar(getTile(this.X,this.Y),getTile(newX,newY),addCost,jumpOverWall)!=null){
+        return new Move(player,newX,newY);
+      }
     }
 
   }
@@ -244,7 +257,7 @@ class Move extends Action{
     if(canMoveTo(this.player.getTile(),getTile(this.X,this.Y))){
       getTile(this.X,this.Y).occupiedBy(this.player);
       actionDone();
-    }else console.log("impossible")
+    }else console.log("cannot move")
 
 
   }
@@ -272,8 +285,9 @@ Board = [];
 const numActions = 1;
 const travelDist = 1;
 const SightDistance = 1;
-const lineOfSight = false; // marche po
+const lineOfSight = false; // po implemente
 const wallLength = 2;
+const jumpOverWall = false;
 let remainingAction = numActions;
 let boardLength = 0;
 let boardHeight = 0;
@@ -353,6 +367,8 @@ function init(lng = 11, lat = 11) {
   }
   playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles);
   playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles);
+  updateBoardVisibility()
+
 }
 
 function GameWinner(){
@@ -396,6 +412,7 @@ function wallAtDir(x,y,dir){
   else return tile.BorderD;
   
 }
+
 function wallAt(fx,fy,tx,ty){
   if(Math.abs(fx-tx)+ Math.abs(fy-ty)!=1) return null;
   if(fy==ty){
@@ -421,7 +438,7 @@ function wallBetween(from,to){
  * @returns {Player} player that must play
  */
 function currentPlayer(){
-  return playerList[turnNb%2];
+  return playerList[turnNb%playerList.length];
 }
 
 function actionDone(){
@@ -432,18 +449,27 @@ function actionDone(){
   if(remainingAction<=0){
     remainingAction=numActions;
     turnNb++;
+    let playeTurn = document.getElementById("playerplaying");
+    let player = currentPlayer();
+    playeTurn.innerHTML = playerList.indexOf(player)+1;
   }
-  if(GameWinner()!=null) return;
-  let playeTurn = document.getElementById("playerplaying");
+  if(turnNb%playerList.length==0 && GameWinner()!=null) return;
   let player = currentPlayer();
-  playeTurn.innerHTML = playerList.indexOf(player)+1;
+  updateBoardVisibility(player)
+}
+
+/**
+ * 
+ * @param {Player} player 
+ */
+function updateBoardVisibility(player = null){
+  if(player==null) player = currentPlayer();
   for(let y=0;y<boardHeight;y++) for (let x = 0; x<boardLength; x++){
     let tile = getTile(x,y);
     if(tile.visibility * player.modifier>=0) tile.element.style.visibility="visible";
     else if(Math.abs(tile.X-player.OnTile.X) + Math.abs(tile.Y-player.OnTile.Y) <= SightDistance) tile.element.style.visibility="visible";
     else tile.element.style.visibility = "hidden";
   }
-
 }
 
 /**
@@ -461,16 +487,13 @@ function distTo(from,to){
  * @returns 
  */
 function playersCanReachEnd(additionnalWalls = []){
-  console.log("PCRE")
   for(let player of playerList){
-    console.log(player);
     if(player.end==null|| player.end.length==0)continue;
     let foundPath = false
     for(let obj of player.end){
       let path = aStar(player.getTile(),obj,null, false, additionnalWalls);
       if(path!=null){
         foundPath=true;
-        console.log("path found)");
         break;}
     }
     if(!foundPath)return false;
@@ -547,7 +570,7 @@ function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
       }))
 
       if (!isExplored && !isFrontier) {
-        let cost = currentBest.cost+1;
+        let cost = currentBest.cost+(step.occupied!=null?0:1);
         frontier.push({
           node: step,
           cost: cost,
@@ -557,6 +580,6 @@ function aStar(start,end,maxCost = null,jumpWall = false, addWalls = []){
       }
     }
   }
-  console.log("impossible")
+  console.log("impossible to reach")
   return null;
 }
