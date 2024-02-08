@@ -1,7 +1,3 @@
-//import io from "socket.io-client";
-
-
-
 class Color{
 
 static black = new Color(0  ,0  ,0  );
@@ -27,6 +23,7 @@ static white = new Color(255,255,255);
     let b = this.B;
     return new Color((c.R*(1-per)+r*per)/2,(c.G*(1-per)+g*per)/2,(c.B*(1-per)+b*per)/2)
   }
+
   toStyle(){
     return "rgb("+this.R+","+this.G+","+this.B+")"
   }
@@ -44,9 +41,9 @@ class Player {
     
     this.id = id;
     this.modifier = modifier;
-    this.start = startPos;
-    this.end = endPos;
-    this.OnTile = {X:this.start.X,Y:this.start.Y};
+    this.start = startPos.getCoords();
+    this.end = [];
+    for(let tile of endPos)this.end.push(tile.getCoords())
     this.nbWalls = nbWallsPerPlayer;
     switch (modifier) {
       case -1:
@@ -63,8 +60,8 @@ class Player {
         console.error("unknown player modifier")
         break;
     }
+    if(startPos!=null)startPos.occupiedBy(this);
     if(endPos==null)console.info("ce joueur ne peux pas gagner")
-    if(startPos!=null) startPos.occupiedBy(this);
   }
   /**
    * 
@@ -77,6 +74,7 @@ class Player {
    * @returns {Tile}
    */
   getTile(){
+    if(this.OnTile==null)return null;
     return getTile(this.OnTile.X,this.OnTile.Y);
   }
   getColorStyle(){
@@ -132,8 +130,22 @@ class Tile {
    */
   occupiedBy(player) {
     if(player!=null){
-      if(player.getTile() != null) player.getTile().occupiedBy(null);
+      let old = player.getTile()
+      if(old != null) old.occupiedBy(null);
       player.OnTile = {X:this.X,Y:this.Y};
+      for(let modX=-SightDistance;modX<=SightDistance;modX++) for(let modY=-SightDistance;modY<=SightDistance;modY++){
+        if(Math.abs(modX)+Math.abs(modY)>SightDistance) continue;
+        let lighten = getTile(this.X+modX,this.Y+modY);
+        if(lighten!=null) {
+          lighten.changeVisibility(player.modifier*sightForce);
+        }
+        if(old!=null){
+          let darken = getTile(old.X+modX,old.Y+modY)
+          if(darken!=null) {
+            darken.changeVisibility(-player.modifier*sightForce);
+          }
+        }
+      }
     } 
     this.occupied = player;
     this.updateTile()
@@ -141,17 +153,15 @@ class Tile {
 
   onClick() {
     if(currentPlayer()==this.occupied) return;
-    console.log(this.X+"-"+this.Y)
     let move = new Move(currentPlayer(),this.X,this.Y);
     if(move == undefined)return;
     move.execute();
   }
   updateTile() {
+    this.element.innerHTML = this.visibility;
     if (this.occupied != null) {
-      console.log("add on ("+this.X+","+this.Y+") = "+this.occupied.color.toStyle());
       this.element.style.backgroundColor=this.occupied.color.toStyle();
     } else {
-      console.log("remove on ("+this.X+","+this.Y+")");
       this.element.style.backgroundColor="";
     }
   }
@@ -159,6 +169,7 @@ class Tile {
     this.visibility+=value;
   }
   /**
+   * 
    * @returns {Tile[]}
    */
   getNeighbour(jumpWalls=false, fictionnalWalls = []){
@@ -222,7 +233,9 @@ class Tile {
     return getTile(x,y);
   }
 
-
+  getCoords(){
+    return{X:this.X,Y:this.Y}
+  }
 }
 
 class Border {
@@ -374,11 +387,13 @@ Board = [];
 //Game rules
 const numActions = 5; //number of action per turn
 const travelDist = 1; //number of tiles a player can travel in one action
-const SightDistance = 1; //number of tiles the player has visibility around him
+const SightDistance = 2; //number of tiles the player has visibility around him
 const lineOfSight = false; // po implemente
 const wallLength = 2; // length of the wall built
 const jumpOverWall = false; // if players can jump above walls by jumping on another player
 const nbWallsPerPlayer = 10 //number max of wall a player can place
+const absoluteSight = false;
+const sightForce = 1;
 
 //Games data
 let remainingAction = numActions;
@@ -460,7 +475,9 @@ function GameWinner(){
   let winners = []
   for (let i=0;i<playerList.length;i++){
     let player = playerList[i]
-    if(player.end.includes(player.getTile())) winners.push(player);
+    if(player.end.length == 0 || player.getTile()==null)continue;
+    let currentCoords = player.getTile().getCoords();
+    if(player.end.find((e)=>e.X===currentCoords.X && e.Y===currentCoords.Y)!=undefined) winners.push(player);
   }
   
   return winners.length==0?null:winners;
@@ -529,21 +546,19 @@ function currentPlayer(){
 function actionDone(){
 
   remainingAction--;
-  
-
+  let winners = GameWinner();
+  if(turnNb%playerList.length==playerList.length-1 && winners!=null && (winners.includes(playerList[playerList.length-1]) || remainingAction==0)) {
+    if(winners.length==1) alert("Le joueur " + (playerList.indexOf(winners[0])+1) + " a gagné !");
+    else alert("Il y a égalité");
+    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (playerList.indexOf(winners[0])+1);
+    
+  }
   if(remainingAction<=0){
     remainingAction=numActions;
     turnNb++;
     let playeTurn = document.getElementById("playerplaying");
     let player = currentPlayer();
     playeTurn.innerHTML = playerList.indexOf(player)+1;
-  }
-  let winners = GameWinner();
-  if(turnNb%playerList.length==0 && winners!=null) {
-    if(winners.length==1) alert("Le joueur " + (playerList.indexOf(winners[0])+1) + " a gagné !");
-    else alert("Il y a égalité");
-    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (playerList.indexOf(winners[0])+1);
-    
     
     
   }
@@ -559,9 +574,10 @@ function updateBoardVisibility(player = null){
   if(player==null) player = currentPlayer();
   for(let y=0;y<boardHeight;y++) for (let x = 0; x<boardLength; x++){
     let tile = getTile(x,y);
-    if(tile.visibility * player.modifier>=0) tile.element.style.visibility="visible";
-    else if(Math.abs(tile.X-player.OnTile.X) + Math.abs(tile.Y-player.OnTile.Y) <= SightDistance) tile.element.style.visibility="visible";
-    else tile.element.style.visibility = "hidden";
+    tile.element.innerHTML = tile.visibility;
+    /*if(tile.visibility * player.modifier>=0) tile.element.style.visibility="visible";//TODO faire changer les couleurs des cases au lieu de les cachers
+    else if(absoluteSight && Math.abs(tile.X-player.OnTile.X) + Math.abs(tile.Y-player.OnTile.Y) <= SightDistance) tile.element.style.visibility="visible";
+    else tile.element.style.visibility = "hidden";*/
   }
 }
 
@@ -645,7 +661,6 @@ function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls 
         return null;
       } 
       else {
-        console.log(currentBest)
         return currentBest;
       }
     }
