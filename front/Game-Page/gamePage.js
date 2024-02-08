@@ -1,5 +1,35 @@
 //import io from "socket.io-client";
 
+class Color{
+
+static black = new Color(0  ,0  ,0  );
+static red   = new Color(255,0  ,0  );
+static green = new Color(0  ,255,0  );
+static blue  = new Color(0  ,0  ,255);
+static white = new Color(255,255,255);
+
+  constructor(r,g,b){
+    this.R = r;
+    this.G = g;
+    this.B = b;
+  }
+
+  /**
+   * 
+   * @param {Color} c 
+   * @returns 
+   */
+  moy(c,per=0.5){
+    let r = this.R;
+    let g = this.G;
+    let b = this.B;
+    return new Color((c.R*(1-per)+r*per)/2,(c.G*(1-per)+g*per)/2,(c.B*(1-per)+b*per)/2)
+  }
+  toStyle(){
+    return "rgb("+this.R+","+this.G+","+this.B+")"
+  }
+}
+
 class Player {
   /**
    * 
@@ -15,12 +45,12 @@ class Player {
     switch (modifier) {
       case -1:
         this.image = "./image1.png";
-        this.color = "rgb(0, 0, 255)"
+        this.color = Color.blue
         break;
 
       case 1:
         this.image = "./image2.png";
-        this.color = "rgb(255, 0, 0)"
+        this.color = Color.red
         break;
 
       default:
@@ -43,6 +73,9 @@ class Player {
    */
   getTile(){
     return this.OnTile;
+  }
+  getColorStyle(){
+    return this.color;
   }
 }
 
@@ -104,8 +137,8 @@ class Tile {
   }
   updateTile() {
     if (this.occupied != null) {
-      this.element.style="background-color:"+this.occupied.color;
-    } else this.element.style=""
+      this.element.style.backgroundColor=this.occupied.color.toStyle();
+    } else this.element.style.backgroundColor=""
   }
   changeVisibility(value){
     this.visibility+=value;
@@ -180,7 +213,7 @@ class Border {
    * @param {Player} player 
    */
   buildWall(player) {
-    this.element.classList.add("wall");
+    this.element.style.backgroundColor= player.color.moy(Color.black,0.9).toStyle();
     this.wall = player.modifier;
     for(let coord of this.influence){
       let x = coord[0] + this.X;
@@ -288,7 +321,6 @@ class Wall extends Action{
     this.borders = borders;
   }
   execute(){
-    console.log("wall execute")
     if(!this.canExecute())return null;
     for(let border of this.borders) border.buildWall(this.player)
     
@@ -633,4 +665,12 @@ function convertDirInCoords(coords,dirs){
     }
   }
   return coords;
+}
+/**
+ * 
+ * @param {*} c1 
+ * @param {*} c2 
+ */
+function colorMoy(c1,c2){
+
 }
