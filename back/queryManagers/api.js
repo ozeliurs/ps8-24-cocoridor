@@ -15,7 +15,7 @@ function manageRequest(request, response) {
            login(request, response);
             break;
         case 'game':
-            updateBoard(request, response);
+            startGame(request, response);
             break;
         
         case 'startGame':
