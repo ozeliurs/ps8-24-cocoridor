@@ -158,6 +158,7 @@ class Tile {
     if(move == undefined)return;
     move.execute();
     console.log(move);
+    socket.emit('move', move);
 
 
   }
@@ -304,7 +305,11 @@ class Border {
       }
     }
     for(let border of borders) if(border.wall!=0) return;
-    if(playersCanReachEnd(borders)) new Wall(currentPlayer(),borders).execute();
+    if(playersCanReachEnd(borders)){
+
+     let wallplayed = new Wall(currentPlayer(),borders);
+     wallplayed.execute();
+     socket.emit('wall', wallplayed);}
     //server : envoyer le wall au server
 
       
@@ -366,8 +371,8 @@ class Move extends Action{
     if(tile==null)return;
     tile.occupiedBy(this.player);
     actionDone();
-    socket.emit('move', this);
-    console.log("move");
+    /*socket.emit('move', this);
+    console.log("move");*/
   }
 }
 
@@ -386,8 +391,8 @@ class Wall extends Action{
     for(let border of this.borders) border.buildWall(this.player)
     this.player.nbWalls--;
     actionDone();
-    socket.emit('wall', this);
-    console.log("wall");
+    /*socket.emit('wall', this);
+    console.log("wall");*/
   }
 }
 
