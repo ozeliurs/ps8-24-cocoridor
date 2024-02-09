@@ -158,8 +158,7 @@ class Tile {
     if(move == undefined)return;
     move.execute();
     console.log(move);
-    socket.emit('move', move);
-    console.log("move");
+
 
   }
   updateTile() {
@@ -367,6 +366,8 @@ class Move extends Action{
     if(tile==null)return;
     tile.occupiedBy(this.player);
     actionDone();
+    socket.emit('move', this);
+    console.log("move");
   }
 }
 
@@ -385,6 +386,8 @@ class Wall extends Action{
     for(let border of this.borders) border.buildWall(this.player)
     this.player.nbWalls--;
     actionDone();
+    socket.emit('wall', this);
+    console.log("wall");
   }
 }
 
