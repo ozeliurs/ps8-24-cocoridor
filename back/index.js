@@ -41,6 +41,21 @@ io.of("/Game-Page").on('connection', (socket) => {
 
 });
 
+
 io.of("/api/game").on('connection', (socket) => {
     console.log('a user connected api');
+
+    socket.on('test', (message) => {
+        console.log('Test event received:', message);
+    });
+    
+    socket.on('move', (move) => {
+        console.log('move pris en compte ', move);
+
+
+        // Add your logic here to handle the move event
+    });
 });
+
+
+

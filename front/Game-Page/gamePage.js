@@ -154,8 +154,13 @@ class Tile {
   onClick() {
     if(currentPlayer()==this.occupied) return;
     let move = new Move(currentPlayer(),this.X,this.Y);
+    
     if(move == undefined)return;
     move.execute();
+    console.log(move);
+    socket.emit('move', move);
+    console.log("move");
+
   }
   updateTile() {
     this.element.innerHTML = this.visibility;
@@ -385,16 +390,15 @@ class Wall extends Action{
 
 Board = [];
 //Game rules
-const numActions = 5; //number of action per turn
+const numActions = 1; //number of action per turn
 const travelDist = 1; //number of tiles a player can travel in one action
-const SightDistance = 2; //number of tiles the player has visibility around him
+const SightDistance = 1; //number of tiles the player has visibility around him
 const lineOfSight = false; // po implemente
 const wallLength = 2; // length of the wall built
 const jumpOverWall = false; // if players can jump above walls by jumping on another player
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
-
 //Games data
 let remainingAction = numActions;
 let boardLength = 0;
