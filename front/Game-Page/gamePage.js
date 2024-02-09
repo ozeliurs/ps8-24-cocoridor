@@ -154,8 +154,13 @@ class Tile {
   onClick() {
     if(currentPlayer()==this.occupied) return;
     let move = new Move(currentPlayer(),this.X,this.Y);
+    
     if(move == undefined)return;
     move.execute();
+    console.log(move);
+    socket.emit('move', move);
+
+
   }
   updateTile() {
     this.element.innerHTML = this.visibility;
@@ -300,7 +305,11 @@ class Border {
       }
     }
     for(let border of borders) if(border.wall!=0) return;
-    if(playersCanReachEnd(borders)) new Wall(currentPlayer(),borders).execute();
+    if(playersCanReachEnd(borders)){
+
+     let wallplayed = new Wall(currentPlayer(),borders);
+     wallplayed.execute();
+     socket.emit('wall', wallplayed);}
     //server : envoyer le wall au server
 
       
@@ -362,6 +371,8 @@ class Move extends Action{
     if(tile==null)return;
     tile.occupiedBy(this.player);
     actionDone();
+    /*socket.emit('move', this);
+    console.log("move");*/
   }
 }
 
@@ -380,21 +391,22 @@ class Wall extends Action{
     for(let border of this.borders) border.buildWall(this.player)
     this.player.nbWalls--;
     actionDone();
+    /*socket.emit('wall', this);
+    console.log("wall");*/
   }
 }
 
 Board = [];
 //Game rules
-const numActions = 5; //number of action per turn
+const numActions = 1; //number of action per turn
 const travelDist = 1; //number of tiles a player can travel in one action
-const SightDistance = 2; //number of tiles the player has visibility around him
+const SightDistance = 1; //number of tiles the player has visibility around him
 const lineOfSight = false; // po implemente
 const wallLength = 2; // length of the wall built
 const jumpOverWall = false; // if players can jump above walls by jumping on another player
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
-
 //Games data
 let remainingAction = numActions;
 let boardLength = 0;
