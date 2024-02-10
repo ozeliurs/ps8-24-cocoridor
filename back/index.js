@@ -1,3 +1,5 @@
+const back = require("./logic/back.js")
+
 // The http module contains methods to handle http queries.
 const http = require('http')
 // Let's import our logic.
@@ -42,5 +44,11 @@ io.of("/Game-Page").on('connection', (socket) => {
 });
 
 io.of("/api/game").on('connection', (socket) => {
+    console.log("coucou")
+    let playerList = back.init()
+    
+    let newBoard = back.BoardFor(playerList[0])
+    socket.emit("updateBoard",newBoard)
     console.log('a user connected api');
 });
+

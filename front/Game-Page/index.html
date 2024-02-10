@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="../Game-Page/gamePage.css">
     <title>GamePage</title>
     <script src="../Game-Page/gamePage.js"> </script>
+    <script src="../js/socket.io.js"> </script>
 </head>
 <body>
     <h1>Cocoridor</h1>
@@ -34,7 +35,6 @@
     <script>
         function openChat() {
             document.getElementById("chatPopup").style.display = "block";
-            
         }
 
         function closeChat() {
@@ -42,22 +42,17 @@
         }
 
         function sendMessage() {
-            
             var message = document.getElementById("chatInput").value;
             console.log("Message envoyé : " + message);
         }
     </script>
-    <script>
-        init();
-    </script>
-    <script src="../js/socket.io.js"> </script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
         var socket;
         switch (mode) {
             case "local":
-                socket=io('/Game-Page');
+                socket=io('/api/game');
                 break;
             case "ia":
                 socket=io('/api/game');
@@ -66,6 +61,7 @@
                 console.log("Mode inconnu");
                 break;
         }
+        socket.on("updateBoard",(board)=>{console.log("INSANE OMG");DisplayBoard(board);})
     </script>
 </body>
 </html>
