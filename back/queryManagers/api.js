@@ -1,7 +1,9 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
 
+const { getUsers } = require("../database/database");
 
-function manageRequest(request, response) {
+
+async function manageRequest(request, response) {
     // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
     let url = new URL(
         request.url,
@@ -26,7 +28,14 @@ function manageRequest(request, response) {
 
         case 'endGame':
             endGame(request, response);
-            break;    
+            break;
+        
+        case 'getUsers':
+            let res=await getUsers();
+            let users = await res.find({}).toArray(); 
+            console.log(users);           
+
+            break;
         default:
             response.writeHead(404, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Endpoint non trouvé' }));
@@ -65,7 +74,6 @@ function createOrUpdateUser(email, username, password, response, isNewUser) {
         // Simuler une opération de succès pour la démonstration
         // Remplacez cette partie par votre propre logique d'insertion en base de données
         const userCreated = true;
-
         if (userCreated) {
             response.writeHead(201, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ message: 'Utilisateur créé avec succès' }));

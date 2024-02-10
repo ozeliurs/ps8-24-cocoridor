@@ -6,7 +6,7 @@ signUpBtn.onclick = function(){
     let user = {
         name: username.value,
         email: email.value,
-        mdp: mdp.value
+        password: mdp.value
     }
 
     fetch('http://localhost:8000/api/signup', {

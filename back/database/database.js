@@ -1,11 +1,8 @@
 const { MongoClient } = require('mongodb');
-
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017';
-
-/*
- ** The MongoClient object is the one that will allow us to connect to the database.
- */
+const {DB_MONGO} = require("../Env.js");
+const MONGO_URL = DB_MONGO;
 const client = new MongoClient(MONGO_URL);
+
 
 async function getMongoDatabase() {
     if (!!client && !!client.topology && client.topology.isConnected()) {
