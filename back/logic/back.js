@@ -325,12 +325,9 @@ function getTileIn(Tile,dir){
   }
   
 function init(lng = 11, lat = 11) {
-    console.log("coucou")
     boardLength = lng;
     boardHeight = lat;
     //CreateBoard
-      let gameDiv = document.getElementById("game");
-      gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
     for (y = boardHeight-1; y >= 0; y--) {
       Board[y] = [];
       for (x = 0; x < boardLength; x++) {
@@ -347,7 +344,7 @@ function init(lng = 11, lat = 11) {
     }
     playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
     playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
-    BoardFor(currentPlayer()); //TODO socket
+    //BoardFor(currentPlayer()); //TODO socket
     return playerList;
   }
   
