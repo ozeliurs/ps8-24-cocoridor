@@ -1,3 +1,54 @@
+let boardLength = 11;
+let boardHeight = 11;
+
+
+const numActions = 1; //number of action per turn
+const travelDist = 1; //number of tiles a player can travel in one action
+const SightDistance = 1; //number of tiles the player has visibility around him
+const lineOfSight = false; // po implemente
+const wallLength = 2; // length of the wall built
+const jumpOverWall = false; // if players can jump above walls by jumping on another player
+const nbWallsPerPlayer = 10 //number max of wall a player can place
+const absoluteSight = false;
+const sightForce = 1;
+
+
+
+
+
+
+
+class Color{
+
+  static black = new Color(0  ,0  ,0  );
+  static red   = new Color(255,0  ,0  );
+  static green = new Color(0  ,255,0  );
+  static blue  = new Color(0  ,0  ,255);
+  static white = new Color(255,255,255);
+  static darkGrey = new Color(50,50,50);
+  
+    constructor(r,g,b){
+      this.R = r;
+      this.G = g;
+      this.B = b;
+    }
+  
+    /**
+     * 
+     * @param {Color} c 
+     * @returns 
+     */
+    moy(c,per=0.5){
+      let r = this.R;
+      let g = this.G;
+      let b = this.B;
+      return new Color((c.R*(1-per)+r*per)/2,(c.G*(1-per)+g*per)/2,(c.B*(1-per)+b*per)/2)
+    }
+  
+    toStyle(){
+      return "rgb("+this.R+","+this.G+","+this.B+")"
+    }
+  }
 
 
 class TileFront {
@@ -39,7 +90,7 @@ class TileFront {
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
     else if (this.occupied === true) {}
-    else this.element.style.backgroundColor = this.occupied.color.toStyle();
+    else this.element.style.backgroundColor = Color.white.toStyle();//this.occupied.color.toStyle();
 
     this.groupElement.appendChild(this.element);
 
@@ -226,11 +277,19 @@ function currentPlayer(){
  * @param {TileFront[][]} board 
  */
 function DisplayBoard(board){
+  console.log(board) ;
   currentBoard = board
   let gameDiv = document.getElementById("game");
+  gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
   while (gameDiv.firstChild) gameDiv.removeChild(gameDiv.firstChild);
   for (const line of board) {
-    for (const tile of line) {
+    for (let tile of line) {
+      
+      
+      tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
+      tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
+      tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
+      tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
       gameDiv.insertBefore(tile.generateElement(),gameDiv.firstChild);
     }
   }

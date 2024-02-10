@@ -19,6 +19,41 @@ let turnNb = 0;
 
 
 
+
+class TileFront {
+  /**
+   *
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Number} maxX
+   * @param {Number} minY
+   * @param {Player | Boolean} occupiedBy
+   */
+  constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
+    this.X = Math.floor(x);
+    this.Y = Math.floor(y);
+    this.occupied = occupiedBy;
+    this.right = x != boardLength;
+    this.down = y != 0;
+    this.BorderR = bRight;
+    this.BorderD = bDown;
+    this.Edge = edge;
+
+  }
+}
+
+class BorderFront{
+  constructor(x, y, lng, lat ,color) {
+    this.X = Math.floor(x);
+    this.Y = Math.floor(y);
+    this.color = color;
+    this.lng = lng;
+    this.lat = lat;
+  }
+}
+
+
+
 class Color{
 
     static black = new Color(0  ,0  ,0  );
