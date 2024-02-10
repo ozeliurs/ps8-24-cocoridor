@@ -12,6 +12,7 @@ const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
 
+let playerID = 1;
 
 
 
@@ -73,10 +74,14 @@ class TileFront {
   }
 
   onClick() {
-    if(currentPlayer()==this.occupied) return;
-    let move = new Move(currentPlayer(),this.X,this.Y);
+  //  if(currentPlayer()==this.occupied) return;
+    let move = new Move(playerID,this.X,this.Y);
     if(move == undefined)return;
-    move.execute();
+    //move.execute();.
+
+    socket.emit("move",move);
+    console.log("move")
+
   }
 
   generateElement(){
@@ -177,58 +182,50 @@ class BorderFront{
 class Action {
   /**
    * 
-   * @param {Player} player 
+   * @param {Number} playerID 
    */
-  constructor(player){
-    this.player = player;
+  constructor(playerID){
+    this.playerID = playerID;
   }
   /**
    * 
    * @returns {Boolean}
    */
-  canExecute(){
-    return this.player == currentPlayer();
-  }
-  highlight(){
-    console.error("highlight not defined in sub class")
-  }
-  execute(){
-    console.error("execute not defined in sub class")
-  }
+
+
 }
 
 class Move extends Action{
   /**
    * 
-   * @param {Player} player 
+   * @param {Number} playerID 
    * @param {Number} x 
    * @param {Number} y 
    */
-  constructor(player, x,y){
-    super(player);
-    let start = currentPlayer().getTile();
-    let end = getTile(x,y);
-    let dirs = start.tileInDir(end);
-    let path = aStar({start:start,end:end,maxCost:travelDist});
-    if(path==null) return undefined;
-    while(path.node.occupied!=null){
-      path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
-      if(path==null) return undefined;
-      start = end;
-      end = path.node.getTileInDir(dirs);
-    }
-    this.X = path.node.X;
-    this.Y = path.node.Y;
+  constructor(playerID, x,y){
+    super(playerID);
+     this.x =x;
+     this.y =y;
+    
+
+    
+    // let start = currentPlayer().getTile();
+    // let end = getTile(x,y);
+    // let dirs = start.tileInDir(end);
+    // let path = aStar({start:start,end:end,maxCost:travelDist});
+    // if(path==null) return undefined;
+    // while(path.node.occupied!=null){
+    //   path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
+    //   if(path==null) return undefined;
+    //   start = end;
+    //   end = path.node.getTileInDir(dirs);
+    // }
+    // this.X = path.node.X;
+    // this.Y = path.node.Y;
 
   }
   
-  execute(){
-    if(!this.canExecute()) return;
-    let tile = getTile(this.X,this.Y);
-    if(tile==null)return;
-    tile.occupiedBy(this.player);
-    actionDone();
-  }
+
 }
 
 class Wall extends Action{
@@ -294,6 +291,11 @@ function DisplayBoard(board){
     }
   }
 }
+
+
+
+
+
 
 
 

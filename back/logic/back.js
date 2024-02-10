@@ -20,6 +20,11 @@ let turnNb = 0;
 
 
 
+function currentPlayer(){
+  return playerList[turnNb%playerList.length];
+}
+
+
 class TileFront {
   /**
    *
@@ -217,7 +222,7 @@ class Color{
       getNeighbour(jumpWalls=false, fictionnalWalls = []){
         let result = [];
         let current = getTile(this.X,this.Y+1);
-        console.log(current)
+
         if(current!=null && (jumpWalls || current.BorderD.wallBy==0) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
         current = getTile(this.X+1,this.Y);
         if(current!=null && (jumpWalls || this.BorderR.wallBy==0 ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
@@ -461,9 +466,7 @@ function actionDone(){
     if(remainingAction<=0){
       remainingAction=numActions;
       turnNb++;
-      let playeTurn = document.getElementById("playerplaying");
-      let player = currentPlayer();
-      playeTurn.innerHTML = playerList.indexOf(player)+1;
+
       
       
     }
@@ -541,7 +544,9 @@ function actionDone(){
   
   
     while(frontier.length>0){
-      if(killTimer--<=0)return null;
+      if(killTimer--<=0){
+        console.log("0");
+        return null;}
   
       frontier.sort((a,b)=>{
         let diff = a.estimate-b.estimate;
@@ -555,6 +560,7 @@ function actionDone(){
       let currentBest = frontier.shift();
       if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
         if(maxCost!=null && maxCost<currentBest.cost){
+          console.log("1")
           return null;
         } 
         else {
@@ -605,5 +611,103 @@ function actionDone(){
     return result;
   }
 
+
+
+  class Action {
+    /**
+     * 
+     * @param {Player} player 
+     */
+    constructor(player){
+      this.player = player;
+    }
+    /**
+     * 
+     * @returns {Boolean}
+     */
+    canExecute(){
+      return this.player == currentPlayer();
+    }
+    highlight(){
+      console.error("highlight not defined in sub class")
+    }
+    execute(){
+      console.error("execute not defined in sub class")
+    }
+  }
+  
+  class Move extends Action{
+    /**
+     * 
+     * @param {Player} player 
+     * @param {Number} x 
+     * @param {Number} y 
+     */
+    constructor(player, x,y){
+      super(player);
+      let start = currentPlayer().getTile();
+      
+      let end = getTile(x,y);
+      console.log(end);
+      let dirs = start.tileInDir(end);
+      let path = end//aStar({start:start,end:end,maxCost:travelDist});
+      console.log(path)
+      if(path==null) return undefined;
+      while(path.occupied!=null){
+        path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
+        if(path==null) return undefined;
+        start = end;
+        end = path.node.getTileInDir(dirs);
+      }
+      this.X = path.X;
+      this.Y = path.Y;
+  
+    }
+    
+    execute(){
+      if(!this.canExecute()) return;
+      let tile = getTile(this.X,this.Y);
+      if(tile==null)return;
+      tile.occupiedBy(this.player);
+      actionDone();
+    }
+  }
+  
+  class Wall extends Action{
+    /**
+     * 
+     * @param {Player} player
+     * @param {Border[]} borders 
+     */
+    constructor(player,borders){
+      super(player)
+      this.borders = borders;
+    }
+    execute(){
+      if(!this.canExecute() || this.player.nbWalls<=0)return null;
+      for(let border of this.borders) border.buildWall(this.player)
+      this.player.nbWalls--;
+      actionDone();
+    }
+  }
+
+
+
+
+
+
+
+  function execMove(playerID, x, y){
+
+    let player = playerList[playerID-1];
+   // console.log (player);
+    console.log(x);
+    console.log(y);
+    let move = new Move(player, x, y);
+    move.execute();
+
+  }
+
   exports.init = init;
   exports.BoardFor = BoardFor;
+  exports.execMove = execMove;
