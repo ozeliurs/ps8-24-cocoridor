@@ -301,7 +301,24 @@ class Border {
       this.lng = lng;
       this.lat = lat;
       this.wallBy = null;
+      
+      switch ((lng ? 1 : 0) + (lat ? 2 : 0)) {
+        case 1: // vertical border
+         
+          this.influence = [[0,0],[0,1],[-1,0],[0,-1],[1,0],[1,1],[2,0],[1,-1]];
+          
+        case 2: // horizontal border
+          
+          this.influence = [[0,0],[-1,0],[0,1],[1,0],[0,-1],[-1,-1],[0,-2],[1,-1]];
+         
+          break;
+        case 3: // edge
+         
+          this.influence = [];
+          break;
+      }
     }
+
   
     toFront(){
       return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle())
@@ -365,6 +382,7 @@ function getTileIn(Tile,dir){
   }
   
 function init(lng = 11, lat = 11) {
+    turnNb = 0;
     boardLength = lng;
     boardHeight = lat;
     //CreateBoard
@@ -708,6 +726,34 @@ function actionDone(){
 
   }
 
+  function execWall(playerID, x, y, vertical){
+    let player = playerList[playerID-1];
+    if(wallLength==0)return;
+    let borders = []
+    if(vertical) {
+      borders = [getTile(x,y).BorderR]
+      for(let i=0;i<wallLength-1;i++){
+        borders.push(getTile(x,y+1+i).Edge)
+        borders.push(getTile(x,y+1+i).BorderR)
+      }
+    }
+    else {
+      borders = [getTile(x,y).BorderD]
+      for(let i=0;i<wallLength-1;i++){
+      borders.push(getTile(x+i,y).Edge);
+      borders.push(getTile(x+1+i,y).BorderD);
+      }
+    }
+    console.log("caca");
+    for(let border of borders) if(border.wallBy!=null) return;
+
+    //if(playersCanReachEnd(borders)) 
+    new Wall(player,borders).execute();
+    
+  }
+
+
   exports.init = init;
   exports.BoardFor = BoardFor;
   exports.execMove = execMove;
+  exports.execWall = execWall;

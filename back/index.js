@@ -47,6 +47,7 @@ io.of("/Game-Page").on('connection', (socket) => {
 
 
 
+
 io.of("/api/game").on('connection', (socket) => {
 
     
@@ -59,6 +60,13 @@ io.of("/api/game").on('connection', (socket) => {
     socket.on('move', (move) => {
         console.log('move: ' + move, 'playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         back.execMove(move.playerID,move.x,move.y)
+        let newBoard = back.BoardFor(playerList[0])
+        socket.emit("updateBoard",newBoard)
+    });
+
+    socket.on('wall', (wall) => {
+        console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
         let newBoard = back.BoardFor(playerList[0])
         socket.emit("updateBoard",newBoard)
     });

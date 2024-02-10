@@ -156,24 +156,12 @@ class BorderFront{
    */
   onClick(vertical) {
     console.log("onClick")
-    if(wallLength==0)return;
-    let borders = []
-    if(vertical) {
-      borders = [getTile(this.X,this.Y).BorderR]
-      for(let i=0;i<wallLength-1;i++){
-        borders.push(getTile(this.X,this.Y+1+i).Edge)
-        borders.push(getTile(this.X,this.Y+1+i).BorderR)
-      }
-    }
-    else {
-      borders = [getTile(this.X,this.Y).BorderD]
-      for(let i=0;i<wallLength-1;i++){
-      borders.push(getTile(this.X+i,this.Y).Edge);
-      borders.push(getTile(this.X+1+i,this.Y).BorderD);
-      }
-    }
-    for(let border of borders) if(border.wallBy!=null) return;
-    if(playersCanReachEnd(borders)) new Wall(currentPlayer(),borders).execute(); //TODO server : envoyer le wall au server
+    
+    let wall = new Wall(playerID,this.X,this.Y,vertical);
+    socket.emit("wall",wall);
+    console.log("wall");
+
+    
     
   }
 
@@ -232,18 +220,18 @@ class Wall extends Action{
   /**
    * 
    * @param {Player} player
-   * @param {Border[]} borders 
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Boolean} vertical 
    */
-  constructor(player,borders){
-    super(player)
-    this.borders = borders;
+  constructor(playerID, x, y, vertical){
+    super(playerID);
+    this.x = x;
+    this.y = y;
+    this.vertical = vertical;
+    
   }
-  execute(){
-    if(!this.canExecute() || this.player.nbWalls<=0)return null;
-    for(let border of this.borders) border.buildWall(this.player)
-    this.player.nbWalls--;
-    actionDone();
-  }
+
 }
 
 
