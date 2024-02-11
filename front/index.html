@@ -24,7 +24,7 @@
                 <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
                 <div id=playerInfo>
                     <div id=playerName>
-                        player
+                        Player
                     </div>
                     <div id=playerRank>
                         Elo 1511
@@ -94,5 +94,20 @@
     <script>
       //  var socket = io();
     </script>
+
+<script>
+    // Vérifie si document.cookie n'est pas vide
+    if (document.cookie) {
+
+        var cookieParts = document.cookie.split('=');
+
+        var playerName = cookieParts[1];
+        if (playerName == undefined || playerName == "") {
+            playerName = "Player";
+        }
+        var playerNameElement = document.getElementById('playerName');
+        playerNameElement.textContent = playerName;
+    }
+</script>
 </body>
 </html>
