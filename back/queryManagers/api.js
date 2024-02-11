@@ -111,7 +111,6 @@ async function signup(request, response) {
         const users = await getUsers();
         console.log(await users.find({}).toArray());
         const user = await users.findOne({ username: body.username });
-        console.log(user);
 
         if(user){
             await createOrUpdateUser(
@@ -148,12 +147,10 @@ async function login(request, response) {
         const data = JSON.parse(body);
         const { mail, username, password } = data;
         let test= await verifMdp(username,password);
+        console.log(test);
         if(test){
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ message: 'connexion succés' }));
-        }else{
-            response.writeHead(401, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify({ error: 'Authentification échouée' }));
         }
     });
 }
