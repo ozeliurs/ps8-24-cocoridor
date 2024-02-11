@@ -61,7 +61,9 @@
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("updateBoard",(board)=>{console.log("INSANE OMG");DisplayBoard(board);})
+        socket.on("updateBoard",(board)=>{console.log(board);DisplayBoard(board);})
+        socket.on("endGame",(winner)=>{console.log("Le joueur "+winner+" a gagné");
+        window.location.href = "../EndPage/endPage.html?winner="+winner;})
 
 
     </script>

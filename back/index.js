@@ -1,4 +1,5 @@
 const back = require("./logic/back.js")
+const ai = require("./logic/ai.js")
 
 // The http module contains methods to handle http queries.
 const http = require('http')
@@ -59,16 +60,37 @@ io.of("/api/game").on('connection', (socket) => {
 
     socket.on('move', (move) => {
         console.log('move: ' + move, 'playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
-        back.execMove(move.playerID,move.x,move.y)
+        back.execMove(move.playerID,move.x,move.y);
+
+        let aiBoard = back.BoardFor(playerList[1]);
+        computemove = ai.computeMove(aiBoard);
+        back.execMove(computemove.playerID,computemove.x,computemove.y);
+
         let newBoard = back.BoardFor(playerList[0])
+
         socket.emit("updateBoard",newBoard)
+        let winners = back.GameWinner();
+        if(winners !=null){
+            socket.emit("endGame", winners[0].id);
+        }
+        
+       
     });
 
     socket.on('wall', (wall) => {
         console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
+
+        let aiBoard = back.BoardFor(playerList[1]);
+        computemove = ai.computeMove(aiBoard);
+        back.execMove(computemove.playerID,computemove.x,computemove.y);
+
         let newBoard = back.BoardFor(playerList[0])
         socket.emit("updateBoard",newBoard)
+        let winners = back.GameWinner();
+        if(winners !=null){
+            socket.emit("endGame", winners[0].id);
+        }
     });
 
 });

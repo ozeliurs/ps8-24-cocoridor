@@ -206,7 +206,9 @@ class Color{
        */
       toFront(player) {
         let visi
-        if(this.visibility*player.modifier>=0) {
+        if(this.occupied == player ) visi = this.occupied;
+        
+        else if(this.visibility*player.modifier>=0) {
           if(this.occupied!=null) visi = this.occupied;
           else visi = true;
         } else visi = false;
@@ -301,7 +303,7 @@ class Border {
       this.lng = lng;
       this.lat = lat;
       this.wallBy = null;
-      
+
       switch ((lng ? 1 : 0) + (lat ? 2 : 0)) {
         case 1: // vertical border
          
@@ -476,9 +478,16 @@ function actionDone(){
     remainingAction--;
     let winners = GameWinner();
     if(turnNb%playerList.length==playerList.length-1 && winners!=null && (winners.includes(playerList[playerList.length-1]) || remainingAction==0)) {
-      if(winners.length==1) alert("Le joueur " + (playerList.indexOf(winners[0])+1) + " a gagné !");
-      else alert("Il y a égalité");
-      window.location.href = "../EndGame/endPage.html?winner=Joueur" + (playerList.indexOf(winners[0])+1);
+      //socket.emit("endGame",playerList.indexOf(winners[0])+1);
+      if(winners.length==1){
+        console.log("Le joueur " + (playerList.indexOf(winners[0])+1) + " a gagné !");
+        //socket.emit("endGame",playerList.indexOf(winners[0])+1);
+      } 
+      else{ 
+        console.log("Il y a égalité");
+      }
+
+      //window.location.href = "../EndGame/endPage.html?winner=Joueur" + (playerList.indexOf(winners[0])+1);
       
     }
     if(remainingAction<=0){
@@ -490,7 +499,7 @@ function actionDone(){
     }
   
   
-    BoardFor(currentPlayer());//TODO socket
+    
   }
   
   /**
@@ -563,7 +572,7 @@ function actionDone(){
   
     while(frontier.length>0){
       if(killTimer--<=0){
-        console.log("0");
+      
         return null;}
   
       frontier.sort((a,b)=>{
@@ -578,7 +587,7 @@ function actionDone(){
       let currentBest = frontier.shift();
       if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
         if(maxCost!=null && maxCost<currentBest.cost){
-          console.log("1")
+  
           return null;
         } 
         else {
@@ -666,10 +675,10 @@ function actionDone(){
       let start = currentPlayer().getTile();
       
       let end = getTile(x,y);
-      console.log(end);
-      let dirs = start.tileInDir(end);
+      
+      //let dirs = start.tileInDir(end);
       let path = end//aStar({start:start,end:end,maxCost:travelDist});
-      console.log(path)
+      
       if(path==null) return undefined;
       while(path.occupied!=null){
         path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
@@ -719,8 +728,7 @@ function actionDone(){
 
     let player = playerList[playerID-1];
    // console.log (player);
-    console.log(x);
-    console.log(y);
+
     let move = new Move(player, x, y);
     move.execute();
 
@@ -744,7 +752,7 @@ function actionDone(){
       borders.push(getTile(x+1+i,y).BorderD);
       }
     }
-    console.log("caca");
+    
     for(let border of borders) if(border.wallBy!=null) return;
 
     //if(playersCanReachEnd(borders)) 
@@ -757,3 +765,4 @@ function actionDone(){
   exports.BoardFor = BoardFor;
   exports.execMove = execMove;
   exports.execWall = execWall;
+  exports.GameWinner = GameWinner;
