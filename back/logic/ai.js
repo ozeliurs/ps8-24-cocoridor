@@ -51,6 +51,12 @@ class Action {
   }
 // This function doesn't handle walls.
 
+/**
+ * 
+ * @param {TileFront[][]} board 
+ * @param {Number} playerID 
+ * @returns {TileFront}
+ */
 function findAi(board , playerID){
     for (const line of board) {
         for (const tile of line) {
@@ -62,19 +68,34 @@ function findAi(board , playerID){
     }
 }
 
+
+
+/**
+ *
+ * @param {Number} x abscisse
+ * @param {Number} y ordonnée
+ * @returns {TileFront} la tuile correspondante ou null.
+ */
+function getTile(x, y, board) {
+  if(x==null || y==null)return null;
+  if(x<0 || x>=boardLength || y<0 || y>=boardHeight) return null;
+  return board[y][x];
+}
+
 function computeMove(board, playerID=2) {
     let ai = findAi(board, playerID);
     let hauteur = board.length;
     let largeur = board[0].length;
     let possibleMoves = [];
+
     // Check if moving left is possible.
-    if (ai.X > 1) possibleMoves.push({x: ai.X-1, y: ai.Y});
+    if (ai.X > 0) possibleMoves.push({x: ai.X-1, y: ai.Y});
     // Check if moving right is possible.
-    if (ai.X <largeur) possibleMoves.push({x: ai.X+1, y: ai.Y});
+    if (ai.X <largeur-1) possibleMoves.push({x: ai.X+1, y: ai.Y});
     // Check if moving down is possible.
-    if (ai.Y > 1) possibleMoves.push({x: ai.X, y: ai.Y-1});
+    if (ai.Y > 0) possibleMoves.push({x: ai.X, y: ai.Y-1});
     // Check if moving up is possible.
-    if (ai.Y < hauteur) possibleMoves.push({x: ai.X, y: ai.Y+1});
+    if (ai.Y < hauteur-1) possibleMoves.push({x: ai.X, y: ai.Y+1});
 
     let moveIndex = Math.floor(Math.random()*possibleMoves.length);
     movepos =  possibleMoves[moveIndex];

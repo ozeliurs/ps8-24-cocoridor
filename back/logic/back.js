@@ -6,7 +6,7 @@ const numActions = 1; //number of action per turn
 const travelDist = 1; //number of tiles a player can travel in one action
 const SightDistance = 1; //number of tiles the player has visibility around him
 const lineOfSight = false; // po implemente
-const wallLength = 2; // length of the wall built
+const wallLength = 4; // length of the wall built
 const jumpOverWall = false; // if players can jump above walls by jumping on another player
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
@@ -19,7 +19,10 @@ let turnNb = 0;
 
 
 
-
+/**
+ * 
+ * @returns {Player}
+ */
 function currentPlayer(){
   return playerList[turnNb%playerList.length];
 }
@@ -215,8 +218,6 @@ class Color{
         return new TileFront(this.X,this.Y,this.BorderR.toFront(),this.BorderD.toFront(),this.Edge.toFront(),visi);
       }
       changeVisibility(value){
-        console.log("update visi")
-        console.log(this.X,this.Y)
         this.visibility+=value;
       }
       /**
@@ -225,15 +226,19 @@ class Color{
        */
       getNeighbour(jumpWalls=false, fictionnalWalls = []){
         let result = [];
-        let current = getTile(this.X,this.Y+1);
 
-        if(current!=null && (jumpWalls || current.BorderD.wallBy==0) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
+        let current = getTile(this.X,this.Y+1);
+        console.log(current)
+        if(current!=null && (jumpWalls || current.BorderD.wallBy==null) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
+
         current = getTile(this.X+1,this.Y);
-        if(current!=null && (jumpWalls || this.BorderR.wallBy==0 ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
+        if(current!=null && (jumpWalls || this.BorderR.wallBy==null ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
+
         current = getTile(this.X,this.Y-1);
-        if(current!=null && (jumpWalls || this.BorderD.wallBy==0 ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
+        if(current!=null && (jumpWalls || this.BorderD.wallBy==null ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
+
         current = getTile(this.X-1,this.Y);
-        if(current!=null && (jumpWalls || current.BorderR.wallBy==0 ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
+        if(current!=null && (jumpWalls || current.BorderR.wallBy==null ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
         return result;
       }
       /**
@@ -403,14 +408,20 @@ function init(lng = 11, lat = 11) {
   
   function GameWinner(){
     let winners = []
+
     for (let i=0;i<playerList.length;i++){
       let player = playerList[i]
       if(player.end.length == 0 || player.getTile()==null)continue;
       let currentCoords = player.getTile().getCoords();
       if(player.end.find((e)=>e.X===currentCoords.X && e.Y===currentCoords.Y)!=undefined) winners.push(player);
     }
+    // si c'est le dernier joueur
+    // et si il y a des gagnants
+    if((turnNb-1)%playerList.length==playerList.length-1 && winners.length!=0 ) {
+      return winners
+    }
     
-    return winners.length==0?null:winners;
+    return null;
   }
   
   function playerTurn(player) {
@@ -469,20 +480,7 @@ function init(lng = 11, lat = 11) {
 function actionDone(){
 
     remainingAction--;
-    let winners = GameWinner();
-    if(turnNb%playerList.length==playerList.length-1 && winners!=null && (winners.includes(playerList[playerList.length-1]) || remainingAction==0)) {
-      //socket.emit("endGame",playerList.indexOf(winners[0])+1);
-      if(winners.length==1){
-        console.log("Le joueur " + (playerList.indexOf(winners[0])+1) + " a gagné !");
-        //socket.emit("endGame",playerList.indexOf(winners[0])+1);
-      } 
-      else{ 
-        console.log("Il y a égalité");
-      }
-
-      //window.location.href = "../EndGame/endPage.html?winner=Joueur" + (playerList.indexOf(winners[0])+1);
-      
-    }
+    
     if(remainingAction<=0){
       remainingAction=numActions;
       turnNb++;
@@ -514,12 +512,8 @@ function actionDone(){
       if(player.end==null|| player.end.length==0)continue;
       let foundPath = false
       for(let goal of player.end){
-        console.log(player.getTile())
-        console.log(goal)
-        console.log(additionnalWalls)
         let path = aStar({start:player.getTile(),end:goal,addWalls: additionnalWalls});
         if(path!=null){
-          console.log("player can reach end")
           foundPath=true;
           break;}
       }
@@ -580,7 +574,7 @@ function actionDone(){
       let currentBest = frontier.shift();
       if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
         if(maxCost!=null && maxCost<currentBest.cost){
-  
+          console.log("tooExpensive")
           return null;
         } 
         else {
@@ -589,7 +583,6 @@ function actionDone(){
       }
   
       explored.push(currentBest)
-      
       for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
         let isExplored = (explored.find( e => {
             return e.node.X == step.X && 
@@ -668,28 +661,29 @@ function actionDone(){
       let start = currentPlayer().getTile();
       
       let end = getTile(x,y);
-      
-      //let dirs = start.tileInDir(end);
-      let path = end//aStar({start:start,end:end,maxCost:travelDist});
+      if(start==end)return undefined;
+      let dirs = start.tileInDir(end);
+      let path = aStar({start:start,end:end,maxCost:travelDist});
       
       if(path==null) return undefined;
-      while(path.occupied!=null){
+      while(path.node.occupied!=null){
         path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
         if(path==null) return undefined;
         start = end;
         end = path.node.getTileInDir(dirs);
       }
-      this.X = path.X;
-      this.Y = path.Y;
+      this.X = path.node.X;
+      this.Y = path.node.Y;
   
     }
     
     execute(){
-      if(!this.canExecute()) return;
+      if(!this.canExecute()) return false;
       let tile = getTile(this.X,this.Y);
-      if(tile==null)return;
+      if(tile==null)return false;
       tile.occupiedBy(this.player);
       actionDone();
+      return true;
     }
   }
   
@@ -704,10 +698,11 @@ function actionDone(){
       this.borders = borders;
     }
     execute(){
-      if(!this.canExecute() || this.player.nbWalls<=0)return null;
+      if(!this.canExecute() || this.player.nbWalls<=0)return false;
       for(let border of this.borders) border.buildWall(this.player)
       this.player.nbWalls--;
       actionDone();
+      return true;
     }
   }
 
@@ -720,36 +715,40 @@ function actionDone(){
   function execMove(playerID, x, y){
 
     let player = playerList[playerID-1];
-   // console.log (player);
 
     let move = new Move(player, x, y);
-    move.execute();
+    if(move==undefined) return false;
+    return move.execute();
 
   }
 
   function execWall(playerID, x, y, vertical){
     let player = playerList[playerID-1];
-    if(wallLength==0)return;
+    if(wallLength==0)return false;
     let borders = []
     if(vertical) {
       borders = [getTile(x,y).BorderR]
       for(let i=0;i<wallLength-1;i++){
-        borders.push(getTile(x,y+1+i).Edge)
-        borders.push(getTile(x,y+1+i).BorderR)
+        let test = getTile(x,y+1+i)
+        if(test == null) return false;
+        borders.push(test.Edge)
+        borders.push(test.BorderR)
       }
     }
     else {
       borders = [getTile(x,y).BorderD]
       for(let i=0;i<wallLength-1;i++){
-      borders.push(getTile(x+i,y).Edge);
-      borders.push(getTile(x+1+i,y).BorderD);
+        let test = getTile(x+1+i,y)
+        if(test == null)return false;
+        borders.push(getTile(x+i,y).Edge);
+        borders.push(test.BorderD);
       }
     }
     
-    for(let border of borders) if(border.wallBy!=null) return;
+    for(let border of borders) if(border.wallBy!=null) return false;
 
-    //if(playersCanReachEnd(borders)) 
-    new Wall(player,borders).execute();
+    if(playersCanReachEnd(borders)) return new Wall(player,borders).execute();
+    return false;
     
   }
 
