@@ -1,21 +1,20 @@
 let boardLength = 11;
 let boardHeight = 11;
+let playerList = [1,2];
+let turnNb = 0;
 
 
-const numActions = 1; //number of action per turn
-const travelDist = 1; //number of tiles a player can travel in one action
-const SightDistance = 1; //number of tiles the player has visibility around him
-const lineOfSight = false; // po implemente
-const wallLength = 2; // length of the wall built
-const jumpOverWall = false; // if players can jump above walls by jumping on another player
-const nbWallsPerPlayer = 10 //number max of wall a player can place
-const absoluteSight = false;
-const sightForce = 1;
-
-let playerID = 1;
-
-
-
+function init(board,mode) {
+    if(mode === "ai"){
+        playerList = [1,2];
+    }
+    else if(mode === "local"){
+        playerList = [1,2];
+    }
+    boardHeight = board.length;
+    boardLength = board[0].length;
+    turnNb = 0;
+}
 
 
 
@@ -75,7 +74,8 @@ class TileFront {
 
   onClick() {
   //  if(currentPlayer()==this.occupied) return;
-    let move = new Move(playerID,this.X,this.Y);
+
+    let move = new Move(currentPlayerID(),this.X,this.Y);
     if(move == undefined)return;
     //move.execute();.
 
@@ -157,7 +157,7 @@ class BorderFront{
   onClick(vertical) {
     console.log("onClick")
     
-    let wall = new Wall(playerID,this.X,this.Y,vertical);
+    let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
     socket.emit("wall",wall);
     console.log("wall");
 
@@ -252,9 +252,10 @@ function getTile(x, y) {
 }
 /**
  * 
- * @returns {Player} player that must play
+ * @returns {Number} player that is playing
  */
-function currentPlayer(){
+function currentPlayerID(){
+  console.log(playerList[turnNb%playerList.length])
   return playerList[turnNb%playerList.length];
 }
 /**

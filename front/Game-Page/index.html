@@ -52,18 +52,18 @@
         var socket;
         switch (mode) {
             case "local":
-                socket=io('/api/game');
+                socket=io('/api/Localgame');
                 break;
-            case "ia":
-                socket=io('/api/game');
+            case "ai":
+                socket=io('/api/AIgame');
                 break;
             default:
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("updateBoard",(board)=>{console.log(board);DisplayBoard(board);})
-        socket.on("endGame",(winner)=>{console.log("Le joueur "+winner+" a gagné");
-        window.location.href = "../EndPage/endPage.html?winner="+winner;})
+        socket.on("launch",(board)=>{init(board,mode);DisplayBoard(board);})
+        socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
+        socket.on("endGame",(winner)=>{window.location.href = "../EndPage/endPage.html?winner="+winner;})
 
 
     </script>

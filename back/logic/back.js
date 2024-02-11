@@ -404,7 +404,6 @@ function init(lng = 11, lat = 11) {
     }
     playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
     playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
-    //BoardFor(currentPlayer()); //TODO socket
     return playerList;
   }
   
@@ -766,3 +765,4 @@ function actionDone(){
   exports.execMove = execMove;
   exports.execWall = execWall;
   exports.GameWinner = GameWinner;
+  exports.CurrentPlayer = currentPlayer;

@@ -37,6 +37,7 @@ const server=http.createServer(function (request, response) {
 }).listen(8000);
 
 const { Server } = require("socket.io");
+const {CurrentPlayer} = require("./logic/back");
 const io = new Server(server);
 
 io.of("/Game-Page").on('connection', (socket) => {
@@ -49,7 +50,7 @@ io.of("/Game-Page").on('connection', (socket) => {
 
 
 
-io.of("/api/game").on('connection', (socket) => {
+io.of("/api/AIgame").on('connection', (socket) => {
 
     
     let playerList = back.init()
@@ -87,6 +88,43 @@ io.of("/api/game").on('connection', (socket) => {
 
         let newBoard = back.BoardFor(playerList[0])
         socket.emit("updateBoard",newBoard)
+        let winners = back.GameWinner();
+        if(winners !=null){
+            socket.emit("endGame", winners[0].id);
+        }
+    });
+
+});
+
+io.of("/api/Localgame").on('connection', (socket) => {
+
+
+    let playerList = back.init()
+
+    let newBoard = back.BoardFor(playerList[0])
+    socket.emit("launch",newBoard)
+    console.log('a user connected api');
+
+    socket.on('move', (move) => {
+        console.log('move: ' + move, 'playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+        back.execMove(move.playerID,move.x,move.y);
+
+        let newBoard = back.BoardFor(back.CurrentPlayer());
+        socket.emit("updateBoard",newBoard);
+        let winners = back.GameWinner();
+        if(winners !=null){
+            socket.emit("endGame", winners[0].id);
+        }
+
+
+    });
+
+    socket.on('wall', (wall) => {
+        console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
+
+        let newBoard = back.BoardFor(back.CurrentPlayer())
+        socket.emit("updateBoard",newBoard);
         let winners = back.GameWinner();
         if(winners !=null){
             socket.emit("endGame", winners[0].id);
