@@ -125,7 +125,6 @@ io.of("/api/Localgame").on('connection', (socket) => {
     socket.on('wall', (wall) => {
         console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
-
         let newBoard = back.BoardFor(back.CurrentPlayer())
         socket.emit("updateBoard",newBoard);
         let winners = back.GameWinner();

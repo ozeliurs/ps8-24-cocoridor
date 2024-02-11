@@ -215,6 +215,8 @@ class Color{
         return new TileFront(this.X,this.Y,this.BorderR.toFront(),this.BorderD.toFront(),this.Edge.toFront(),visi);
       }
       changeVisibility(value){
+        console.log("update visi")
+        console.log(this.X,this.Y)
         this.visibility+=value;
       }
       /**
@@ -303,22 +305,6 @@ class Border {
       this.lng = lng;
       this.lat = lat;
       this.wallBy = null;
-
-      switch ((lng ? 1 : 0) + (lat ? 2 : 0)) {
-        case 1: // vertical border
-         
-          this.influence = [[0,0],[0,1],[-1,0],[0,-1],[1,0],[1,1],[2,0],[1,-1]];
-          
-        case 2: // horizontal border
-          
-          this.influence = [[0,0],[-1,0],[0,1],[1,0],[0,-1],[-1,-1],[0,-2],[1,-1]];
-         
-          break;
-        case 3: // edge
-         
-          this.influence = [];
-          break;
-      }
     }
 
   
@@ -330,8 +316,16 @@ class Border {
      * @param {Player} player 
      */
     buildWall(player) {
+      let influence = []
+      let num = (this.lng ? 1 : 0) + (this.lat ? 2 : 0)
+      if(num == 1) // vertical border
+        influence = [[0,0],[0,1],[-1,0],[0,-1],[1,0],[1,1],[2,0],[1,-1]];
+      else if(num == 2) // horizontal border
+        influence = [[0,0],[-1,0],[0,1],[1,0],[0,-1],[-1,-1],[0,-2],[1,-1]];
+      else if(num == 3) // edge
+        influence = [];
       this.wallBy = player;
-      for(let coord of this.influence){
+      for(let coord of influence){
         let x = coord[0] + this.X;
         let y = coord[1] + this.Y;
         let tile = getTile(x,y);
