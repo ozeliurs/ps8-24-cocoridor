@@ -63,7 +63,10 @@
         }
         socket.on("launch",(board)=>{init(board,mode);DisplayBoard(board);})
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
-        socket.on("endGame",(winner)=>{window.location.href = "../EndPage/endPage.html?winner="+winner;})
+        socket.on("endGame",(winners)=>{
+            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
+            else window.location.href = "../EndPage/endPage.html?winner=0"
+        })
 
 
     </script>
