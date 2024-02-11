@@ -43,3 +43,19 @@ div {
 .wall{
     background-color: black;
 }
+
+#gameCover {
+    display:none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: 	#FAFAD2;
+    z-index: 10;
+}
+
+#gameDiv {
+    position: relative;
+    z-index: 0;
+}
