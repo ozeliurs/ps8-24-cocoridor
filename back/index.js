@@ -56,20 +56,21 @@ io.of("/api/AIgame").on('connection', (socket) => {
     let playerList = back.init()
     
     let newBoard = back.BoardFor(playerList[0])
-    socket.emit("updateBoard",newBoard)
+    socket.emit("launch",newBoard)
     console.log('a user connected api');
 
     socket.on('move', (move) => {
         console.log('move: ' + move, 'playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         back.execMove(move.playerID,move.x,move.y);
-
+        let newBoard = back.BoardFor(playerList[0]);
+        socket.emit("updateBoard",newBoard);
         let aiBoard = back.BoardFor(playerList[1]);
         computemove = ai.computeMove(aiBoard);
         back.execMove(computemove.playerID,computemove.x,computemove.y);
 
-        let newBoard = back.BoardFor(playerList[0])
+        newBoard = back.BoardFor(playerList[0]);
 
-        socket.emit("updateBoard",newBoard)
+        socket.emit("updateBoard",newBoard);
         let winners = back.GameWinner();
         if(winners !=null){
             socket.emit("endGame", winners[0].id);
@@ -81,12 +82,14 @@ io.of("/api/AIgame").on('connection', (socket) => {
     socket.on('wall', (wall) => {
         console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
+        let newBoard = back.BoardFor(playerList[0]);
+        socket.emit("updateBoard",newBoard);
 
         let aiBoard = back.BoardFor(playerList[1]);
         computemove = ai.computeMove(aiBoard);
         back.execMove(computemove.playerID,computemove.x,computemove.y);
 
-        let newBoard = back.BoardFor(playerList[0])
+        newBoard = back.BoardFor(playerList[0])
         socket.emit("updateBoard",newBoard)
         let winners = back.GameWinner();
         if(winners !=null){

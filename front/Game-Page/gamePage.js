@@ -95,7 +95,7 @@ class TileFront {
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
     else if (this.occupied === true) {}
-    else this.element.style.backgroundColor = Color.white.toStyle();//this.occupied.color.toStyle();
+    else this.element.style.backgroundColor = new Color(this.occupied.color.R,this.occupied.color.G,this.occupied.color.B).toStyle();
 
     this.groupElement.appendChild(this.element);
 
@@ -255,7 +255,6 @@ function getTile(x, y) {
  * @returns {Number} player that is playing
  */
 function currentPlayerID(){
-  console.log(playerList[turnNb%playerList.length])
   return playerList[turnNb%playerList.length];
 }
 /**
