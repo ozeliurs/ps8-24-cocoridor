@@ -1,6 +1,11 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
 
 const { getUsers } = require("../database/database");
+const { createUser } = require("../database/database");
+const { updateUser } = require("../database/database");
+const { clearDatabase } = require("../database/database");
+const { verifMdp } = require("../database/database");
+
 
 
 async function manageRequest(request, response) {
@@ -12,29 +17,23 @@ async function manageRequest(request, response) {
     let endpoint = url.pathname.split('/')[2]; // Supposant que l'URL est sous la forme /api/endpoint
 
     switch (endpoint) {
-        case 'signup':
-           signup(request, response);
+        case 'clear':
+            await clearDatabase();
             break;
-        case 'login':
-           login(request, response);
+        case 'signup':
+            await signup(request, response);
+            break;
+        case 'signIn':
+            await login(request, response);
             break;
         case 'game':
             startGame(request, response);
             break;
-        
         case 'startGame':
             startGame(request, response);
             break;
-
         case 'endGame':
             endGame(request, response);
-            break;
-        
-        case 'getUsers':
-            let res=await getUsers();
-            let users = await res.find({}).toArray(); 
-            console.log(users);           
-
             break;
         default:
             response.writeHead(404, { 'Content-Type': 'application/json' });
@@ -55,48 +54,32 @@ function parsejson(request) {
     });
 }
 
-function createOrUpdateUser(email, username, password, response, isNewUser) {
-    // Vérifier si l'utilisateur existe déjà dans la base de données
-    // Si isNewUser est vrai, cela signifie que c'est un nouvel utilisateur à créer
+async function createOrUpdateUser(email, username, password, response, isNewUser) {
 
     if (isNewUser) {
-        // Si c'est un nouvel utilisateur, insérez-le dans la base de données
-        // par exemple, vous pouvez utiliser une requête SQL ou une méthode de votre ORM préférée
-        // Ici, nous supposerons une opération réussie pour la démonstration
-        // Vous devez remplacer cela par votre propre logique d'insertion en base de données
-        // Exemple fictif:
+        console.log("création")
         const newUser = {
             email: email,
             username: username,
             password: password
         };
-
-        // Simuler une opération de succès pour la démonstration
-        // Remplacez cette partie par votre propre logique d'insertion en base de données
-        const userCreated = true;
+        userCreated= await createUser(newUser);
         if (userCreated) {
-            response.writeHead(201, { 'Content-Type': 'application/json' });
+            response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ message: 'Utilisateur créé avec succès' }));
         } else {
             response.writeHead(500, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Erreur lors de la création de l\'utilisateur' }));
         }
     } else {
-        // Si l'utilisateur existe déjà, mettez à jour ses informations dans la base de données
-        // par exemple, vous pouvez utiliser une requête SQL ou une méthode de votre ORM préférée
-        // Ici, nous supposerons une opération réussie pour la démonstration
-        // Vous devez remplacer cela par votre propre logique de mise à jour en base de données
-        // Exemple fictif:
+        console.log("update")
+
         const updatedUser = {
             email: email,
             username: username,
             password: password
         };
-
-        // Simuler une opération de succès pour la démonstration
-        // Remplacez cette partie par votre propre logique de mise à jour en base de données
-        const userUpdated = true;
-
+        userUpdated= await updateUser(updatedUser);
         if (userUpdated) {
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ message: 'Utilisateur mis à jour avec succès' }));
@@ -109,29 +92,44 @@ function createOrUpdateUser(email, username, password, response, isNewUser) {
 
 
 
-function signup(request, response) {
+async function signup(request, response) {
+
     if (request.method !== 'POST') {
         response.writeHead(405, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
         return;
     }
 
-    // Get the data from the request body
-    parsejson(request).then((body) => {
-        // Validate the object
+    parsejson(request).then(async (body) => {
+        console.log(body.email+" "+body.username+" "+body.password);
         if (!body.email || !body.username || !body.password) {
             response.writeHead(400, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Données manquantes' }));
             return;
         }
+        console.log('username : '+ body.username);
+        const users = await getUsers();
+        console.log(await users.find({}).toArray());
+        const user = await users.findOne({ username: body.username });
+        console.log(user);
 
-        createOrUpdateUser(
-            body.email,
-            body.username,
-            body.password,
-            response,
-            true
-        );
+        if(user){
+            await createOrUpdateUser(
+                body.email,
+                body.username,
+                body.password,
+                response,
+                false
+            );
+        }else{
+            await createOrUpdateUser(
+                body.email,
+                body.username,
+                body.password,
+                response,
+                true
+            );
+        }
     });
 }
 
@@ -141,23 +139,22 @@ function signup(request, response) {
 
 
 // Fonction pour gérer la connexion des utilisateurs
-function login(request, response) {
+async function login(request, response) {
     let body = '';
     request.on('data', chunk => {
         body += chunk.toString();
     });
-    request.on('end', () => {
+    request.on('end',async () => {
         const data = JSON.parse(body);
         const { mail, username, password } = data;
-
-        // Logique de vérification de l'authentification
-        // Ici, vous pouvez vérifier si l'utilisateur existe dans la base de données et si le mot de passe est correct
-        // Si l'authentification réussit, vous pouvez générer un JWT et le retourner au client
-        const token = generateJWT(); // Fonction à implémenter pour générer un JWT
-
-        // Exemple de réponse réussie avec le token JWT
-        response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ token: token }));
+        let test= await verifMdp(username,password);
+        if(test){
+            response.writeHead(200, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ message: 'connexion succés' }));
+        }else{
+            response.writeHead(401, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Authentification échouée' }));
+        }
     });
 }
 
