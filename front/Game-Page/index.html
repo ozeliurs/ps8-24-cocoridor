@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./gamePage.css">
-    <link rel="stylesheet" href="./global.css">
+    <link rel="stylesheet" href="../Game-Page/gamePage.css">
     <title>GamePage</title>
-    <script src="./gamePage.js">init()</script>
+    <script src="../Game-Page/gamePage.js"> </script>
+    <script src="../js/socket.io.js"> </script>
 </head>
 <body>
     <h1>Coucou</h1>
@@ -26,10 +26,10 @@
         <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
         <button onclick="sendMessage()">Envoyer</button>
         <button onclick="closeChat()">Fermer</button>
-        <a href="../EndGame/endPage.html?winner=1">
+        <a href="../EndPage/endPage.html?winner=1">
             <button>gagner1</button>
         </a>
-        <a href="../EndGame/endPage.html?winner=2">
+        <a href="../EndPage/endPage.html?winner=2">
             <button>gagner2</button>
         </a>
     </div>
@@ -37,7 +37,6 @@
     <script>
         function openChat() {
             document.getElementById("chatPopup").style.display = "block";
-            
         }
 
         function closeChat() {
@@ -45,7 +44,6 @@
         }
 
         function sendMessage() {
-            
             var message = document.getElementById("chatInput").value;
             console.log("Message envoyé : " + message);
         }
@@ -54,7 +52,25 @@
         }
     </script>
     <script>
-        init();
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        var socket;
+        switch (mode) {
+            case "local":
+                socket=io('/api/Localgame');
+                break;
+            case "ai":
+                socket=io('/api/AIgame');
+                break;
+            default:
+                console.log("Mode inconnu");
+                break;
+        }
+        socket.on("launch",(board)=>{init(board,mode);DisplayBoard(board);})
+        socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
+        socket.on("endGame",(winner)=>{window.location.href = "../EndPage/endPage.html?winner="+winner;})
+
+
     </script>
 </body>
 </html>

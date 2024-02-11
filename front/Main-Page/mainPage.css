@@ -33,6 +33,10 @@ html, body {
     height: 100%;
 }
 
+#upperZone{
+    display: flex;
+    flex-direction: row;
+}
 #playerCard{
     width: 100vw;
     justify-content: flex-end;
