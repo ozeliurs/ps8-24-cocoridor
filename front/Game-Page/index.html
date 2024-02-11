@@ -9,12 +9,14 @@
     <script src="../js/socket.io.js"> </script>
 </head>
 <body>
-    <h1>Cocoridor</h1>
-    <h2 id="playerplaying">Au tour de Player 1 ...</h2>
-    <section id="game">
-
-    </section>
-
+    <h1>Coucou</h1>
+    <h2 id="playerplaying"></h2>
+    <div id ="gameDiv">
+        <section id="game">
+        </section>
+        <section id = "gameCover" onclick="hideCover()">   
+        </section>
+    </div>
     
     <button onclick="openChat()">
         chat
@@ -44,6 +46,9 @@
         function sendMessage() {
             var message = document.getElementById("chatInput").value;
             console.log("Message envoyé : " + message);
+        }
+        function hideCover() {
+            document.getElementById("gameCover").style.display = "none";
         }
     </script>
     <script>
