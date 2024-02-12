@@ -380,9 +380,18 @@ function DisplayBoard(board){
   }
   if(mode !== "ai") {
     let gameCover = document.getElementById("gameCover");
-    gameCover.style.cssText = "display : block; font-size: 50px;";
-    if (turnNb % 2 === 0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
+
+    if (turnNb % 2 === 0) {
+      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:blue; padding-top: 50px; padding-bottom: 50px;";
+      gameCover.innerHTML = "<img src=\"PouletJ1.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    }
+
+    else {
+      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:red; padding-top: 50px; padding-bottom: 50px;";
+
+      gameCover.innerHTML = "<img src=\"FermierJ2.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    }
   }
 }
 
