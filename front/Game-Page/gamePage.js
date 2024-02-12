@@ -4,6 +4,7 @@ let playerList = [1,2];
 let turnNb = 0;
 
 
+
 function init(board,mode) {
     if(mode === "ai"){
         playerList = [1,2];
@@ -276,14 +277,13 @@ function DisplayBoard(board){
       gameDiv.appendChild(tile.generateElement());
     }
   }
+  if(mode !== "ai") {
+    let gameCover = document.getElementById("gameCover");
+    gameCover.style.cssText = "display : block; font-size: 50px;";
+    if (turnNb % 2 === 0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+  }
 }
 
-
-/*
-  let gameCover = document.getElementById("gameCover");
-  gameCover.style.cssText = "display : block; font-size: 50px;";
-  if (turnNb%2==0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-  else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-}*/
 
 
