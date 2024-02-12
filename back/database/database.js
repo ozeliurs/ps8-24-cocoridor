@@ -56,6 +56,12 @@ async function createGame(game) {
     return await db.collection('games').insertOne(game);
 }
 
+async function updateGame(game,gameID){
+    const db = await getMongoDatabase();
+
+    return await db.collection('games').updateOne({_id: gameID},{ $set: game});
+}
+
 async function verifMdp(username, mdp){
     const users = await getUsers();
     return await users.findOne({ username: username, password: mdp });
@@ -71,3 +77,4 @@ exports.getGames = getGames;
 exports.updateUser = updateUser;
 exports.clearDatabase = clearDatabase;
 exports.verifMdp = verifMdp;
+exports.updateGame = updateGame;

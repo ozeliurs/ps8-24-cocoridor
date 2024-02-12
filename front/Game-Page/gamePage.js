@@ -5,7 +5,7 @@ let turnNb = 0;
 
 
 
-function init(board,mode) {
+function init(board,mode, turn) {
     if(mode === "ai"){
         playerList = [1,2];
     }
@@ -14,7 +14,7 @@ function init(board,mode) {
     }
     boardHeight = board.length;
     boardLength = board[0].length;
-    turnNb = 0;
+    turnNb = turn;
 }
 
 

@@ -340,7 +340,7 @@ class Border {
   }
 
 // Server
-Board = [];
+let Board = [];
 let playerList = [];
 const Direction = {
     Up: "up",
@@ -382,11 +382,12 @@ function getTileIn(Tile,dir){
     }
   }
   
-function init(lng = 11, lat = 11) {
-    turnNb = 0;
+function init(lng = 11, lat = 11,board=null,nbTurn=0,listPlayer=null) {
+    turnNb = nbTurn;
     boardLength = lng;
     boardHeight = lat;
     //CreateBoard
+  if(board == null){
     for (y = boardHeight-1; y >= 0; y--) {
       Board[y] = [];
       for (x = 0; x < boardLength; x++) {
@@ -394,6 +395,8 @@ function init(lng = 11, lat = 11) {
         Board[y][x] = elemtCreated;
       }
     }
+  }else{Board=board;}
+
     //Place Player
     let topTiles = [];
     let bottomTiles = [];
@@ -401,9 +404,14 @@ function init(lng = 11, lat = 11) {
       topTiles.push(Board[boardHeight-1][i]);
       bottomTiles.push(Board[0][i])
     }
-    playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
-    playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
-    return playerList;
+    if(listPlayer==null){
+      playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
+      playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
+    } else {
+      playerList=listPlayer;
+    }
+
+
   }
   
   function GameWinner(){
@@ -752,7 +760,21 @@ function actionDone(){
     
   }
 
+  function getBoard(){
+    return Board;
+  }
 
+  function getTurnNb(){
+    return turnNb;
+  }
+
+  function getPlayerList(){
+    return playerList;
+  }
+
+  exports.getBoard = getBoard;
+  exports.getTurnNb = getTurnNb;
+  exports.getPlayerList = getPlayerList;
   exports.init = init;
   exports.BoardFor = BoardFor;
   exports.execMove = execMove;

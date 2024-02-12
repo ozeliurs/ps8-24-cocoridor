@@ -54,19 +54,25 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
+        const gameId = urlParams.get('gameId');
         var socket;
         switch (mode) {
             case "local":
                 socket=io('/api/Localgame');
                 break;
-            case "ai":
+            case "newAi":
                 socket=io('/api/AIgame');
+                socket.emit('newGame',("Yashinon"));
+                break;
+            case "getAi":
+                socket=io('/api/AIgame');
+                socket.emit('retrieveGame',"Yashinon",gameId);
                 break;
             default:
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("launch",(board)=>{init(board,mode);DisplayBoard(board);})
+        socket.on("launch",(board,turnNb)=>{init(board,mode,turnNb);DisplayBoard(board);})
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
