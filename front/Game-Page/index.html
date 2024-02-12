@@ -54,7 +54,6 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
-        const gameId = urlParams.get('gameId');
         var socket;
         switch (mode) {
             case "local":
@@ -65,6 +64,7 @@
                 socket.emit('newGame',("Yashinon"));
                 break;
             case "getAi":
+                const gameId = urlParams.get('gameId');
                 socket=io('/api/AIgame');
                 socket.emit('retrieveGame',"Yashinon",gameId);
                 break;
