@@ -1,20 +1,20 @@
 const { MongoClient } = require('mongodb');
-
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017';
-
-/*
- ** The MongoClient object is the one that will allow us to connect to the database.
- */
+const {DB_MONGO} = require("../Env.js");
+const MONGO_URL = DB_MONGO;
 const client = new MongoClient(MONGO_URL);
+
 
 async function getMongoDatabase() {
     if (!!client && !!client.topology && client.topology.isConnected()) {
         await client.connect();
     }
-
     return client.db('chess');
 }
-
+async function clearDatabase() {
+    const db = await getMongoDatabase();
+    await db.collection('users').deleteMany({});
+    return; 
+}
 async function getUsers() {
     const db = await getMongoDatabase();
 
@@ -29,8 +29,13 @@ async function getUser(email) {
 
 async function createUser(user) {
     const users = await getUsers();
-
     return await users.insertOne(user);
+}
+
+async function updateUser(user){
+    const users = await getUsers();
+
+    return await users.updateOne({ username: user.username }, { $set: user });
 }
 
 async function getGames() {
@@ -51,9 +56,18 @@ async function createGame(game) {
     return await db.collection('games').insertOne(game);
 }
 
+async function verifMdp(username, mdp){
+    const users = await getUsers();
+    return await users.findOne({ username: username, password: mdp });
+    
+}
+
 exports.getUsers = getUsers;
 exports.getUser = getUser;
 exports.createUser = createUser;
 exports.getGame = getGame;
 exports.createGame = createGame;
 exports.getGames = getGames;
+exports.updateUser = updateUser;
+exports.clearDatabase = clearDatabase;
+exports.verifMdp = verifMdp;

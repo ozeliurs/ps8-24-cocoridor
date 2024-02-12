@@ -115,7 +115,6 @@ class TileFront {
     return this.groupElement;
   }
 
-
 }
 
 class BorderFront{
@@ -211,8 +210,6 @@ class Move extends Action{
     // this.Y = path.node.Y;
 
   }
-  
-
 }
 
 class Wall extends Action{
@@ -228,7 +225,6 @@ class Wall extends Action{
     this.x = x;
     this.y = y;
     this.vertical = vertical;
-    
   }
 
 }

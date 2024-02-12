@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+    cocoridor:
+        build: .
+        ports:
+            - '8000:8000'
+    mongo-cocoridor:
+        ports:
+        - "27017:27017"
+        image: mongo:latest
+        volumes:
+        - mongo-data:/data/db
+volumes:
+    mongo-data:
