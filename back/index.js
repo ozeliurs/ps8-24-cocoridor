@@ -59,6 +59,7 @@ function saveGame(board,idUser,turnNb,playerList,gameId=null){
             turnNb: turnNb,
             playerList: playerList
         };
+        console.log(JSON.stringify(game));
         fetch('http://localhost:8000/api/savegame', {
             method: 'POST',
             headers: {
@@ -68,6 +69,7 @@ function saveGame(board,idUser,turnNb,playerList,gameId=null){
         }).then(response => {
             if (response.ok) {
                 console.log("partie sauvegardée");
+                
             } else {
                 throw new Error('La requête a échoué'); // Gestion des erreurs
             }
@@ -97,8 +99,8 @@ function saveGame(board,idUser,turnNb,playerList,gameId=null){
 }
 
 function getGame(gameId){
-    fetch('http://localhost:8000/api/savegame', {
-        method: 'GET',
+    fetch('http://localhost:8000/api/retrievegame', {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },

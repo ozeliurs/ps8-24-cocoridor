@@ -195,20 +195,25 @@ async function login(request, response) {
 
 // Fonction pour enregistrer la partie dans la db
 async function uploadGame(request, response) {
+    
     if (request.method !== 'POST') {
         response.writeHead(405, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+
         return;
     }
 
     parsejson(request).then(async (body) => {
-        console.log(body);
-        if (!body.idUser || !body.board || !body.turnNb || !body.playerList) {
+        console.log(!body.idUser+" "+!body.board+" "+!body.turnNb+" "+!body.playerList);
+        if (!body.idUser || !body.board || !body.playerList) {
+            
             response.writeHead(400, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Données manquantes' }));
+
             return;
         }
         if(!body.gameId){
+
             await createGame(
                 body.idUser,
                 body.board,
@@ -231,7 +236,7 @@ async function uploadGame(request, response) {
 
 //Fonction pour récupérer une partie de la db
 async function retrieveGame(request, response) {
-    if (request.method !== 'GET') {
+    if (request.method !== 'POST') {
         response.writeHead(405, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
         return;
@@ -243,7 +248,7 @@ async function retrieveGame(request, response) {
             return;
         }
         let game=await db.getGame(body.gameId);
-        response.writeHead(400, { 'Content-Type': 'application/json' });
+        response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(game));
     });
 
@@ -251,7 +256,7 @@ async function retrieveGame(request, response) {
 
 
 async function retrieveUserGames(request, response) {
-    if (request.method !== 'GET') {
+    if (request.method !== 'POST') {
         response.writeHead(405, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
         return;
@@ -263,7 +268,7 @@ async function retrieveUserGames(request, response) {
             return;
         }
         let games=await db.getGames(body.idUser);
-        response.writeHead(400, { 'Content-Type': 'application/json' });
+        response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(games));
     });
 }

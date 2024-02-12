@@ -45,7 +45,7 @@
 
         function sendMessage() {
             var message = document.getElementById("chatInput").value;
-            console.log("Message envoyé : " + message);
+            console.log("Message envoyÃ© : " + message);
         }
         function hideCover() {
             document.getElementById("gameCover").style.display = "none";
@@ -60,13 +60,15 @@
                 socket=io('/api/Localgame');
                 break;
             case "newAi":
+                const usere = urlParams.get('playerid');
                 socket=io('/api/AIgame');
-                socket.emit('newGame',("Yashinon"));
+                socket.emit('newGame',usere);
                 break;
             case "getAi":
                 const gameId = urlParams.get('gameId');
+                const user = urlParams.get('playerid');
                 socket=io('/api/AIgame');
-                socket.emit('retrieveGame',"Yashinon",gameId);
+                socket.emit('retrieveGame',user,gameId);
                 break;
             default:
                 console.log("Mode inconnu");

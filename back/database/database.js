@@ -44,6 +44,12 @@ async function getGames() {
     return db.collection('games').find().toArray();
 }
 
+async function getGames(playerId){
+    const db = await getMongoDatabase();
+    return db.collection('games').find({idUser: playerId}).toArray();
+
+}
+
 async function getGame(gameId) {
     const db = await getMongoDatabase();
 
