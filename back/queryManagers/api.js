@@ -26,6 +26,10 @@ async function manageRequest(request, response) {
         case 'retrievegame':
             await retrieveGame(request, response);
             break;
+        case 'retrieveUserGames':
+            await retrieveUserGames(request, response);
+            break;
+
         default:
             response.writeHead(404, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Endpoint non trouvé' }));
@@ -240,11 +244,29 @@ async function retrieveGame(request, response) {
         }
         let game=await db.getGame(body.gameId);
         response.writeHead(400, { 'Content-Type': 'application/json' });
-        response.body(JSON.stringify(game));
+        response.end(JSON.stringify(game));
     });
 
 }
 
+
+async function retrieveUserGames(request, response) {
+    if (request.method !== 'GET') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.idUser){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let games=await db.getGames(body.idUser);
+        response.writeHead(400, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify(games));
+    });
+}
 
 
 /* This method is a helper in case you stumble upon CORS problems. It shouldn't be used as-is:
