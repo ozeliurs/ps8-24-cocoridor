@@ -34,4 +34,4 @@ signInBtn.onclick = function(e){
 
     window.location.href = "../index.html";
 
-}
+} 
