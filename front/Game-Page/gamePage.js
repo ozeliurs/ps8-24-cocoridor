@@ -27,6 +27,7 @@ class Color{
   static blue  = new Color(0  ,0  ,255);
   static white = new Color(255,255,255);
   static darkGrey = new Color(50,50,50);
+  static highlight = new Color(100,100,100);
   
     constructor(r,g,b){
       this.R = r;
@@ -74,6 +75,36 @@ class TileFront {
 
   }
 
+  /**
+       * 
+       * @param {Direction[]} dirs 
+       */
+  getTileInDir(dirs){
+    let x = this.X;
+    let y = this.Y
+    for(let dir of dirs) {
+      switch(dir){
+      case Direction.Up:
+        y++;
+        break;
+      case Direction.Right:
+        x++
+        break;
+      case Direction.Down:
+        y--;
+        break;
+      case Direction.Left:
+        x--;
+        break;
+      }
+    }
+    return getTile(x,y);
+  }
+
+  getCoords(){
+    return{X:this.X,Y:this.Y}
+  }
+
   onClick() {
   //  if(currentPlayer()==this.occupied) return;
 
@@ -93,6 +124,22 @@ class TileFront {
     this.element = document.createElement("div");
     
     this.element.addEventListener("click", this.onClick.bind(this));
+
+    // Debut highlight deplacement
+    /*this.element.addEventListener("mouseover", ()=>{
+      let tile = getTile(this.X,this.Y)
+
+      let dir = this.tileInDir();
+      while(this.occupied!=null){
+        tile = tile.getTileInDir(dir)
+      }
+      this.highlight = tile
+      this.highlight.element.style.backgroundColor = Color.highlight.toStyle()
+    });
+    this.element.addEventListener("mouseout", ()=>{
+      if(this.highlight==null)return
+      this.highlight.element.style.backgroundColor = ""
+    });*/
     this.element.classList.add("tile");
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
@@ -112,7 +159,31 @@ class TileFront {
       this.Edge.element.style.width = 0;
       this.Edge.element.style.height = 0;
     }
+    
     return this.groupElement;
+  }
+  /**
+   * 
+   * @param {Tile} tile 
+   * @return {Direction[]}
+   */
+  tileInDir(tile){
+    let result = [];
+    let xDiff = this.X - tile.X;
+    let yDiff = this.Y - tile.Y;
+    if(Math.abs(xDiff)>Math.abs(yDiff)){
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+    }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }else{
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }
+    return result;
   }
 
 }
@@ -146,10 +217,10 @@ class BorderFront{
         nextTile = getTile(this.X,this.Y+1);
         this.element.addEventListener("mouseover", () => {
           if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderR.element.style.backgroundColor!="" || nextTile.Edge.element.style.backgroundColor!="") return;
-          this.element.style.backgroundColor = "rgb(100,100,100)"
+          this.element.style.backgroundColor = Color.highlight.toStyle();
           if(nextTile==null)return;
-          nextTile.Edge.element.style.backgroundColor = "rgb(100,100,100)"
-          nextTile.BorderR.element.style.backgroundColor = "rgb(100,100,100)"
+          nextTile.Edge.element.style.backgroundColor = Color.highlight.toStyle();
+          nextTile.BorderR.element.style.backgroundColor = Color.highlight.toStyle();
         });
         this.element.addEventListener("mouseout", () => {
           this.element.style.backgroundColor = this.color
@@ -167,10 +238,10 @@ class BorderFront{
         nextTile = getTile(this.X+1,this.Y);
         this.element.addEventListener("mouseover", () => {
           if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderD.element.style.backgroundColor!="" || tile.Edge.element.style.backgroundColor!="") return;
-          this.element.style.backgroundColor = "rgb(100,100,100)"
+          this.element.style.backgroundColor = Color.highlight.toStyle();
           if(nextTile==null)return;
-          tile.Edge.element.style.backgroundColor = "rgb(100,100,100)"
-          nextTile.BorderD.element.style.backgroundColor = "rgb(100,100,100)"
+          tile.Edge.element.style.backgroundColor = Color.highlight.toStyle();
+          nextTile.BorderD.element.style.backgroundColor = Color.highlight.toStyle();
         });
         this.element.addEventListener("mouseout", () => {
           this.element.style.backgroundColor = this.color
@@ -195,11 +266,9 @@ class BorderFront{
    * @param {Boolean} vertical
    */
   onClick(vertical) {
-    console.log("onClick")
     
     let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
     socket.emit("wall",wall);
-    console.log("wall");
 
     
     
