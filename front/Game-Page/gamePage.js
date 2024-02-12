@@ -135,14 +135,50 @@ class BorderFront{
      */
   generateElement() {
     this.element = document.createElement("div");
+    let tile;
+    let nextTile;
     switch ((this.lng ? 1 : 0) + (this.lat ? 2 : 0)) {
       case 1: // vertical border
         this.element.classList.add("verticalBorder");
         this.element.addEventListener("click", () => this.onClick(true));
+        
+        tile = getTile(this.X,this.Y);
+        nextTile = getTile(this.X,this.Y+1);
+        this.element.addEventListener("mouseover", () => {
+          if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderR.element.style.backgroundColor!="" || nextTile.Edge.element.style.backgroundColor!="") return;
+          this.element.style.backgroundColor = "rgb(100,100,100)"
+          if(nextTile==null)return;
+          nextTile.Edge.element.style.backgroundColor = "rgb(100,100,100)"
+          nextTile.BorderR.element.style.backgroundColor = "rgb(100,100,100)"
+        });
+        this.element.addEventListener("mouseout", () => {
+          this.element.style.backgroundColor = this.color
+          if(nextTile==null)return;
+          nextTile.Edge.element.style.backgroundColor = nextTile.Edge.color
+          nextTile.BorderR.element.style.backgroundColor = nextTile.BorderR.color
+        });
+
         break;
       case 2: // horizontal border
         this.element.classList.add("horizontalBorder");
         this.element.addEventListener("click", () => this.onClick(false));
+
+        tile = getTile(this.X,this.Y);
+        nextTile = getTile(this.X+1,this.Y);
+        this.element.addEventListener("mouseover", () => {
+          if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderD.element.style.backgroundColor!="" || tile.Edge.element.style.backgroundColor!="") return;
+          this.element.style.backgroundColor = "rgb(100,100,100)"
+          if(nextTile==null)return;
+          tile.Edge.element.style.backgroundColor = "rgb(100,100,100)"
+          nextTile.BorderD.element.style.backgroundColor = "rgb(100,100,100)"
+        });
+        this.element.addEventListener("mouseout", () => {
+          this.element.style.backgroundColor = this.color
+          tile.Edge.element.style.backgroundColor = tile.Edge.color
+          if(nextTile==null)return;
+          nextTile.BorderD.element.style.backgroundColor = nextTile.BorderD.color
+        });
+
         break;
       case 3: // edge
         this.element.classList.add("edge");
@@ -238,7 +274,7 @@ let currentBoard= []
  *
  * @param {Number} x abscisse
  * @param {Number} y ordonnée
- * @returns {Tile} la tuile correspondante ou null.
+ * @returns {TileFront} la tuile correspondante ou null.
  */
 function getTile(x, y) {
   if(x==null || y==null)return null;
