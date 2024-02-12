@@ -4,6 +4,7 @@ let playerList = [1,2];
 let turnNb = 0;
 
 
+
 function init(board,mode) {
     if(mode === "ai"){
         playerList = [1,2];
@@ -56,15 +57,16 @@ class TileFront {
    *
    * @param {Number} x
    * @param {Number} y
-   * @param {Number} maxX
-   * @param {Number} minY
+   * @param {BorderFront} bRight
+   * @param {BorderFront} bDown 
+   * @param {BorderFront} edge 
    * @param {Player | Boolean} occupiedBy
    */
   constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
     this.occupied = occupiedBy;
-    this.right = x != boardLength;
+    this.right = x != boardLength-1;
     this.down = y != 0;
     this.BorderR = bRight;
     this.BorderD = bDown;
@@ -103,10 +105,13 @@ class TileFront {
     if (!this.right) this.BorderR.element.style.width = 0;
     
     this.groupElement.appendChild(this.BorderD.generateElement());
-    if (!this.down) this.BorderD.element.style.width = 0;
+    if (!this.down) this.BorderD.element.style.height = 0;
 
     this.groupElement.appendChild(this.Edge.generateElement());
-    if (!this.right || !this.down) this.Edge.element.style.width = 0;
+    if (!this.right || !this.down) {
+      this.Edge.element.style.width = 0;
+      this.Edge.element.style.height = 0;
+    }
     return this.groupElement;
   }
 
@@ -261,25 +266,24 @@ function DisplayBoard(board){
   let gameDiv = document.getElementById("game");
   gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
   while (gameDiv.firstChild) gameDiv.removeChild(gameDiv.firstChild);
-  for (const line of board) {
-    for (let tile of line) {
+  for (let y=boardHeight-1;y>=0;y-- ) {
+    for (let tile of board[y]) {
       
       
       tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
       tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
       tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
       tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
-      gameDiv.insertBefore(tile.generateElement(),gameDiv.firstChild);
+      gameDiv.appendChild(tile.generateElement());
     }
+  }
+  if(mode !== "ai") {
+    let gameCover = document.getElementById("gameCover");
+    gameCover.style.cssText = "display : block; font-size: 50px;";
+    if (turnNb % 2 === 0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
   }
 }
 
-
-
-  let gameCover = document.getElementById("gameCover");
-  gameCover.style.cssText = "display : block; font-size: 50px;";
-  if (turnNb%2==0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-  else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player"+(turnNb%2+1)+"\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-}
 
 
