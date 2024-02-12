@@ -6,14 +6,17 @@
     <link rel="stylesheet" href="../Game-Page/gamePage.css">
     <title>GamePage</title>
     <script src="../Game-Page/gamePage.js"> </script>
+    <script src="../js/socket.io.js"> </script>
 </head>
 <body>
-    <h1>Cocoridor</h1>
-    <h2 id="playerplaying">Au tour de Player 1 ...</h2>
-    <section id="game">
-
-    </section>
-
+    <h1>Coucou</h1>
+    <h2 id="playerplaying"></h2>
+    <div id ="gameDiv">
+        <section id="game">
+        </section>
+        <section id = "gameCover" onclick="hideCover()">   
+        </section>
+    </div>
     
     <button onclick="openChat()">
         chat
@@ -34,7 +37,6 @@
     <script>
         function openChat() {
             document.getElementById("chatPopup").style.display = "block";
-            
         }
 
         function closeChat() {
@@ -42,30 +44,36 @@
         }
 
         function sendMessage() {
-            
             var message = document.getElementById("chatInput").value;
             console.log("Message envoyé : " + message);
         }
+        function hideCover() {
+            document.getElementById("gameCover").style.display = "none";
+        }
     </script>
-    <script>
-        init();
-    </script>
-    <script src="../js/socket.io.js"> </script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
         var socket;
         switch (mode) {
             case "local":
-                socket=io('/Game-Page');
+                socket=io('/api/Localgame');
                 break;
-            case "ia":
-                socket=io('/api/game');
+            case "ai":
+                socket=io('/api/AIgame');
                 break;
             default:
                 console.log("Mode inconnu");
                 break;
         }
+        socket.on("launch",(board)=>{init(board,mode);DisplayBoard(board);})
+        socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
+        socket.on("endGame",(winners)=>{
+            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
+            else window.location.href = "../EndPage/endPage.html?winner=0"
+        })
+
+
     </script>
 </body>
 </html>
