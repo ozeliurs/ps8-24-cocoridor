@@ -10,16 +10,25 @@
 </head>
 <body>
     <h1 id="winner">VICTOIRE DU JOUEUR</h1>
+    <img id="winnerImage" src="" alt="Image du gagnant" style="display:none;">
+
     <script>
+        const winnerImage = document.getElementById("winnerImage");
+
         const params = new URLSearchParams(window.location.search);
         if (params.has('winner')) {
             const winner = params.get('winner');
             if (winner === '1') {
                 alert("Le joueur 1 a gagné !");
                 document.getElementById("winner").innerHTML = "VICTOIRE DU JOUEUR 1";
+                winnerImage.src = "poulet.png"
+                winnerImage.style.display = "block";
+
             } else if (winner === '2') {
                 alert("Le joueur 2 a gagné !");
                 document.getElementById("winner").innerHTML = "VICTOIRE DU JOUEUR 2";
+                winnerImage.src = "fermier.png"
+                winnerImage.style.display = "block";
             } else {
                 alert("Erreur : joueur inconnu !");
             

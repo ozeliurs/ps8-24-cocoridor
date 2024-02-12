@@ -7,42 +7,107 @@
     <title>GamePage</title>
 </head>
 <body id=GamePlaySelection>
-    <div id=playerCard>
-        <img class=shell src="Main-Page/mapFichier1.svg" alt="Coquille gauche">
-        <div id=playerProfile>
-            <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
-            <div id=playerInfo>
-                <div id=playerName>
-                    player
+    <div id=upperZone>
+        <a href="signUp">
+            <button id=signUp>
+                S'inscrire
+            </button>
+        </a>
+        <a href="signIn">
+            <button id=signIn>
+                Se connecter
+            </button>
+        </a>
+        <div id=playerCard>
+            <img class=shell src="Main-Page/mapFichier1.svg" alt="Coquille gauche">
+            <div id=playerProfile>
+                <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
+                <div id=playerInfo>
+                    <div id=playerName>
+                        Player
+                    </div>
+                    <div id=playerRank>
+                        Elo 1511
+                    </div>
                 </div>
-                <div id=playerRank>
-                    Elo 1511
-                </div>
-            </div>
-        </div> 
-        <img class=shell src="Main-Page/mapFichier2.svg" alt="Coquille droite">
+            </div> 
+            <img class=shell src="Main-Page/mapFichier2.svg" alt="Coquille droite">
+        </div>
     </div>
     <div class=buttonContainer>
-        <button class=btn class=gameModeButton>
-            Local Game
-        </button>
-        <button class=btn>
-            Multiplayer Game
+        <a href="Game-Page?mode=local">
+            <button class=btn class=gameModeButton >
+                Jouer en local
+            </button>
+        </a>
+        <button class=btn onclick="createGame()">
+            Jouer en ligne
         </button>
     </div>
     <div class=buttonContainer>
-        <button class=btn>
-            Test 1
-        </button>
+        <a href="Game-Page?mode=ai">
+            <button class=btn>
+                Jouer contre l'ia
+            </button>
+        </a>
+    </div>
+
+    <script src="Main-Page/mainPage.js"></script>
+    <script src="
+    "></script>
+    <script>
+        // var socket = io();
+/*
+        function createGame() {
+            fetch('api/creategame', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    // Add any data you want to send to the server
+                })
+            })
+            .then(response => {
+                // Handle the response from the server
+                
+            })
+            .catch(error => {
+                // Handle any errors
+                console.log("erreur")
+            });
+        }*/
+    </script>
+</body>
+</html>
+                
+            </button>
+        </a>
         <button class=btn>
             Test 2
         </button>
     </div>    
 
     <script src="Main-Page/mainPage.js"></script>
-    <script src="js/socket.io.js"></script>
+    <script src="
+    "></script>
     <script>
-        var socket = io();
+      //  var socket = io();
     </script>
+
+<script>
+    // Vérifie si document.cookie n'est pas vide
+    if (document.cookie) {
+
+        var cookieParts = document.cookie.split('=');
+
+        var playerName = cookieParts[1];
+        if (playerName == undefined || playerName == "") {
+            playerName = "Player";
+        }
+        var playerNameElement = document.getElementById('playerName');
+        playerNameElement.textContent = playerName;
+    }
+</script>
 </body>
 </html>

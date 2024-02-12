@@ -1,378 +1,399 @@
-class Player {
-  constructor(num,startSide) {
-    this.num = num;
-    this.side = startSide;
-    this.OnTile = null;
-    switch (num) {
-      case 0:
-        this.image = "./image1.png";
-        this.Color = "rgb(0, 0, 255);"
-        break;
+let boardLength = 11;
+let boardHeight = 11;
+let playerList = [1,2];
+let turnNb = 0;
 
-      case 1:
-        this.image = "./image2.png";
-        this.Color = "rgb(255, 0, 0);"
-        break;
 
-      case 2:
-        this.image = "./image3.png";
-        break;
-      default:
-        break;
+
+function init(board,mode) {
+    if(mode === "ai"){
+        playerList = [1,2];
+    }
+    else if(mode === "local"){
+        playerList = [1,2];
+    }
+    boardHeight = board.length;
+    boardLength = board[0].length;
+    turnNb = 0;
+}
+
+
+
+class Color{
+
+  static black = new Color(0  ,0  ,0  );
+  static red   = new Color(255,0  ,0  );
+  static green = new Color(0  ,255,0  );
+  static blue  = new Color(0  ,0  ,255);
+  static white = new Color(255,255,255);
+  static darkGrey = new Color(50,50,50);
+  static highlight = new Color(100,100,100);
+  
+    constructor(r,g,b){
+      this.R = r;
+      this.G = g;
+      this.B = b;
+    }
+  
+    /**
+     * 
+     * @param {Color} c 
+     * @returns 
+     */
+    moy(c,per=0.5){
+      let r = this.R;
+      let g = this.G;
+      let b = this.B;
+      return new Color((c.R*(1-per)+r*per)/2,(c.G*(1-per)+g*per)/2,(c.B*(1-per)+b*per)/2)
+    }
+  
+    toStyle(){
+      return "rgb("+this.R+","+this.G+","+this.B+")"
     }
   }
-}
-class Tile {
+
+
+class TileFront {
   /**
    *
    * @param {Number} x
    * @param {Number} y
-   * @param {Number} maxX
-   * @param {Number} maxY
+   * @param {BorderFront} bRight
+   * @param {BorderFront} bDown 
+   * @param {BorderFront} edge 
+   * @param {Player | Boolean} occupiedBy
    */
-  constructor(x, y, maxX, maxY) {
+  constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
-    this.occupied = null;
+    this.occupied = occupiedBy;
+    this.right = x != boardLength-1;
+    this.down = y != 0;
+    this.BorderR = bRight;
+    this.BorderD = bDown;
+    this.Edge = edge;
+
+  }
+
+  /**
+       * 
+       * @param {Direction[]} dirs 
+       */
+  getTileInDir(dirs){
+    let x = this.X;
+    let y = this.Y
+    for(let dir of dirs) {
+      switch(dir){
+      case Direction.Up:
+        y++;
+        break;
+      case Direction.Right:
+        x++
+        break;
+      case Direction.Down:
+        y--;
+        break;
+      case Direction.Left:
+        x--;
+        break;
+      }
+    }
+    return getTile(x,y);
+  }
+
+  getCoords(){
+    return{X:this.X,Y:this.Y}
+  }
+
+  onClick() {
+  //  if(currentPlayer()==this.occupied) return;
+
+    let move = new Move(currentPlayerID(),this.X,this.Y);
+    if(move == undefined)return;
+    //move.execute();.
+
+    socket.emit("move",move);
+    console.log("move")
+
+  }
+
+  generateElement(){
     this.groupElement = document.createElement("div");
     this.groupElement.classList.add("tileGroup");
 
     this.element = document.createElement("div");
+    
     this.element.addEventListener("click", this.onClick.bind(this));
+
+    // Debut highlight deplacement
+    /*this.element.addEventListener("mouseover", ()=>{
+      let tile = getTile(this.X,this.Y)
+
+      let dir = this.tileInDir();
+      while(this.occupied!=null){
+        tile = tile.getTileInDir(dir)
+      }
+      this.highlight = tile
+      this.highlight.element.style.backgroundColor = Color.highlight.toStyle()
+    });
+    this.element.addEventListener("mouseout", ()=>{
+      if(this.highlight==null)return
+      this.highlight.element.style.backgroundColor = ""
+    });*/
     this.element.classList.add("tile");
+
+    if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
+    else if (this.occupied === true) {}
+    else this.element.style.backgroundColor = new Color(this.occupied.color.R,this.occupied.color.G,this.occupied.color.B).toStyle();
+
     this.groupElement.appendChild(this.element);
-    let right = x != maxX;
-    let down = y != 0;
 
-    if(y+1<boardHeight/2) this.visibility = -1;
-    else if(y+1==(boardHeight/2)+0.5) this.visibility = 0;
-    else this.visibility = 1;
+    this.groupElement.appendChild(this.BorderR.generateElement());
+    if (!this.right) this.BorderR.element.style.width = 0;
+    
+    this.groupElement.appendChild(this.BorderD.generateElement());
+    if (!this.down) this.BorderD.element.style.height = 0;
 
-    this.element.innerHTML=this.visibility
-    this.BorderR = new Border(x, y, true, false);
-    this.groupElement.appendChild(this.BorderR.element);
-    if (!right) {
-      this.BorderR.element.style.width = 0;
-      
+    this.groupElement.appendChild(this.Edge.generateElement());
+    if (!this.right || !this.down) {
+      this.Edge.element.style.width = 0;
+      this.Edge.element.style.height = 0;
     }
-    this.BorderD = new Border(x, y, false, true);
-    this.groupElement.appendChild(this.BorderD.element);
-    if (!down) this.BorderD.element.style.width = 0;
-    this.Edge = new Border(x, y, true, true);
-    this.groupElement.appendChild(this.Edge.element);
-    if (!right || !down) this.Edge.element.style.width = 0;
+    
+    return this.groupElement;
   }
-  occupiedBy(player) {
-    //let playerModif = currentPlayer.num%2==0?1:-1;
-    if(player==null) this.occupied = player;
-    else{
-      if(player.OnTile != null) player.OnTile.occupiedBy(null);
-      this.occupied = player;
-      player.OnTile = this;
-      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
-      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
-      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
-      // getTile(this.X,this.Y).changeVisibility(playerModif*1);
-  
-    } 
-    this.updateTile()
+  /**
+   * 
+   * @param {Tile} tile 
+   * @return {Direction[]}
+   */
+  tileInDir(tile){
+    let result = [];
+    let xDiff = this.X - tile.X;
+    let yDiff = this.Y - tile.Y;
+    if(Math.abs(xDiff)>Math.abs(yDiff)){
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+    }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }else{
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }
+    return result;
   }
 
-  onClick() {
-    actionIsValid(currentPlayer(),new Action(ActionType.MovePlayer,this.X,this.Y));
-  }
-  updateTile() {
-    if (this.occupied != null) {
-      this.element.style="background-color:"+this.occupied.Color;
-    } else {
-      this.element.style=""
-    }
-  }
-  changeVisibility(value){
-    this.visibility+=value;
-    this.element.innerHTML=this.visibility
-  }
 }
-class Border {
-  constructor(x, y, lng, lat) {
+
+class BorderFront{
+  constructor(x, y, lng, lat ,color) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
-    this.wall = false;
-    this.generateElement(lng, lat);
+    this.color = color;
+    this.lng = lng;
+    this.lat = lat;
   }
-  generateElement(lng, lat) {
+
+    /**
+     * 
+     * @param {Number} lng 
+     * @param {Number} lat 
+     * @param {Player} player 
+     * @returns {Node}
+     */
+  generateElement() {
     this.element = document.createElement("div");
-    switch ((lng ? 1 : 0) + (lat ? 2 : 0)) {
-      case 1: // horizontal border
+    let tile;
+    let nextTile;
+    switch ((this.lng ? 1 : 0) + (this.lat ? 2 : 0)) {
+      case 1: // vertical border
         this.element.classList.add("verticalBorder");
-        this.element.addEventListener("click", () => this.onClick(new Action(ActionType.WallVertical,this.X,this.Y)));
+        this.element.addEventListener("click", () => this.onClick(true));
+        
+        tile = getTile(this.X,this.Y);
+        nextTile = getTile(this.X,this.Y+1);
+        this.element.addEventListener("mouseover", () => {
+          if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderR.element.style.backgroundColor!="" || nextTile.Edge.element.style.backgroundColor!="") return;
+          this.element.style.backgroundColor = Color.highlight.toStyle();
+          if(nextTile==null)return;
+          nextTile.Edge.element.style.backgroundColor = Color.highlight.toStyle();
+          nextTile.BorderR.element.style.backgroundColor = Color.highlight.toStyle();
+        });
+        this.element.addEventListener("mouseout", () => {
+          this.element.style.backgroundColor = this.color
+          if(nextTile==null)return;
+          nextTile.Edge.element.style.backgroundColor = nextTile.Edge.color
+          nextTile.BorderR.element.style.backgroundColor = nextTile.BorderR.color
+        });
+
         break;
-      case 2: // vertical border
+      case 2: // horizontal border
         this.element.classList.add("horizontalBorder");
-        this.element.addEventListener("click", () => this.onClick(new Action(ActionType.WallHorizontal,this.X,this.Y)));
+        this.element.addEventListener("click", () => this.onClick(false));
+
+        tile = getTile(this.X,this.Y);
+        nextTile = getTile(this.X+1,this.Y);
+        this.element.addEventListener("mouseover", () => {
+          if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderD.element.style.backgroundColor!="" || tile.Edge.element.style.backgroundColor!="") return;
+          this.element.style.backgroundColor = Color.highlight.toStyle();
+          if(nextTile==null)return;
+          tile.Edge.element.style.backgroundColor = Color.highlight.toStyle();
+          nextTile.BorderD.element.style.backgroundColor = Color.highlight.toStyle();
+        });
+        this.element.addEventListener("mouseout", () => {
+          this.element.style.backgroundColor = this.color
+          tile.Edge.element.style.backgroundColor = tile.Edge.color
+          if(nextTile==null)return;
+          nextTile.BorderD.element.style.backgroundColor = nextTile.BorderD.color
+        });
+
         break;
       case 3: // edge
         this.element.classList.add("edge");
         break;
+      default: 
+        return this.element;
     }
+    this.element.style.backgroundColor = this.color
+    return this.element
+
   }
-  buildWall(player) {
-    this.element.classList.add("wall");
-    this.wall = true;
+  /**
+   * 
+   * @param {Boolean} vertical
+   */
+  onClick(vertical) {
+    
+    let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
+    socket.emit("wall",wall);
+
+    
+    
   }
 
-  onClick(action) {
-    actionIsValid(currentPlayer(),action)
-  }
 }
 
 class Action {
   /**
-   *
-   * @param {ActionType} ActionType Type d'action qui est effectue
-   * @param {Number} x abscisse de la position de l'action
-   * @param {Number} y ordonnée de la position de l'action
+   * 
+   * @param {Number} playerID 
    */
-  constructor(ActionType, x, y) {
-    this.actionType = ActionType;
-    this.X = x;
-    this.Y = y;
+  constructor(playerID){
+    this.playerID = playerID;
   }
 }
-const ActionType = {
-  WallVertical: "verticalWall",
-  WallHorizontal: "horizontalWall",
-  MovePlayer: "movePlayer",
-};
 
-Board = [];
-const numActions = 2;
-let remainingAction = numActions;
-let boardLength = 0;
-let boardHeight = 0;
-let turnNb = 0;
-playerList = [];
-validAction = null;
+class Move extends Action{
+  /**
+   * 
+   * @param {Number} playerID 
+   * @param {Number} x 
+   * @param {Number} y 
+   */
+  constructor(playerID, x,y){
+    super(playerID);
+     this.x =x;
+     this.y =y;
+    
 
-const Direction = {
-  Up: "up",
-  Right: "right",
-  Down: "down",
-  Left: "left",
-};
+    
+    // let start = currentPlayer().getTile();
+    // let end = getTile(x,y);
+    // let dirs = start.tileInDir(end);
+    // let path = aStar({start:start,end:end,maxCost:travelDist});
+    // if(path==null) return undefined;
+    // while(path.node.occupied!=null){
+    //   path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
+    //   if(path==null) return undefined;
+    //   start = end;
+    //   end = path.node.getTileInDir(dirs);
+    // }
+    // this.X = path.node.X;
+    // this.Y = path.node.Y;
+
+  }
+}
+
+class Wall extends Action{
+  /**
+   * 
+   * @param {Player} player
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Boolean} vertical 
+   */
+  constructor(playerID, x, y, vertical){
+    super(playerID);
+    this.x = x;
+    this.y = y;
+    this.vertical = vertical;
+  }
+
+}
+
+
+// Client & Server
+// Client
+let currentBoard= []
 
 /**
  *
  * @param {Number} x abscisse
  * @param {Number} y ordonnée
- * @returns {Tile} la tuile correspondante ou null.
+ * @returns {TileFront} la tuile correspondante ou null.
  */
 function getTile(x, y) {
-  return Board[y][x];
-}
-
-function screenTurn(player) {}
-
-/**
- * Verify if the action is legal
- * @param {Player} player player qui compte effectue l'action
- * @param {Action} action action que le joueur veut effectuer
- */
-function actionIsValid(player, action) {
-  switch (action.actionType) {
-    case ActionType.MovePlayer:
-      if(canMoveTo(getPlayerPos(currentPlayer()), getTile(action.X,action.Y))) move(player,action.X,action.Y);
-
-        
-      break;
-    case ActionType.WallVertical:
-      if (!(getTile(action.X,action.Y+1).Edge.wall 
-      || getTile(action.X,action.Y).BorderR.wall
-      || getTile(action.X,action.Y+1).BorderR.wall)
-      ) createWall(action);
-      break;
-    case ActionType.WallHorizontal:
-      if (!(getTile(action.X,action.Y).Edge.wall 
-      || getTile(action.X,action.Y).BorderD.wall
-      || getTile(action.X+1,action.Y).BorderD.wall)
-      ) createWall(action);
-      
-      break;
-  }
+  if(x==null || y==null)return null;
+  if(x<0 || x>=boardLength || y<0 || y>=boardHeight) return null;
+  return currentBoard[y][x];
 }
 /**
  * 
- * @param {Tile} from 
- * @param {Tile} to 
+ * @returns {Number} player that is playing
  */
-function canMoveTo(from,to){
-  if(from.X == to.X && Math.abs(from.Y-to.Y)==1){
-    if(from.Y>to.Y) return !getTile(from.X,from.Y).BorderD.wall;
-    else return !getTile(to.X,to.Y).BorderD.wall;
-  }else if(Math.abs(from.X-to.X)==1 && from.Y == to.Y){
-    if(from.X<to.X) return !getTile(from.X,from.Y).BorderR.wall;
-    else return !getTile(to.X,to.Y).BorderR.wall;
-  }
-  return null;
-}
-/**
- * Move the player on the board
- * @param {Player} player
- * @param {Number} x
- * @param {Number} y
- */
-function move(player, x, y) {
-  getTile(x, y).occupiedBy(player);
-  actionDone();
+function currentPlayerID(){
+  return playerList[turnNb%playerList.length];
 }
 /**
  * 
- * @param {Action} action 
+ * @param {TileFront[][]} board 
  */
-function createWall(action) {
-  x = action.X;
-  y = action.Y;
-  playerModif = currentPlayer().num%2==0?-1:1;
-  switch (action.actionType) {
-    case ActionType.WallHorizontal:
-      //block path
-      getTile(x, y).BorderD.buildWall();
-      getTile(x, y).Edge.buildWall();
-      getTile(x + 1, y).BorderD.buildWall();
-      //light tiles
-      getTile(x,y).changeVisibility(playerModif*2);
-      getTile(x+1,y).changeVisibility(playerModif*2);
-      getTile(x,y-1).changeVisibility(playerModif*2);
-      getTile(x+1,y-1).changeVisibility(playerModif*2);
+function DisplayBoard(board){
+  console.log(board) ;
+  currentBoard = board
+  let gameDiv = document.getElementById("game");
+  gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
+  while (gameDiv.firstChild) gameDiv.removeChild(gameDiv.firstChild);
+  for (let y=boardHeight-1;y>=0;y-- ) {
+    for (let tile of board[y]) {
       
-      getTile(x,y+1).changeVisibility(playerModif*1);
-      getTile(x+1,y+1).changeVisibility(playerModif*1);
-      getTile(x-1,y).changeVisibility(playerModif*1);
-      getTile(x+2,y).changeVisibility(playerModif*1);
-      getTile(x-1,y-1).changeVisibility(playerModif*1);
-      getTile(x+2,y-1).changeVisibility(playerModif*1);
-      getTile(x,y-2).changeVisibility(playerModif*1);
-      getTile(x+1,y-2).changeVisibility(playerModif*1);
-      break;
-
-    case ActionType.WallVertical:
-      //block path
-      getTile(x, y).BorderR.buildWall();
-      getTile(x, y + 1).Edge.buildWall();
-      getTile(x, y + 1).BorderR.buildWall();
-      //light tiles
-      getTile(x,y+1).changeVisibility(playerModif*2);
-      getTile(x+1,y+1).changeVisibility(playerModif*2);
-      getTile(x,y).changeVisibility(playerModif*2);
-      getTile(x+1,y).changeVisibility(playerModif*2);
-
-      getTile(x,y+2).changeVisibility(playerModif*1);
-      getTile(x+1,y+2).changeVisibility(playerModif*1);
-      getTile(x-1,y+1).changeVisibility(playerModif*1);
-      getTile(x+2,y+1).changeVisibility(playerModif*1);
-      getTile(x-1,y).changeVisibility(playerModif*1);
-      getTile(x+2,y).changeVisibility(playerModif*1);
-      getTile(x,y-1).changeVisibility(playerModif*1);
-      getTile(x+1,y-1).changeVisibility(playerModif*1);
-
-      break;
-  }
-  actionDone();
-  
-}
-
-function init(lng = 21, lat = 21) {
-  boardLength = lng;
-  boardHeight = lat;
-  //CreateBoard
-  for (y = boardHeight-1; y >= 0; y--) {
-    Board[y] = [];
-    for (x = 0; x < boardLength; x++) {
-      let elemtCreated = new Tile(x, y, boardLength-1, boardHeight);
-
-      let gameDiv = document.getElementById("game");
-      gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
-      gameDiv.appendChild(elemtCreated.groupElement);
-      Board[y][x] = elemtCreated;
+      
+      tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
+      tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
+      tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
+      tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
+      gameDiv.appendChild(tile.generateElement());
     }
   }
-  //Place Player
-  playerList[0] = new Player(0,Direction.Down);
-  playerList[1] = new Player(1,Direction.Up);
-  getTile(Math.round(boardLength/2)-1,0).occupiedBy(playerList[0]);
-  getTile(Math.round(boardLength/2+0.5)-1,boardHeight-1).occupiedBy(playerList[1]);
-  //GameStart();
+  if(mode !== "ai") {
+    let gameCover = document.getElementById("gameCover");
+    gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
 
-
-}
-
-function GameWinner(){
-  playerList.forEach(player => {
-    switch(player.startSide){
-      case Direction.Up:
-        if(player.OnTile.Y==0)return player;
-        break;
-      case Direction.Down:
-        if(player.OnTile.Y==boardHeight-1)return player;
-        break;
+    if (turnNb % 2 === 0) {
+      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:blue; padding-top: 50px; padding-bottom: 50px;";
+      gameCover.innerHTML = "<img src=\"PouletJ1.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
     }
-  });
-  return null;
-}
 
-function playerTurn(player) {
-  action = null;
-  while (action == null) action = validAction;
-  //Execute action
-  action = null;
-}
+    else {
+      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:red; padding-top: 50px; padding-bottom: 50px;";
 
-/**
- *
- * @param {Player} player player
- * @return {{X:Number,Y:Number}} coords of the tile
- */
-function getPlayerPos(player) {
-  let tile = player.OnTile;
-  return { X: tile.X, Y: tile.Y };
-}
-/**
- * 
- * @returns {Player} player that must play
- */
-function currentPlayer(){
-  return playerList[turnNb%2];
-}
-
-function actionDone(){
-  remainingAction--;
-  
-
-  if(remainingAction<=0){
-    remainingAction=numActions;
-    turnNb++;
+      gameCover.innerHTML = "<img src=\"FermierJ2.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    }
   }
-  
- /* if(player = GameWinner()!=null) {
-    // switcher sur endPage.html et donner le gagnant
-    window.location.href = "../EndGame/endPage.html";
-
-
-
-  }*/
-  let winningPlayer = GameWinner();
-  
-  if(winningPlayer != null) {
-    // Afficher l'alerte avec le numéro du joueur gagnant
-    alert("Le joueur " + (winningPlayer.num + 1) + " a gagné !");
-    
-    // Rediriger vers une nouvelle page HTML avec le nom du joueur gagnant
-    window.location.href = "../EndGame/endPage.html?winner=Joueur" + (winningPlayer.num + 1);
-    return; // Arrêter le déroulement de la fonction si un joueur a gagné
-  }
-
-  let playeTurn = document.getElementById("playerplaying");
-  if (turnNb%2==0) playeTurn.innerHTML = "Au tour de Player 1 ...";
-  else playeTurn.innerHTML = "Au tour de Player 2 ...";
-
 }
+
+
+
