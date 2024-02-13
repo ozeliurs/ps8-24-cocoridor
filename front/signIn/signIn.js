@@ -1,7 +1,7 @@
 let signInBtn = document.getElementById('signIn');
 let username=document.getElementById('username');
 let mdp=document.getElementById('mdp');
-signInBtn.onclick = function(e){
+signInBtn.onclick = async function(e){
     e.preventDefault();
     let user = {
         username: username.value,
@@ -11,7 +11,7 @@ signInBtn.onclick = function(e){
 
 
 
-    fetch('http://localhost:8000/api/signIn', {
+    await fetch('http://localhost:8000/api/signIn', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
