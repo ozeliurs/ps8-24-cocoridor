@@ -253,6 +253,10 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
     back.init()
     playerList = back.getPlayerList()
+    boardHeight = back.getBoard().length
+    boardLength = back.getBoard()[0].length
+    back.placePlayer(playerList[0].id,{X:Math.floor(boardLength/2),Y:0})
+    back.placePlayer(playerList[1].id,{X:Math.floor((boardLength/2)+0.5)-1,Y:boardHeight-1})
     turnNb = back.getTurnNb()
     let newBoard = back.BoardFor(playerList[0])
     socket.emit("launch",newBoard,turnNb);

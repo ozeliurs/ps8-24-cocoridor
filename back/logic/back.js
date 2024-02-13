@@ -450,8 +450,6 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
         playerList[i] = new Player(null,null,null,null,listPlayer[i]);
       }
     }
-
-
   }
   
   function GameWinner(){
@@ -838,10 +836,7 @@ function actionDone(){
    */
   function placePlayer(playerId, co){
     //find player with same id as playerId in playerList
-    console.log(playerId);
     let player = playerList.find((p)=>p.id==playerId);
-    console.log(player)
-    console.log(co.X,co.Y)
     getTile(co.X,co.Y).occupiedBy(player)
   }
 

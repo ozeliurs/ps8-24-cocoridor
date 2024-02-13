@@ -29,6 +29,7 @@ class Color{
   static darkGrey = new Color(50,50,50);
   static highlight = new Color(100,100,100);
   static grey = new Color(125,125,125);
+  static lightgrey = new Color(175,175,175);
     constructor(r,g,b){
       this.R = r;
       this.G = g;
@@ -106,10 +107,9 @@ class TileFront {
   }
 
   onClick() {
-
     let move = new Move(currentPlayerID(),this.X,this.Y);
     if(move == undefined)return;
-    if(gameId==null) socket.emit("gameSetup",move,user)
+    if(mode =="newAi" && gameId==null) socket.emit("gameSetup",move,user)
     else socket.emit("move",move,gameId,user);
 
   }
@@ -373,7 +373,7 @@ function DisplayBoard(board,positions=null){
       if(positions!=null) {
         for(co of positions) if(tile.X!=co.X && tile.Y!=co.Y){
           tile.element = tile.element.cloneNode(true);
-          tile.element.style.backgroundColor = Color.grey.toStyle();
+          tile.element.style.backgroundColor = Color.lightgrey.toStyle();
           break;
         }
           
@@ -387,7 +387,7 @@ function DisplayBoard(board,positions=null){
           tile.groupElement.appendChild(tile.BorderD.element);
           tile.groupElement.appendChild(tile.Edge.element);
 
-          tile.Edge.element.style.backgroundColor = Color.grey.toStyle()
+          tile.Edge.element.style.backgroundColor = Color.darkGrey.toStyle()
           tile.BorderD.element.style.backgroundColor = Color.grey.toStyle()
           tile.BorderR.element.style.backgroundColor = Color.grey.toStyle()
       }
