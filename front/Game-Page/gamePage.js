@@ -354,6 +354,7 @@ function currentPlayerID(){
 /**
  *
  * @param {TileFront[][]} board
+ * @param {{X:Number,Y:Number}[]} positions
  */
 function DisplayBoard(board,positions=null){
   currentBoard = board
@@ -369,20 +370,28 @@ function DisplayBoard(board,positions=null){
       tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
 
       tile.generateElement();
-      console.log(tile)
-      if(positions!=null && positions.find((e)=>e.X!=tile.X || e.Y != tile.Y)) {
+      if(positions!=null) {
+        for(co of positions) if(tile.X!=co.X && tile.Y!=co.Y){
+          tile.element = tile.element.cloneNode(true);
+          tile.element.style.backgroundColor = Color.grey.toStyle();
+          break;
+        }
+          
+          while (tile.groupElement.firstChild) tile.groupElement.removeChild(tile.groupElement.firstChild);
+          tile.Edge.element = tile.Edge.element.cloneNode(true);
+          tile.BorderD.element = tile.BorderD.element.cloneNode(true);
+          tile.BorderR.element = tile.BorderR.element.cloneNode(true);
 
-        tile.element = tile.element.cloneNode(true);
-        tile.Edge.element = tile.Edge.element.cloneNode(true);
-        tile.BorderD.element = tile.BorderD.element.cloneNode(true);
-        tile.BorderR.element = tile.BorderR.element.cloneNode(true);
+          tile.groupElement.appendChild(tile.element);
+          tile.groupElement.appendChild(tile.BorderR.element);
+          tile.groupElement.appendChild(tile.BorderD.element);
+          tile.groupElement.appendChild(tile.Edge.element);
 
-        tile.element.style = Color.grey.toStyle();
-        tile.Edge.element.style = Color.grey.toStyle()
-        tile.BorderD.element.style = Color.grey.toStyle()
-        tile.BorderR.element.style = Color.grey.toStyle()
+          tile.Edge.element.style.backgroundColor = Color.grey.toStyle()
+          tile.BorderD.element.style.backgroundColor = Color.grey.toStyle()
+          tile.BorderR.element.style.backgroundColor = Color.grey.toStyle()
       }
-      gameDiv.appendChild(tile.generateElement());
+      gameDiv.appendChild(tile.groupElement);
     }
   }
   if(mode === "local") {
