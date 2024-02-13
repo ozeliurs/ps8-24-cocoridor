@@ -61,7 +61,6 @@ function findAi(board , playerID){
     for (const line of board) {
         for (const tile of line) {
             if(tile.occupied.id === playerID){
-                console.log(tile);
                 return tile;
             }
         }

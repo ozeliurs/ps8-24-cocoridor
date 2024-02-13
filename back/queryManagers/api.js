@@ -52,7 +52,6 @@ function parsejson(request) {
 async function createOrUpdateUser(email, username, password, response, isNewUser) {
 
     if (isNewUser) {
-        console.log("création")
         const newUser = {
             email: email,
             username: username,
@@ -67,7 +66,6 @@ async function createOrUpdateUser(email, username, password, response, isNewUser
             response.end(JSON.stringify({error: 'Erreur lors de la création de l\'utilisateur'}));
         }
     } else {
-        console.log("update")
 
         const updatedUser = {
             email: email,
@@ -86,7 +84,6 @@ async function createOrUpdateUser(email, username, password, response, isNewUser
 }
 
 async function createGame(idUser, board, turnNb,playerList, response) {
-    console.log("createGame")
     const NewGame = {
         board: board,
         idUser: idUser,
@@ -96,7 +93,7 @@ async function createGame(idUser, board, turnNb,playerList, response) {
     let gameCreated = await db.createGame(NewGame);
     if (gameCreated) {
         response.writeHead(200, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify({message: 'Partie créé avec succès'}));
+        response.end(JSON.stringify(gameCreated.insertedId));
     } else {
         response.writeHead(500, {'Content-Type': 'application/json'});
         response.end(JSON.stringify({error: 'Erreur lors de la création de la partie'}));
@@ -115,7 +112,7 @@ async function updateGame(idUser, board, turnNb,playerList, gameId, response) {
     let gameUpdated = await db.updateGame(updatedGame, gameId);
     if (gameUpdated) {
         response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ message: 'Partie mis à jour avec succès' }));
+        response.end(JSON.stringify({ message: 'Partie mise à jour avec succès' }));
     } else {
         response.writeHead(500, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Erreur lors de la mise à jour de la partie' }));
@@ -142,7 +139,6 @@ async function signup(request, response) {
         }
         console.log('username : '+ body.username);
         const users = await db.getUsers();
-        console.log(await users.find({}).toArray());
         const user = await users.findOne({ username: body.username });
 
         if(user){
@@ -185,7 +181,6 @@ async function login(request, response) {
         const data = JSON.parse(body);
         const { mail, username, password } = data;
         let test= await db.verifMdp(username,password);
-        console.log(test);
         if(test){
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ message: 'connexion succés' }));
@@ -204,7 +199,6 @@ async function uploadGame(request, response) {
     }
 
     parsejson(request).then(async (body) => {
-        console.log(!body.idUser+" "+!body.board+" "+!body.turnNb+" "+!body.playerList);
         if (!body.idUser || !body.board || !body.playerList) {
             
             response.writeHead(400, { 'Content-Type': 'application/json' });
@@ -227,8 +221,8 @@ async function uploadGame(request, response) {
                 body.board,
                 body.turnNb,
                 body.playerList,
+                body.gameId,
                 response,
-                body.gameId
             );
         }
     });

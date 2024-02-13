@@ -96,37 +96,50 @@ class Color{
     
     class Player {
       /**
-       * 
-       * @param {Number} modifier 
-       * @param {Tile} startPos 
-       * @param {Tile[]} endPos 
+       *
+       * @param {Number} modifier
+       * @param {Tile} startPos
+       * @param {Tile[]} endPos
        * @param {Number} id
+       * @param player
        */
-      constructor(modifier,startPos,endPos,id) {
-        
-        this.id = id;
-        this.modifier = modifier;
-        this.start = startPos.getCoords();
-        this.end = [];
-        for(let tile of endPos)this.end.push(tile.getCoords())
-        this.nbWalls = nbWallsPerPlayer;
-        switch (modifier) {
-          case -1:
-            this.image = "./image1.png";
-            this.color = Color.blue
-            break;
-    
-          case 1:
-            this.image = "./image2.png";
-            this.color = Color.red
-            break;
-    
-          default:
-            console.error("unknown player modifier")
-            break;
+      constructor(modifier,startPos,endPos,id, player=null) {
+        if(player===null)
+        {
+          this.id = id;
+          this.modifier = modifier;
+          this.start = startPos.getCoords();
+          this.end = [];
+          for (let tile of endPos) this.end.push(tile.getCoords())
+          this.nbWalls = nbWallsPerPlayer;
+          switch (modifier) {
+            case -1:
+              this.image = "./image1.png";
+              this.color = Color.blue
+              break;
+
+            case 1:
+              this.image = "./image2.png";
+              this.color = Color.red
+              break;
+
+            default:
+              console.error("unknown player modifier")
+              break;
+          }
+          if (startPos != null) startPos.occupiedBy(this);
+          if (endPos == null) console.info("ce joueur ne peux pas gagner")
+        }else{
+            this.id = player.id;
+            this.modifier = player.modifier;
+            this.start = {X:player.start.X,Y:player.start.Y};
+            this.end = player.end;
+            this.nbWalls = player.nbWalls;
+            this.image = player.image;
+            this.color =new Color(player.color.R,player.color.G,player.color.B);
+            this.OnTile = {X:player.OnTile.X,Y:player.OnTile.Y};
+
         }
-        if(startPos!=null)startPos.occupiedBy(this);
-        if(endPos==null)console.info("ce joueur ne peux pas gagner")
       }
       /**
        * 
@@ -157,23 +170,31 @@ class Color{
        * @param {Number} y
        * @param {Number} maxX
        * @param {Number} maxY
+       * @param Tile
        */
-      constructor(x, y, maxX, maxY) {
-        this.X = Math.floor(x);
-        this.Y = Math.floor(y);
-        this.occupied = null;
-        let right = x != maxX;
-        let down = y != 0;
-    
-        if(y+1<boardHeight/2) this.visibility = -1;
-        else if(y+1==(boardHeight/2)+0.5) this.visibility = 0;
-        else this.visibility = 1;
-    
-        this.BorderR = new Border(x, y, true, false);
-    
-        this.BorderD = new Border(x, y, false, true);
-    
-        this.Edge = new Border(x, y, true, true);
+      constructor(x, y, maxX, maxY, Tile=null) {
+        if(Tile===null) {
+          this.X = Math.floor(x);
+          this.Y = Math.floor(y);
+          this.occupied = null;
+          if (y + 1 < boardHeight / 2) this.visibility = -1;
+          else if (y + 1 == (boardHeight / 2) + 0.5) this.visibility = 0;
+          else this.visibility = 1;
+
+          this.BorderR = new Border(x, y, true, false);
+          this.BorderD = new Border(x, y, false, true);
+          this.Edge = new Border(x, y, true, true);
+        } else {
+          this.X = Tile.X;
+          this.Y = Tile.Y;
+          if(Tile.occupied!=null) this.occupied = new Player(null,null,null,null,Tile.occupied);
+          else this.occupied = null;
+          this.visibility = Tile.visibility;
+          this.BorderR = new Border(null,null,null,null,Tile.BorderR);
+          this.BorderD = new Border(null,null,null,null,Tile.BorderD);
+          this.Edge = new Border(null,null,null,null,Tile.Edge);
+        }
+
       }
     
       /**
@@ -198,7 +219,7 @@ class Color{
               }
             }
           }
-        } 
+        }
         this.occupied = player;
       }
     
@@ -228,7 +249,6 @@ class Color{
         let result = [];
 
         let current = getTile(this.X,this.Y+1);
-        console.log(current)
         if(current!=null && (jumpWalls || current.BorderD.wallBy==null) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
 
         current = getTile(this.X+1,this.Y);
@@ -298,18 +318,28 @@ class Color{
 
 class Border {
     /**
-     * 
-     * @param {Number} x 
-     * @param {Number} y 
-     * @param {Boolean} lng 
-     * @param {Boolean} lat 
+     *
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Boolean} lng
+     * @param {Boolean} lat
+     * @param Border
      */
-    constructor(x, y, lng, lat) {
-      this.X = Math.floor(x);
-      this.Y = Math.floor(y);
-      this.lng = lng;
-      this.lat = lat;
-      this.wallBy = null;
+    constructor(x, y, lng, lat, Border=null) {
+        if(Border==null) {
+          this.X = Math.floor(x);
+          this.Y = Math.floor(y);
+          this.lng = lng;
+          this.lat = lat;
+          this.wallBy = null;
+        } else {
+            this.X = Border.X;
+            this.Y = Border.Y;
+            this.lng = Border.lng;
+            this.lat = Border.lat;
+            if(Border.wallBy!=null) this.wallBy = new Player(null,null,null,null,Border.wallBy);
+            else this.wallBy = null;
+        }
     }
 
   
@@ -382,12 +412,12 @@ function getTileIn(Tile,dir){
     }
   }
   
-function init(lng = 11, lat = 11,board=null,nbTurn=0,listPlayer=null) {
+function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
     turnNb = nbTurn;
-    boardLength = lng;
-    boardHeight = lat;
     //CreateBoard
   if(board == null){
+    boardLength = lng;
+    boardHeight = lat;
     for (y = boardHeight-1; y >= 0; y--) {
       Board[y] = [];
       for (x = 0; x < boardLength; x++) {
@@ -395,7 +425,14 @@ function init(lng = 11, lat = 11,board=null,nbTurn=0,listPlayer=null) {
         Board[y][x] = elemtCreated;
       }
     }
-  }else{Board=board;}
+  }else{
+    boardLength = board[0].length;
+    boardHeight = board.length;
+    for(let y=0;y<boardHeight;y++)
+      for(let x=0;x<boardLength;x++)
+        Board[y][x] = new Tile(null,null,null,null,board[y][x]);
+
+  }
 
     //Place Player
     let topTiles = [];
@@ -408,7 +445,9 @@ function init(lng = 11, lat = 11,board=null,nbTurn=0,listPlayer=null) {
       playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
       playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
     } else {
-      playerList=listPlayer;
+      for(i=0;i<listPlayer.length;i++){
+        playerList[i] = new Player(null,null,null,null,listPlayer[i]);
+      }
     }
 
 
@@ -667,7 +706,6 @@ function actionDone(){
     constructor(player, x,y){
       super(player);
       let start = currentPlayer().getTile();
-      
       let end = getTile(x,y);
       if(start==end)return undefined;
       let dirs = start.tileInDir(end);
@@ -721,9 +759,7 @@ function actionDone(){
 
 
   function execMove(playerID, x, y){
-
     let player = playerList[playerID-1];
-
     let move = new Move(player, x, y);
     if(move==undefined) return false;
     return move.execute();

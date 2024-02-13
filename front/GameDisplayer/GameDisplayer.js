@@ -6,22 +6,6 @@ let games = [];
 let req = {
     idUser: playerid
 }
-console.log(JSON.stringify(req));
-
-// fetch('http://localhost:8000/api/retrieveUserGames', {
-//     method: 'POST',
-//     headers: {
-//         'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify(req)
-// }).then(response => {
-//     if (response.ok) {
-//         console.log(response.json());
-//         return response.body;
-//     } else {
-//         throw new Error('La requête a échoué'); // Gestion des erreurs
-//     }
-// })
 
 
 fetch('http://localhost:8000/api/retrieveUserGames', {

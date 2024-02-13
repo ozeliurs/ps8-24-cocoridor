@@ -54,19 +54,18 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
+        const user = urlParams.get('playerid');
+        let gameId = urlParams.get('gameid');
         var socket;
         switch (mode) {
             case "local":
                 socket=io('/api/Localgame');
                 break;
             case "newAi":
-                const usere = urlParams.get('playerid');
                 socket=io('/api/AIgame');
-                socket.emit('newGame',usere);
+                socket.emit('newGame',user);
                 break;
             case "getAi":
-                const gameId = urlParams.get('gameId');
-                const user = urlParams.get('playerid');
                 socket=io('/api/AIgame');
                 socket.emit('retrieveGame',user,gameId);
                 break;
@@ -74,7 +73,7 @@
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("launch",(board,turnNb)=>{init(board,mode,turnNb);DisplayBoard(board);})
+        socket.on("launch",(board,turnNb,idGame)=>{gameId=idGame;init(board,mode,turnNb);DisplayBoard(board);})
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
