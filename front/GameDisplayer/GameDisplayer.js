@@ -28,7 +28,9 @@ fetch('http://localhost:8000/api/retrieveUserGames', {
     for (let i = 0; i < games.length; i++) {
         let game = games[i];
         let gameElement = document.createElement("div");
-        gameElement.innerHTML = "Game " + i + " : " + game._id;
+        gameElement.className = "game";
+        gameElement.innerHTML = "Game " + i + " : " + game._id + " (cliquer pour rejoindre)";
+        
         gameElement.onclick = function(){
             window.location.href = "../Game-Page?mode=getAi&gameid="+game._id+"&playerid="+playerid;
         }

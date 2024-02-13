@@ -1,0 +1,60 @@
+body {
+    background-color: #e8662f; /* Couleur de fond */
+    font-family: Arial, sans-serif; /* Police de caractère */
+    margin: 0; /* Marge de 0 */
+    padding: 0; /* Espacement de 0 */
+
+}
+
+/* Style pour le titre */
+h1 {
+    text-align: center; /* Centré */
+    margin: 20px 0; /* Marge en haut et en bas */
+    color: yellow; /* Couleur du texte */
+}
+
+/* Style pour la liste des jeux */
+
+
+
+
+
+#gameList {
+    margin: 20px; /* Marge autour de la liste des jeux */
+}
+
+/* Style pour chaque élément de jeu */
+.game {
+    background-color: #f5c046; /* Couleur de fond */
+    border-radius: 8px; /* Coins arrondis */
+    padding: 10px; /* Espacement intérieur */
+    margin-bottom: 10px; /* Marge en bas de chaque élément */
+    cursor: pointer; /* Curseur pointeur pour indiquer que c'est cliquable */
+    transition: background-color 0.3s ease; /* Transition fluide lors du survol */
+}
+
+.game:hover {
+    background-color: #59d73ac0; /* Couleur de fond au survol */
+}
+
+/* Style pour le texte du jeu */
+.game-text {
+    font-size: 18px; /* Taille du texte */
+}
+
+/* Style pour le bouton */
+.game-button {
+    background-color: #f1ed1b; /* Couleur de fond */
+    color: white; /* Couleur du texte */
+    border: none; /* Pas de bordure */
+    border-radius: 5px; /* Coins arrondis */
+    padding: 8px 16px; /* Espacement intérieur */
+    font-size: 16px; /* Taille du texte */
+    cursor: pointer; /* Curseur pointeur */
+    transition: background-color 0.3s ease; /* Transition fluide lors du survol */
+}
+
+/* Style pour le bouton au survol */
+.game-button:hover {
+    background-color: #0056b3; /* Couleur de fond au survol */
+}
