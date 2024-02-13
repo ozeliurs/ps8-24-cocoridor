@@ -229,10 +229,11 @@ class Color{
        * @returns 
        */
       toFront(player) {
-        let visi
-        if(this.occupied == player ) visi = this.occupied;
-        
-        else if(this.visibility*player.modifier>=0) {
+        let visi;
+        if(this.occupied!=null && this.occupied.id==player.id) {
+            visi = this.occupied;
+
+        } else if(this.visibility*player.modifier>=0) {
           if(this.occupied!=null) visi = this.occupied;
           else visi = true;
         } else visi = false;

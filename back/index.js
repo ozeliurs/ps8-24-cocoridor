@@ -225,6 +225,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         }
             board = back.getBoard();
             turnNb = back.getTurnNb();
+            saveGame(board,playerId,turnNb,playerList,gameId);
             newBoard = back.BoardFor(playerList[0])
             socket.emit("updateBoard",newBoard)
         }
