@@ -92,229 +92,229 @@ class Color{
       toStyle(){
         return "rgb("+this.R+","+this.G+","+this.B+")"
       }
+}
+
+class Player {
+  /**
+   *
+   * @param {Number} modifier
+   * @param {Tile} startPos
+   * @param {Tile[]} endPos
+   * @param {Number} id
+   * @param player
+   */
+  constructor(modifier,startPos,endPos,id, player=null) {
+    if(player===null)
+    {
+      this.id = id;
+      this.modifier = modifier;
+      this.start = startPos!=null?startPos.getCoords():null;
+      this.end = [];
+      for (let tile of endPos) this.end.push(tile.getCoords())
+      this.nbWalls = nbWallsPerPlayer;
+      switch (modifier) {
+        case -1:
+          this.image = "./image1.png";
+          this.color = Color.blue
+          break;
+
+        case 1:
+          this.image = "./image2.png";
+          this.color = Color.red
+          break;
+
+        default:
+          console.error("unknown player modifier")
+          break;
+      }
+      if (startPos != null) startPos.occupiedBy(this);
+      if (endPos == null) console.info("ce joueur ne peux pas gagner")
+    }else{
+        this.id = player.id;
+        this.modifier = player.modifier;
+        this.start = {X:player.start.X,Y:player.start.Y};
+        this.end = player.end;
+        this.nbWalls = player.nbWalls;
+        this.image = player.image;
+        this.color =new Color(player.color.R,player.color.G,player.color.B);
+        this.OnTile = {X:player.OnTile.X,Y:player.OnTile.Y};
+
     }
-    
-    class Player {
-      /**
-       *
-       * @param {Number} modifier
-       * @param {Tile} startPos
-       * @param {Tile[]} endPos
-       * @param {Number} id
-       * @param player
-       */
-      constructor(modifier,startPos,endPos,id, player=null) {
-        if(player===null)
-        {
-          this.id = id;
-          this.modifier = modifier;
-          this.start = startPos.getCoords();
-          this.end = [];
-          for (let tile of endPos) this.end.push(tile.getCoords())
-          this.nbWalls = nbWallsPerPlayer;
-          switch (modifier) {
-            case -1:
-              this.image = "./image1.png";
-              this.color = Color.blue
-              break;
+  }
+  /**
+   * 
+   * @returns {{X:Number,Y:Number}}
+   */
+  getPos(){
+    return this.OnTile;
+  }
+  /**
+   * @returns {Tile}
+   */
+  getTile(){
+    if(this.OnTile==null)return null;
+    return getTile(this.OnTile.X,this.OnTile.Y);
+  }
+  getColorStyle(){
+    return this.color;
+  }
+  getid(){
+    return this.id;
+  }
+}
 
-            case 1:
-              this.image = "./image2.png";
-              this.color = Color.red
-              break;
+class Tile {
+  /**
+   *
+   * @param {Number} x
+   * @param {Number} y
+   * @param {Number} maxX
+   * @param {Number} maxY
+   * @param Tile
+   */
+  constructor(x, y, maxX, maxY, Tile=null) {
+    if(Tile===null) {
+      this.X = Math.floor(x);
+      this.Y = Math.floor(y);
+      this.occupied = null;
+      if (y + 1 < boardHeight / 2) this.visibility = -1;
+      else if (y + 1 == (boardHeight / 2) + 0.5) this.visibility = 0;
+      else this.visibility = 1;
 
-            default:
-              console.error("unknown player modifier")
-              break;
-          }
-          if (startPos != null) startPos.occupiedBy(this);
-          if (endPos == null) console.info("ce joueur ne peux pas gagner")
-        }else{
-            this.id = player.id;
-            this.modifier = player.modifier;
-            this.start = {X:player.start.X,Y:player.start.Y};
-            this.end = player.end;
-            this.nbWalls = player.nbWalls;
-            this.image = player.image;
-            this.color =new Color(player.color.R,player.color.G,player.color.B);
-            this.OnTile = {X:player.OnTile.X,Y:player.OnTile.Y};
-
-        }
-      }
-      /**
-       * 
-       * @returns {{X:Number,Y:Number}}
-       */
-      getPos(){
-        return this.OnTile;
-      }
-      /**
-       * @returns {Tile}
-       */
-      getTile(){
-        if(this.OnTile==null)return null;
-        return getTile(this.OnTile.X,this.OnTile.Y);
-      }
-      getColorStyle(){
-        return this.color;
-      }
-      getid(){
-        return this.id;
-      }
+      this.BorderR = new Border(x, y, true, false);
+      this.BorderD = new Border(x, y, false, true);
+      this.Edge = new Border(x, y, true, true);
+    } else {
+      this.X = Tile.X;
+      this.Y = Tile.Y;
+      if(Tile.occupied!=null) this.occupied = new Player(null,null,null,null,Tile.occupied);
+      else this.occupied = null;
+      this.visibility = Tile.visibility;
+      this.BorderR = new Border(null,null,null,null,Tile.BorderR);
+      this.BorderD = new Border(null,null,null,null,Tile.BorderD);
+      this.Edge = new Border(null,null,null,null,Tile.Edge);
     }
-    
-    class Tile {
-      /**
-       *
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} maxX
-       * @param {Number} maxY
-       * @param Tile
-       */
-      constructor(x, y, maxX, maxY, Tile=null) {
-        if(Tile===null) {
-          this.X = Math.floor(x);
-          this.Y = Math.floor(y);
-          this.occupied = null;
-          if (y + 1 < boardHeight / 2) this.visibility = -1;
-          else if (y + 1 == (boardHeight / 2) + 0.5) this.visibility = 0;
-          else this.visibility = 1;
 
-          this.BorderR = new Border(x, y, true, false);
-          this.BorderD = new Border(x, y, false, true);
-          this.Edge = new Border(x, y, true, true);
-        } else {
-          this.X = Tile.X;
-          this.Y = Tile.Y;
-          if(Tile.occupied!=null) this.occupied = new Player(null,null,null,null,Tile.occupied);
-          else this.occupied = null;
-          this.visibility = Tile.visibility;
-          this.BorderR = new Border(null,null,null,null,Tile.BorderR);
-          this.BorderD = new Border(null,null,null,null,Tile.BorderD);
-          this.Edge = new Border(null,null,null,null,Tile.Edge);
+  }
+
+  /**
+   * 
+   * @param {Player} player 
+   */
+  occupiedBy(player) {
+    if(player!=null){
+      let old = player.getTile()
+      if(old != null) old.occupiedBy(null);
+      player.OnTile = {X:this.X,Y:this.Y};
+      for(let modX=-SightDistance;modX<=SightDistance;modX++) for(let modY=-SightDistance;modY<=SightDistance;modY++){
+        if(Math.abs(modX)+Math.abs(modY)>SightDistance) continue;
+        let lighten = getTile(this.X+modX,this.Y+modY);
+        if(lighten!=null) {
+          lighten.changeVisibility(player.modifier*sightForce);
         }
-
-      }
-    
-      /**
-       * 
-       * @param {Player} player 
-       */
-      occupiedBy(player) {
-        if(player!=null){
-          let old = player.getTile()
-          if(old != null) old.occupiedBy(null);
-          player.OnTile = {X:this.X,Y:this.Y};
-          for(let modX=-SightDistance;modX<=SightDistance;modX++) for(let modY=-SightDistance;modY<=SightDistance;modY++){
-            if(Math.abs(modX)+Math.abs(modY)>SightDistance) continue;
-            let lighten = getTile(this.X+modX,this.Y+modY);
-            if(lighten!=null) {
-              lighten.changeVisibility(player.modifier*sightForce);
-            }
-            if(old!=null){
-              let darken = getTile(old.X+modX,old.Y+modY)
-              if(darken!=null) {
-                darken.changeVisibility(-player.modifier*sightForce);
-              }
-            }
+        if(old!=null){
+          let darken = getTile(old.X+modX,old.Y+modY)
+          if(darken!=null) {
+            darken.changeVisibility(-player.modifier*sightForce);
           }
         }
-        this.occupied = player;
-      }
-    
-      /**
-       * 
-       * @param {Player} player 
-       * @returns 
-       */
-      toFront(player) {
-        let visi;
-        if(this.occupied!=null && this.occupied.id==player.id) {
-            visi = this.occupied;
-
-        } else if(this.visibility*player.modifier>=0) {
-          if(this.occupied!=null) visi = this.occupied;
-          else visi = true;
-        } else visi = false;
-        return new TileFront(this.X,this.Y,this.BorderR.toFront(),this.BorderD.toFront(),this.Edge.toFront(),visi);
-      }
-      changeVisibility(value){
-        this.visibility+=value;
-      }
-      /**
-       * 
-       * @returns {Tile[]}
-       */
-      getNeighbour(jumpWalls=false, fictionnalWalls = []){
-        let result = [];
-
-        let current = getTile(this.X,this.Y+1);
-        if(current!=null && (jumpWalls || current.BorderD.wallBy==null) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
-
-        current = getTile(this.X+1,this.Y);
-        if(current!=null && (jumpWalls || this.BorderR.wallBy==null ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
-
-        current = getTile(this.X,this.Y-1);
-        if(current!=null && (jumpWalls || this.BorderD.wallBy==null ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
-
-        current = getTile(this.X-1,this.Y);
-        if(current!=null && (jumpWalls || current.BorderR.wallBy==null ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
-        return result;
-      }
-      /**
-       * 
-       * @param {Tile} tile 
-       * @return {Direction[]}
-       */
-      tileInDir(tile){
-        let result = [];
-        let xDiff = this.X - tile.X;
-        let yDiff = this.Y - tile.Y;
-        if(Math.abs(xDiff)>Math.abs(yDiff)){
-          if(xDiff<0) result.push(Direction.Right);
-          else result.push(Direction.Left);
-        }else if(Math.abs(xDiff)<Math.abs(yDiff)){
-          if(yDiff<0) result.push(Direction.Up);
-          else result.push(Direction.Down);
-        }else{
-          if(xDiff<0) result.push(Direction.Right);
-          else result.push(Direction.Left);
-          if(yDiff<0) result.push(Direction.Up);
-          else result.push(Direction.Down);
-        }
-        return result;
-      }
-      /**
-       * 
-       * @param {Direction[]} dirs 
-       */
-      getTileInDir(dirs){
-        let x = this.X;
-        let y = this.Y
-        for(let dir of dirs) {
-          switch(dir){
-          case Direction.Up:
-            y++;
-            break;
-          case Direction.Right:
-            x++
-            break;
-          case Direction.Down:
-            y--;
-            break;
-          case Direction.Left:
-            x--;
-            break;
-          }
-        }
-        return getTile(x,y);
-      }
-    
-      getCoords(){
-        return{X:this.X,Y:this.Y}
       }
     }
+    this.occupied = player;
+  }
+
+  /**
+   * 
+   * @param {Player} player 
+   * @returns 
+   */
+  toFront(player) {
+    let visi;
+    if(this.occupied!=null && this.occupied.id==player.id) {
+        visi = this.occupied;
+
+    } else if(this.visibility*player.modifier>=0) {
+      if(this.occupied!=null) visi = this.occupied;
+      else visi = true;
+    } else visi = false;
+    return new TileFront(this.X,this.Y,this.BorderR.toFront(),this.BorderD.toFront(),this.Edge.toFront(),visi);
+  }
+  changeVisibility(value){
+    this.visibility+=value;
+  }
+  /**
+   * 
+   * @returns {Tile[]}
+   */
+  getNeighbour(jumpWalls=false, fictionnalWalls = []){
+    let result = [];
+
+    let current = getTile(this.X,this.Y+1);
+    if(current!=null && (jumpWalls || current.BorderD.wallBy==null) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
+
+    current = getTile(this.X+1,this.Y);
+    if(current!=null && (jumpWalls || this.BorderR.wallBy==null ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
+
+    current = getTile(this.X,this.Y-1);
+    if(current!=null && (jumpWalls || this.BorderD.wallBy==null ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
+
+    current = getTile(this.X-1,this.Y);
+    if(current!=null && (jumpWalls || current.BorderR.wallBy==null ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
+    return result;
+  }
+  /**
+   * 
+   * @param {Tile} tile 
+   * @return {Direction[]}
+   */
+  tileInDir(tile){
+    let result = [];
+    let xDiff = this.X - tile.X;
+    let yDiff = this.Y - tile.Y;
+    if(Math.abs(xDiff)>Math.abs(yDiff)){
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+    }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }else{
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }
+    return result;
+  }
+  /**
+   * 
+   * @param {Direction[]} dirs 
+   */
+  getTileInDir(dirs){
+    let x = this.X;
+    let y = this.Y
+    for(let dir of dirs) {
+      switch(dir){
+      case Direction.Up:
+        y++;
+        break;
+      case Direction.Right:
+        x++
+        break;
+      case Direction.Down:
+        y--;
+        break;
+      case Direction.Left:
+        x--;
+        break;
+      }
+    }
+    return getTile(x,y);
+  }
+
+  getCoords(){
+    return{X:this.X,Y:this.Y}
+  }
+}
     
 
 class Border {
@@ -443,8 +443,8 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
       bottomTiles.push(Board[0][i])
     }
     if(listPlayer==null){
-      playerList[0] = new Player(-1,bottomTiles[Math.round(boardLength/2)-1], topTiles,1);
-      playerList[1] = new Player(1,topTiles[Math.round(boardLength/2+0.5)-1], bottomTiles,2);
+      playerList[0] = new Player(-1,null, topTiles,1);
+      playerList[1] = new Player(1,null, bottomTiles,2);
     } else {
       for(i=0;i<listPlayer.length;i++){
         playerList[i] = new Player(null,null,null,null,listPlayer[i]);
@@ -809,6 +809,39 @@ function actionDone(){
     return playerList;
   }
 
+  /**
+   * 
+   * @param {Player} player 
+   * @return {{Board:TileFront[],Positions:{X:Number,Y:Number}}}
+   */
+  function setUpBoard(player){
+    let resultPos= [];
+    if(player.end[0].X == player.end[player.end.length-1].X){
+      if(player.end[0].X>boardLength/2) for(let y=0;y<boardHeight;y++)resultPos.push({X:0, Y:y})
+      else for(let y=0;y<boardHeight;y++) resultPos.push({X:boardLength-1, Y:y})
+    }else if(player.end[0].Y == player.end[player.end.length-1].Y){
+      if(player.end[0].Y>boardHeight/2) for(let x=0;x<boardLength;x++)resultPos.push({X:x, Y:0})
+      else for(let x=0;x<boardLength;x++) resultPos.push({X:x, Y:boardHeight-1})
+    }else console.error("Heu la le tiles de fin devraient etre soit sur la meme ligne soit sur la meme colonne");
+    let board = []
+    for(let y=0;y<boardHeight;y++){
+      board[y] = []
+      for(let x=0;x<boardLength;x++) board[y].push(Board[y][x].toFront(player));
+    }
+    return {Board:board,Positions:resultPos};
+  }
+
+  /**
+   * 
+   * @param {Number} playerId 
+   * @param {{X:Number,Y:Number}} co 
+   */
+  function placePlayer(playerId, co){
+    let player = playerList.find((e)=> e.id == playerId);
+    console.log(co.X,co.Y)
+    getTile(co.X,co.Y).occupiedBy(player)
+  }
+
   exports.getBoard = getBoard;
   exports.getTurnNb = getTurnNb;
   exports.getPlayerList = getPlayerList;
@@ -818,3 +851,5 @@ function actionDone(){
   exports.execWall = execWall;
   exports.GameWinner = GameWinner;
   exports.CurrentPlayer = currentPlayer;
+  exports.setUpBoard = setUpBoard;
+  exports.placePlayer = placePlayer;

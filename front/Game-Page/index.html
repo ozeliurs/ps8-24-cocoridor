@@ -75,6 +75,7 @@
         }
         socket.on("launch",(board,turnNb,idGame)=>{gameId=idGame;init(board,mode,turnNb);DisplayBoard(board);})
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
+        socket.on("choosePos",(boardPos)=>{DisplayBoard(boardPos.Board,boardPos.Positions)})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
             else window.location.href = "../EndPage/endPage.html?winner=0"

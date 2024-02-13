@@ -136,15 +136,25 @@ io.of("/api/AIgame").on('connection', (socket) => {
     let playerList
     let board
     let turnNb
+    let posPlayer = [];
+    
     socket.on('newGame',async (playerId) => {
         back.init();
+        socket.emit("choosePos",back.setUpBoard(back.getPlayerList()[0]))
+
+    })
+    socket.on("gameSetup",async (move, playerId)=>{
+        back.placePlayer(move.playerId,{X:move.x,Y:move.y})
         playerList = back.getPlayerList();
         board = back.getBoard();
         turnNb = back.getTurnNb();
+        let aiMove = ai.setUp(playerList[1], back.setUpBoard(playerList[1]).Positions)
+        back.placePlayer(playerList[1].playerId, aiMove)
         gameId = await saveGame(board, playerId, turnNb, playerList);
-        let newBoard = back.BoardFor(playerList[turnNb % playerList.length]);
+        let currentPlayer = playerList[turnNb % playerList.length]
+        let newBoard =  back.setUpBoard(currentPlayer).Board;
         socket.emit("launch", newBoard, turnNb, gameId);
-    });
+    })
     socket.on('retrieveGame', async (playerId, gameId) => {
         let game = await getGame(gameId);
         back.init(game.board.length, game.board[0].length, game.board, game.turnNb, game.playerList);
@@ -278,3 +288,37 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
 });
 
+
+io.of("/api/testgame").on('connection', (socket) => {
+
+    let playerList = back.init()
+
+    let newBoard = back.BoardFor(playerList[0])
+    socket.emit("launch",newBoard)
+    console.log('a user connected api');
+
+
+    socket.on("action",(action)=>{
+        let actionDone = false;
+        switch(action.vertical){
+            case null:
+                actionDone = back.execMove(move.playerID,move.x,move.y);
+                break;
+            case true :
+            case false :
+                actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
+                break;
+        }
+        if(actionDone){
+            let newBoard = back.BoardFor(back.CurrentPlayer());
+            socket.emit("updateBoard",newBoard);
+        }
+
+        // Save Game
+
+
+
+        let winners = back.GameWinner();
+        if(winners !=null) socket.emit("endGame", winners);
+    })
+});

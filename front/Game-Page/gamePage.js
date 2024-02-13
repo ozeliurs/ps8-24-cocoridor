@@ -1,5 +1,5 @@
-let boardLength = 11;
-let boardHeight = 11;
+let boardLength = 9;
+let boardHeight = 9;
 let playerList = [1,2];
 let turnNb = 0;
 
@@ -28,6 +28,7 @@ class Color{
   static white = new Color(255,255,255);
   static darkGrey = new Color(50,50,50);
   static highlight = new Color(100,100,100);
+  static grey = new Color(125,125,125);
     constructor(r,g,b){
       this.R = r;
       this.G = g;
@@ -105,13 +106,11 @@ class TileFront {
   }
 
   onClick() {
-  //  if(currentPlayer()==this.occupied) return;
 
     let move = new Move(currentPlayerID(),this.X,this.Y);
     if(move == undefined)return;
-    //move.execute();.
-
-    socket.emit("move",move,gameId,user);
+    if(gameId==null) socket.emit("gameSetup",move,user)
+    else socket.emit("move",move,gameId,user);
 
   }
 
@@ -356,7 +355,7 @@ function currentPlayerID(){
  *
  * @param {TileFront[][]} board
  */
-function DisplayBoard(board){
+function DisplayBoard(board,positions=null){
   currentBoard = board
   let gameDiv = document.getElementById("game");
   gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
@@ -364,11 +363,25 @@ function DisplayBoard(board){
   for (let y=boardHeight-1;y>=0;y-- ) {
     for (let tile of board[y]) {
 
-
       tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
       tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
       tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
       tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
+
+      tile.generateElement();
+      console.log(tile)
+      if(positions!=null && positions.find((e)=>e.X!=tile.X || e.Y != tile.Y)) {
+
+        tile.element = tile.element.cloneNode(true);
+        tile.Edge.element = tile.Edge.element.cloneNode(true);
+        tile.BorderD.element = tile.BorderD.element.cloneNode(true);
+        tile.BorderR.element = tile.BorderR.element.cloneNode(true);
+
+        tile.element.style = Color.grey.toStyle();
+        tile.Edge.element.style = Color.grey.toStyle()
+        tile.BorderD.element.style = Color.grey.toStyle()
+        tile.BorderR.element.style = Color.grey.toStyle()
+      }
       gameDiv.appendChild(tile.generateElement());
     }
   }
@@ -388,6 +401,4 @@ function DisplayBoard(board){
     }
   }
 }
-
-
 
