@@ -144,12 +144,12 @@ io.of("/api/AIgame").on('connection', (socket) => {
 
     })
     socket.on("gameSetup",async (move, playerId)=>{
-        back.placePlayer(move.playerId,{X:move.x,Y:move.y})
+        back.placePlayer(move.playerID,{X:move.x,Y:move.y})
         playerList = back.getPlayerList();
         board = back.getBoard();
         turnNb = back.getTurnNb();
         let aiMove = ai.setUp(playerList[1], back.setUpBoard(playerList[1]).Positions)
-        back.placePlayer(playerList[1].playerId, aiMove)
+        back.placePlayer(playerList[1].id, aiMove)
         gameId = await saveGame(board, playerId, turnNb, playerList);
         let currentPlayer = playerList[turnNb % playerList.length]
         let newBoard =  back.setUpBoard(currentPlayer).Board;

@@ -837,7 +837,10 @@ function actionDone(){
    * @param {{X:Number,Y:Number}} co 
    */
   function placePlayer(playerId, co){
-    let player = playerList.find((e)=> e.id == playerId);
+    //find player with same id as playerId in playerList
+    console.log(playerId);
+    let player = playerList.find((p)=>p.id==playerId);
+    console.log(player)
     console.log(co.X,co.Y)
     getTile(co.X,co.Y).occupiedBy(player)
   }
