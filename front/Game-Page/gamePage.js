@@ -27,7 +27,7 @@ class Color{
   static blue  = new Color(0  ,0  ,255);
   static white = new Color(255,255,255);
   static darkGrey = new Color(50,50,50);
-
+  static highlight = new Color(100,100,100);
     constructor(r,g,b){
       this.R = r;
       this.G = g;
@@ -74,6 +74,36 @@ class TileFront {
 
   }
 
+  /**
+       * 
+       * @param {Direction[]} dirs 
+       */
+  getTileInDir(dirs){
+    let x = this.X;
+    let y = this.Y
+    for(let dir of dirs) {
+      switch(dir){
+      case Direction.Up:
+        y++;
+        break;
+      case Direction.Right:
+        x++
+        break;
+      case Direction.Down:
+        y--;
+        break;
+      case Direction.Left:
+        x--;
+        break;
+      }
+    }
+    return getTile(x,y);
+  }
+
+  getCoords(){
+    return{X:this.X,Y:this.Y}
+  }
+
   onClick() {
   //  if(currentPlayer()==this.occupied) return;
 
@@ -92,6 +122,22 @@ class TileFront {
     this.element = document.createElement("div");
 
     this.element.addEventListener("click", this.onClick.bind(this));
+
+    // Debut highlight deplacement
+    /*this.element.addEventListener("mouseover", ()=>{
+      let tile = getTile(this.X,this.Y)
+
+      let dir = this.tileInDir();
+      while(this.occupied!=null){
+        tile = tile.getTileInDir(dir)
+      }
+      this.highlight = tile
+      this.highlight.element.style.backgroundColor = Color.highlight.toStyle()
+    });
+    this.element.addEventListener("mouseout", ()=>{
+      if(this.highlight==null)return
+      this.highlight.element.style.backgroundColor = ""
+    });*/
     this.element.classList.add("tile");
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
@@ -111,7 +157,31 @@ class TileFront {
       this.Edge.element.style.width = 0;
       this.Edge.element.style.height = 0;
     }
+    
     return this.groupElement;
+  }
+  /**
+   * 
+   * @param {Tile} tile 
+   * @return {Direction[]}
+   */
+  tileInDir(tile){
+    let result = [];
+    let xDiff = this.X - tile.X;
+    let yDiff = this.Y - tile.Y;
+    if(Math.abs(xDiff)>Math.abs(yDiff)){
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+    }else if(Math.abs(xDiff)<Math.abs(yDiff)){
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }else{
+      if(xDiff<0) result.push(Direction.Right);
+      else result.push(Direction.Left);
+      if(yDiff<0) result.push(Direction.Up);
+      else result.push(Direction.Down);
+    }
+    return result;
   }
 
 }
@@ -134,14 +204,50 @@ class BorderFront{
      */
   generateElement() {
     this.element = document.createElement("div");
+    let tile;
+    let nextTile;
     switch ((this.lng ? 1 : 0) + (this.lat ? 2 : 0)) {
       case 1: // vertical border
         this.element.classList.add("verticalBorder");
         this.element.addEventListener("click", () => this.onClick(true));
+        
+        tile = getTile(this.X,this.Y);
+        nextTile = getTile(this.X,this.Y+1);
+        this.element.addEventListener("mouseover", () => {
+          if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderR.element.style.backgroundColor!="" || nextTile.Edge.element.style.backgroundColor!="") return;
+          this.element.style.backgroundColor = Color.highlight.toStyle();
+          if(nextTile==null)return;
+          nextTile.Edge.element.style.backgroundColor = Color.highlight.toStyle();
+          nextTile.BorderR.element.style.backgroundColor = Color.highlight.toStyle();
+        });
+        this.element.addEventListener("mouseout", () => {
+          this.element.style.backgroundColor = this.color
+          if(nextTile==null)return;
+          nextTile.Edge.element.style.backgroundColor = nextTile.Edge.color
+          nextTile.BorderR.element.style.backgroundColor = nextTile.BorderR.color
+        });
+
         break;
       case 2: // horizontal border
         this.element.classList.add("horizontalBorder");
         this.element.addEventListener("click", () => this.onClick(false));
+
+        tile = getTile(this.X,this.Y);
+        nextTile = getTile(this.X+1,this.Y);
+        this.element.addEventListener("mouseover", () => {
+          if(this.element.style.backgroundColor!="" || nextTile==null || nextTile.BorderD.element.style.backgroundColor!="" || tile.Edge.element.style.backgroundColor!="") return;
+          this.element.style.backgroundColor = Color.highlight.toStyle();
+          if(nextTile==null)return;
+          tile.Edge.element.style.backgroundColor = Color.highlight.toStyle();
+          nextTile.BorderD.element.style.backgroundColor = Color.highlight.toStyle();
+        });
+        this.element.addEventListener("mouseout", () => {
+          this.element.style.backgroundColor = this.color
+          tile.Edge.element.style.backgroundColor = tile.Edge.color
+          if(nextTile==null)return;
+          nextTile.BorderD.element.style.backgroundColor = nextTile.BorderD.color
+        });
+
         break;
       case 3: // edge
         this.element.classList.add("edge");
@@ -158,11 +264,8 @@ class BorderFront{
    * @param {Boolean} vertical
    */
   onClick(vertical) {
-
     let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
     socket.emit("wall",wall,gameId,user);
-
-
 
   }
 
@@ -235,7 +338,7 @@ let currentBoard= []
  *
  * @param {Number} x abscisse
  * @param {Number} y ordonnée
- * @returns {Tile} la tuile correspondante ou null.
+ * @returns {TileFront} la tuile correspondante ou null.
  */
 function getTile(x, y) {
   if(x==null || y==null)return null;
@@ -271,9 +374,18 @@ function DisplayBoard(board){
   }
   if(mode === "local") {
     let gameCover = document.getElementById("gameCover");
-    gameCover.style.cssText = "display : block; font-size: 50px;";
-    if (turnNb % 2 === 0) gameCover.innerHTML = "<img src=\"./PouletJ1.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    else gameCover.innerHTML = "<img src=\"./FermierJ2.png\" alt=\"player" + (turnNb % 2 + 1) + "\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
+
+    if (turnNb % 2 === 0) {
+      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:blue; padding-top: 50px; padding-bottom: 50px;";
+      gameCover.innerHTML = "<img src=\"PouletJ1.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    }
+
+    else {
+      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:red; padding-top: 50px; padding-bottom: 50px;";
+
+      gameCover.innerHTML = "<img src=\"FermierJ2.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
+    }
   }
 }
 
