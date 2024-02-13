@@ -45,7 +45,7 @@
 
         function sendMessage() {
             var message = document.getElementById("chatInput").value;
-            console.log("Message envoyé : " + message);
+            console.log("Message envoyÃ© : " + message);
         }
         function hideCover() {
             document.getElementById("gameCover").style.display = "none";
@@ -54,19 +54,26 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
+        const user = urlParams.get('playerid');
+        let gameId = urlParams.get('gameid');
         var socket;
         switch (mode) {
             case "local":
                 socket=io('/api/Localgame');
                 break;
-            case "ai":
+            case "newAi":
                 socket=io('/api/AIgame');
+                socket.emit('newGame',user);
+                break;
+            case "getAi":
+                socket=io('/api/AIgame');
+                socket.emit('retrieveGame',user,gameId);
                 break;
             default:
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("launch",(board)=>{init(board,mode);DisplayBoard(board);})
+        socket.on("launch",(board,turnNb,idGame)=>{gameId=idGame;init(board,mode,turnNb);DisplayBoard(board);})
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
