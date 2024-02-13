@@ -61,7 +61,6 @@ function findAi(board , playerID){
     for (const line of board) {
         for (const tile of line) {
             if(tile.occupied.id === playerID){
-                console.log(tile);
                 return tile;
             }
         }
@@ -105,7 +104,13 @@ function computeMove(board, playerID=2) {
  
 }
 
+function setUp(playerId, positions){
+  let pos = positions[Math.floor(Math.random()*positions.length)]
+  return pos
+}
+
 exports.computeMove = computeMove;
+exports.setUp = setUp;
 
 
 

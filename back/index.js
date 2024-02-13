@@ -49,32 +49,143 @@ function sleep(milliseconds) {
     while (Date.now() - startTime < milliseconds) {}
 }
 
+//Fonction qui envoie une requête à la db pour enregistrer l'état d'une partie
 
-io.of("/Game-Page").on('connection', (socket) => {
+async function saveGame(board,idUser,turnNb,playerList,gameId=null){
+    let res = null;
+    if(gameId==null){
+        let game = {
+            board: board,
+            idUser: idUser,
+            turnNb: turnNb,
+            playerList: playerList
+        };
+        await fetch('http://localhost:8000/api/savegame', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(game)
+        }).then(response => {
+            if (response.ok) {
+                console.log("Nouvelle partie enregistrée");
+                return response.json(); // Convertit la réponse en JSON
+                
+            } else {
+                throw new Error('La requête a échoué'); // Gestion des erreurs
+            }
+        }).then(data => {
+            res=data;
+        });
 
-    console.log('a user connected local');
+    }else{
+        let game = {
+            board: board,
+            idUser: idUser,
+            turnNb: turnNb,
+            playerList: playerList,
+            gameId:gameId
+        };
+        await fetch('http://localhost:8000/api/savegame', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(game)
+        }).then(response => {
+            if (response.ok) {
+                console.log("partie sauvegardée");
+                return response.json(); // Convertit la réponse en JSON
+            } else {
+                throw new Error('La requête a échoué'); // Gestion des erreurs
+            }
+        }).then(data => {
+            res = gameId;
+        });
+    }
+    return res;
+}
+
+async function getGame(idGame){
+    let res = null;
+    let req = {
+        gameId:idGame
+    }
+    await fetch('http://localhost:8000/api/retrievegame', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(req)
+
+    }).then(response => {
+        if (response.ok) {
+            return response.json(); // Convertit la réponse en JSON
+        } else {
+            throw new Error('La requête a échoué'); // Gestion des erreurs
+        }
+    }).then(data => {
+        res=data[0];
+    });
+    return res;
 
 
-});
-
-
-
-
+}
 
 io.of("/api/AIgame").on('connection', (socket) => {
-
+    let playerList
+    let board
+    let turnNb
+    let posPlayer = [];
     
-    let playerList = back.init()
-    
-    let newBoard = back.BoardFor(playerList[0])
-    socket.emit("launch",newBoard)
-    console.log('a user connected api');
+    socket.on('newGame',async (playerId) => {
+        back.init();
+        socket.emit("choosePos",back.setUpBoard(back.getPlayerList()[0]))
 
-    socket.on('move', (move) => {
-        console.log('move: ' + move, 'playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+    })
+    socket.on("gameSetup",async (move, playerId)=>{
+        back.placePlayer(move.playerID,{X:move.x,Y:move.y})
+        playerList = back.getPlayerList();
+        board = back.getBoard();
+        turnNb = back.getTurnNb();
+        let aiMove = ai.setUp(playerList[1], back.setUpBoard(playerList[1]).Positions)
+        back.placePlayer(playerList[1].id, aiMove)
+        gameId = await saveGame(board, playerId, turnNb, playerList);
+        let currentPlayer = playerList[turnNb % playerList.length]
+        let newBoard =  back.setUpBoard(currentPlayer).Board;
+        socket.emit("launch", newBoard, turnNb, gameId);
+    })
+    socket.on('retrieveGame', async (playerId, gameId) => {
+        let game = await getGame(gameId);
+        back.init(game.board.length, game.board[0].length, game.board, game.turnNb, game.playerList);
+        playerList = back.getPlayerList();
+        turnNb = back.getTurnNb();
+        if(turnNb%playerList.length!==0){
+            let aiBoard = back.BoardFor(playerList[1]);
+            {
+                sleep(1000)
+                let moved
+                do{
+                    let computemove = ai.computeMove(aiBoard);
+                    moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
+                } while(!moved)
+            }
+            board = back.getBoard();
+            turnNb = back.getTurnNb();
+            saveGame(board,playerId,turnNb,playerList,gameId);
+        }
+        let newBoard = back.BoardFor(playerList[turnNb%playerList.length]);
+        socket.emit("launch", newBoard, turnNb, gameId);
+    })
+
+    socket.on('move', (move,gameId,playerId) => {
+        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         let actionDone = back.execMove(move.playerID,move.x,move.y);
-        let newBoard = back.BoardFor(playerList[0]);
         if(actionDone){
+            board=back.getBoard();
+            turnNb = back.getTurnNb();
+            saveGame(board,playerId,turnNb,playerList,gameId);
+            let newBoard = back.BoardFor(playerList[0]);
             socket.emit("updateBoard",newBoard);
             let aiBoard = back.BoardFor(playerList[1]);
            {
@@ -86,6 +197,9 @@ io.of("/api/AIgame").on('connection', (socket) => {
                     moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
                 } while(!moved)
             }
+            board = back.getBoard();
+            turnNb = back.getTurnNb();
+            saveGame(board,playerId,turnNb,playerList,gameId);
             newBoard = back.BoardFor(playerList[0]);
 
             socket.emit("updateBoard",newBoard);
@@ -98,12 +212,16 @@ io.of("/api/AIgame").on('connection', (socket) => {
        
     });
 
-    socket.on('wall', (wall) => {
-        console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+    socket.on('wall', (wall,gameId,playerId) => {
+        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         let actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
-        let newBoard = back.BoardFor(playerList[0]);
+
 
         if(actionDone){
+            board = back.getBoard();
+            turnNb = back.getTurnNb();
+            saveGame(board,playerId,turnNb,playerList,gameId);
+            let newBoard = back.BoardFor(playerList[0]);
             socket.emit("updateBoard",newBoard);
             let aiBoard = back.BoardFor(playerList[1]);
 
@@ -115,7 +233,9 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
             } while(!moved)
         }
-
+            board = back.getBoard();
+            turnNb = back.getTurnNb();
+            saveGame(board,playerId,turnNb,playerList,gameId);
             newBoard = back.BoardFor(playerList[0])
             socket.emit("updateBoard",newBoard)
         }
@@ -131,21 +251,20 @@ io.of("/api/AIgame").on('connection', (socket) => {
 io.of("/api/Localgame").on('connection', (socket) => {
 
 
-    let playerList = back.init()
-
+    back.init()
+    playerList = back.getPlayerList()
+    turnNb = back.getTurnNb()
     let newBoard = back.BoardFor(playerList[0])
-    socket.emit("launch",newBoard)
-    console.log('a user connected api');
+    socket.emit("launch",newBoard,turnNb);
 
-    socket.on('move', (move) => {
-        console.log('move: ' + move, 'playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+    socket.on('move', (move,gameId,playerId) => {
+        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         let actionDone = back.execMove(move.playerID,move.x,move.y);
         if(actionDone){
             let newBoard = back.BoardFor(back.CurrentPlayer());
             socket.emit("updateBoard",newBoard);
         }
         let winners = back.GameWinner();
-        console.log(winners)
         if(winners !=null){
             socket.emit("endGame", winners);
         }
@@ -153,8 +272,8 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
     });
 
-    socket.on('wall', (wall) => {
-        console.log('wall: ' + wall, 'playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+    socket.on('wall', (wall,playerId,gameId) => {
+        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         let actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
         
         if(actionDone){
@@ -169,3 +288,37 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
 });
 
+
+io.of("/api/testgame").on('connection', (socket) => {
+
+    let playerList = back.init()
+
+    let newBoard = back.BoardFor(playerList[0])
+    socket.emit("launch",newBoard)
+    console.log('a user connected api');
+
+
+    socket.on("action",(action)=>{
+        let actionDone = false;
+        switch(action.vertical){
+            case null:
+                actionDone = back.execMove(move.playerID,move.x,move.y);
+                break;
+            case true :
+            case false :
+                actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
+                break;
+        }
+        if(actionDone){
+            let newBoard = back.BoardFor(back.CurrentPlayer());
+            socket.emit("updateBoard",newBoard);
+        }
+
+        // Save Game
+
+
+
+        let winners = back.GameWinner();
+        if(winners !=null) socket.emit("endGame", winners);
+    })
+});
