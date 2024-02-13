@@ -1,12 +1,6 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
 
-const { getUsers } = require("../database/database");
-const { createUser } = require("../database/database");
-const { updateUser } = require("../database/database");
-const { clearDatabase } = require("../database/database");
-const { verifMdp } = require("../database/database");
-
-
+const db = require("../database/database")
 
 async function manageRequest(request, response) {
     // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
@@ -18,7 +12,7 @@ async function manageRequest(request, response) {
 
     switch (endpoint) {
         case 'clear':
-            await clearDatabase();
+            await db.clearDatabase();
             break;
         case 'signup':
             await signup(request, response);
@@ -26,15 +20,16 @@ async function manageRequest(request, response) {
         case 'signIn':
             await login(request, response);
             break;
-        case 'game':
-            startGame(request, response);
+        case 'savegame':
+            await uploadGame(request, response);
             break;
-        case 'startGame':
-            startGame(request, response);
+        case 'retrievegame':
+            await retrieveGame(request, response);
             break;
-        case 'endGame':
-            endGame(request, response);
+        case 'retrieveUserGames':
+            await retrieveUserGames(request, response);
             break;
+
         default:
             response.writeHead(404, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Endpoint non trouvé' }));
@@ -57,38 +52,73 @@ function parsejson(request) {
 async function createOrUpdateUser(email, username, password, response, isNewUser) {
 
     if (isNewUser) {
-        console.log("création")
         const newUser = {
             email: email,
             username: username,
             password: password
         };
-        userCreated= await createUser(newUser);
+        let userCreated = await db.createUser(newUser);
         if (userCreated) {
-            response.writeHead(200, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify({ message: 'Utilisateur créé avec succès' }));
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({message: 'Utilisateur créé avec succès'}));
         } else {
-            response.writeHead(500, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify({ error: 'Erreur lors de la création de l\'utilisateur' }));
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la création de l\'utilisateur'}));
         }
     } else {
-        console.log("update")
 
         const updatedUser = {
             email: email,
             username: username,
             password: password
         };
-        userUpdated= await updateUser(updatedUser);
+        let userUpdated = await db.updateUser(updatedUser);
         if (userUpdated) {
-            response.writeHead(200, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify({ message: 'Utilisateur mis à jour avec succès' }));
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({message: 'Utilisateur mis à jour avec succès'}));
         } else {
-            response.writeHead(500, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify({ error: 'Erreur lors de la mise à jour de l\'utilisateur' }));
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la mise à jour de l\'utilisateur'}));
         }
     }
 }
+
+async function createGame(idUser, board, turnNb,playerList, response) {
+    const NewGame = {
+        board: board,
+        idUser: idUser,
+        turnNb: turnNb,
+        playerList: playerList
+    };
+    let gameCreated = await db.createGame(NewGame);
+    if (gameCreated) {
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify(gameCreated.insertedId));
+    } else {
+        response.writeHead(500, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify({error: 'Erreur lors de la création de la partie'}));
+    }
+}
+
+
+async function updateGame(idUser, board, turnNb,playerList, gameId, response) {
+    console.log("updateGame")
+    const updatedGame = {
+        board: board,
+        idUser: idUser,
+        turnNb: turnNb,
+        playerList: playerList
+    };
+    let gameUpdated = await db.updateGame(updatedGame, gameId);
+    if (gameUpdated) {
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ message: 'Partie mise à jour avec succès' }));
+    } else {
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Erreur lors de la mise à jour de la partie' }));
+    }
+}
+
 
 
 
@@ -108,8 +138,7 @@ async function signup(request, response) {
             return;
         }
         console.log('username : '+ body.username);
-        const users = await getUsers();
-        console.log(await users.find({}).toArray());
+        const users = await db.getUsers();
         const user = await users.findOne({ username: body.username });
 
         if(user){
@@ -139,6 +168,11 @@ async function signup(request, response) {
 
 // Fonction pour gérer la connexion des utilisateurs
 async function login(request, response) {
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
     let body = '';
     request.on('data', chunk => {
         body += chunk.toString();
@@ -146,8 +180,7 @@ async function login(request, response) {
     request.on('end',async () => {
         const data = JSON.parse(body);
         const { mail, username, password } = data;
-        let test= await verifMdp(username,password);
-        console.log(test);
+        let test= await db.verifMdp(username,password);
         if(test){
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ message: 'connexion succés' }));
@@ -155,42 +188,84 @@ async function login(request, response) {
     });
 }
 
-// Fonction pour démarrer une nouvelle partie
-function startGame(request, response) {
+// Fonction pour enregistrer la partie dans la db
+async function uploadGame(request, response) {
+    
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
 
-    // Logique pour démarrer une nouvelle partie
-    // Ici, vous pouvez initialiser le jeu et retourner les données nécessaires au client, par exemple l'identifiant de la partie
-    const gameId = initializeGame = () => {
-        return '123456'; // Exemple d'identifiant de partie
+        return;
     }
-     
-     // Fonction à implémenter pour initialiser une nouvelle partie
 
-    // Exemple de réponse réussie avec l'identifiant de la partie
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ gameId: gameId }));
+    parsejson(request).then(async (body) => {
+        if (!body.idUser || !body.board || !body.playerList) {
+            
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+
+            return;
+        }
+        if(!body.gameId){
+
+            await createGame(
+                body.idUser,
+                body.board,
+                body.turnNb,
+                body.playerList,
+                response,
+            );
+        }else{
+            await updateGame(
+                body.idUser,
+                body.board,
+                body.turnNb,
+                body.playerList,
+                body.gameId,
+                response,
+            );
+        }
+    });
 }
 
-// Fonction pour terminer une partie
-function endGame(request, response) {
-    // Logique pour terminer une partie
-    // Ici, vous pouvez mettre à jour les statistiques du joueur, nettoyer les données de la partie, etc.
+//Fonction pour récupérer une partie de la db
+async function retrieveGame(request, response) {
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.gameId){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let game=await db.getGame(body.gameId);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify(game));
+    });
 
-    // Exemple de réponse réussie
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ message: 'Game ended successfully' }));
 }
 
-// Fonction pour mettre à jour le tableau de jeu
-function updateBoard(request, response) {
-    // Logique pour mettre à jour le tableau de jeu
-    // Ici, vous pouvez recevoir les mouvements des joueurs et mettre à jour l'état du jeu en conséquence
 
-    // Exemple de réponse réussie
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ message: 'Board updated successfully' }));
+async function retrieveUserGames(request, response) {
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.idUser){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let games=await db.getGames(body.idUser);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify(games));
+    });
 }
-
 
 
 /* This method is a helper in case you stumble upon CORS problems. It shouldn't be used as-is:

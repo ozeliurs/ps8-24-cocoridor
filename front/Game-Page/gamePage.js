@@ -5,7 +5,7 @@ let turnNb = 0;
 
 
 
-function init(board,mode) {
+function init(board,mode, turn) {
     if(mode === "ai"){
         playerList = [1,2];
     }
@@ -14,7 +14,7 @@ function init(board,mode) {
     }
     boardHeight = board.length;
     boardLength = board[0].length;
-    turnNb = 0;
+    turnNb = turn;
 }
 
 
@@ -28,17 +28,16 @@ class Color{
   static white = new Color(255,255,255);
   static darkGrey = new Color(50,50,50);
   static highlight = new Color(100,100,100);
-  
     constructor(r,g,b){
       this.R = r;
       this.G = g;
       this.B = b;
     }
-  
+
     /**
-     * 
-     * @param {Color} c 
-     * @returns 
+     *
+     * @param {Color} c
+     * @returns
      */
     moy(c,per=0.5){
       let r = this.R;
@@ -46,7 +45,7 @@ class Color{
       let b = this.B;
       return new Color((c.R*(1-per)+r*per)/2,(c.G*(1-per)+g*per)/2,(c.B*(1-per)+b*per)/2)
     }
-  
+
     toStyle(){
       return "rgb("+this.R+","+this.G+","+this.B+")"
     }
@@ -59,8 +58,8 @@ class TileFront {
    * @param {Number} x
    * @param {Number} y
    * @param {BorderFront} bRight
-   * @param {BorderFront} bDown 
-   * @param {BorderFront} edge 
+   * @param {BorderFront} bDown
+   * @param {BorderFront} edge
    * @param {Player | Boolean} occupiedBy
    */
   constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
@@ -112,8 +111,7 @@ class TileFront {
     if(move == undefined)return;
     //move.execute();.
 
-    socket.emit("move",move);
-    console.log("move")
+    socket.emit("move",move,gameId,user);
 
   }
 
@@ -122,7 +120,7 @@ class TileFront {
     this.groupElement.classList.add("tileGroup");
 
     this.element = document.createElement("div");
-    
+
     this.element.addEventListener("click", this.onClick.bind(this));
 
     // Debut highlight deplacement
@@ -150,7 +148,7 @@ class TileFront {
 
     this.groupElement.appendChild(this.BorderR.generateElement());
     if (!this.right) this.BorderR.element.style.width = 0;
-    
+
     this.groupElement.appendChild(this.BorderD.generateElement());
     if (!this.down) this.BorderD.element.style.height = 0;
 
@@ -198,10 +196,10 @@ class BorderFront{
   }
 
     /**
-     * 
-     * @param {Number} lng 
-     * @param {Number} lat 
-     * @param {Player} player 
+     *
+     * @param {Number} lng
+     * @param {Number} lat
+     * @param {Player} player
      * @returns {Node}
      */
   generateElement() {
@@ -254,7 +252,7 @@ class BorderFront{
       case 3: // edge
         this.element.classList.add("edge");
         break;
-      default: 
+      default:
         return this.element;
     }
     this.element.style.backgroundColor = this.color
@@ -262,24 +260,21 @@ class BorderFront{
 
   }
   /**
-   * 
+   *
    * @param {Boolean} vertical
    */
   onClick(vertical) {
-    
     let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
-    socket.emit("wall",wall);
+    socket.emit("wall",wall,gameId,user);
 
-    
-    
   }
 
 }
 
 class Action {
   /**
-   * 
-   * @param {Number} playerID 
+   *
+   * @param {Number} playerID
    */
   constructor(playerID){
     this.playerID = playerID;
@@ -288,18 +283,18 @@ class Action {
 
 class Move extends Action{
   /**
-   * 
-   * @param {Number} playerID 
-   * @param {Number} x 
-   * @param {Number} y 
+   *
+   * @param {Number} playerID
+   * @param {Number} x
+   * @param {Number} y
    */
   constructor(playerID, x,y){
     super(playerID);
      this.x =x;
      this.y =y;
-    
 
-    
+
+
     // let start = currentPlayer().getTile();
     // let end = getTile(x,y);
     // let dirs = start.tileInDir(end);
@@ -319,11 +314,11 @@ class Move extends Action{
 
 class Wall extends Action{
   /**
-   * 
+   *
    * @param {Player} player
    * @param {Number} x
    * @param {Number} y
-   * @param {Boolean} vertical 
+   * @param {Boolean} vertical
    */
   constructor(playerID, x, y, vertical){
     super(playerID);
@@ -351,26 +346,25 @@ function getTile(x, y) {
   return currentBoard[y][x];
 }
 /**
- * 
+ *
  * @returns {Number} player that is playing
  */
 function currentPlayerID(){
   return playerList[turnNb%playerList.length];
 }
 /**
- * 
- * @param {TileFront[][]} board 
+ *
+ * @param {TileFront[][]} board
  */
 function DisplayBoard(board){
-  console.log(board) ;
   currentBoard = board
   let gameDiv = document.getElementById("game");
   gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
   while (gameDiv.firstChild) gameDiv.removeChild(gameDiv.firstChild);
   for (let y=boardHeight-1;y>=0;y-- ) {
     for (let tile of board[y]) {
-      
-      
+
+
       tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
       tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
       tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
@@ -378,7 +372,7 @@ function DisplayBoard(board){
       gameDiv.appendChild(tile.generateElement());
     }
   }
-  if(mode !== "ai") {
+  if(mode === "local") {
     let gameCover = document.getElementById("gameCover");
     gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
 
