@@ -51,12 +51,13 @@ class TileFront {
 }
 
 class BorderFront{
-  constructor(x, y, lng, lat ,color) {
+  constructor(x, y, lng, lat ,color, playerId) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
     this.color = color;
     this.lng = lng;
     this.lat = lat;
+    this.playerId = playerId;
   }
 }
 
@@ -349,7 +350,7 @@ class Border {
 
   
     toFront(){
-      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle())
+      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle(),this.wallBy.id)
     }
     /**
      * 
