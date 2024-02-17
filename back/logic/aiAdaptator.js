@@ -1,3 +1,5 @@
+const ai = require("./Cocoridor.js")
+
 class Action {
     /**
      *
@@ -50,18 +52,31 @@ class Wall extends Action{
 
 }
 
-class Gamestate {
+
+class gameState {
     /**
      *
-     * @param {TileFront[][]} board
-     * @param {Number} playerID
+     * @param {int[][]} board
+     * @param {} opponentWalls
      */
-    constructor(board, playerID){
+    constructor(board, opponentWalls, ownWalls){
         this.board = board;
-        this.playerID = playerID;
+        this.opponentWalls = opponentWalls;
+        this.ownWalls = ownWalls;
     }
 }
-// This function doesn't handle walls.
+
+class AIMove {
+    /**
+     *
+     * @param {String} action
+     * @param {String} value
+     */
+    constructor(action, value){
+        this.action = action;
+        this.value = value;
+    }
+}
 
 /**
  *
@@ -93,17 +108,91 @@ function getTile(x, y, board) {
     return board[y][x];
 }
 
-function computeMove(board, playerID=2) {
-    let gameState = [];
+function convertToGameState(board, playerID){
+    let newBoard = [];
+    let ownWalls = [];
+    let opponentWalls = [];
     for (let i = 0; i < board.length; i++) {
-        convertBoard.push([]);
-        for (let j = 0; j < board[i].length; j++) {
-
+        for (let j = 0; j < board[0].length; j++) {
+            if(board[i][j].occupied === false) {
+                newBoard[i][j] = -1;
+            }else if(board[i][j].occupied === false){
+                newBoard[i][j] = 0;
+            }else if(board[i][j].occupied.id === playerID){
+                newBoard[i][j] = 1;
+            }else if(board[i][j].occupied.id !== undefined) {
+                newBoard[i][j] = 2;
+            }else{
+                console.log("Error");
+            }
+            if(board[i][j].BorderR.wallBy !== undefined){
+                let pos = (i+1)*10+j+1;
+                if(board[i][j].BorderR.wallBy.id === playerID){
+                    ownWalls.push([pos, 1]);
+                }else if(board[i][j].BorderR.wallBy.id !== undefined){
+                    opponentWalls.push([pos, 1]);
+                }
+            }
+            if(board[i][j].BorderD.wallBy !== undefined) {
+                let pos = (i + 1) * 10 + j + 1;
+                if (board[i][j].BorderB.wallBy.id === playerID) {
+                    ownWalls.push([pos, 0]);
+                } else if (board[i][j].BorderB.wallBy.id !== undefined) {
+                    opponentWalls.push([pos, 0]);
+                }
+            }
         }
+    }
+    return new gameState(newBoard, ownWalls, opponentWalls);
+}
+
+async function computeMove(board, playerID=2) {
+    let gameState = convertToGameState(board, playerID);
+    let nextMove = await ai.nextMove(gameState);
+    console.log("nextMove: "+ nextMove);
+    if(nextMove.action === "move"){
+        return new Move(playerID, nextMove.value.charCodeAt(0)-96, nextMove.value.charCodeAt(1)-48);
+    }
+    if(nextMove.action === "wall"){
+        return new Wall(playerID, nextMove.value[0].charCodeAt(0)-96, nextMove.value[0].charCodeAt(1)-48, nextMove.value[1]===1);
+    }
+    if(nextMove.action === "idle"){
+        return new Move(playerID, 0, 0);
     }
 }
 
+async function updateBoard(board, playerID){
+    let gameState = convertToGameState(board, playerID);
+    return await ai.updateBoard(gameState);
+}
+
+async function correction(move){
+    //todo on back
+    let pos = ((move.x()+1)*10 + move.y()+1).toString();
+    let aiMove;
+    if(move instanceof Wall){
+        pos = (pos,(move.vertical ? 1 : 0));
+        aiMove = new AIMove("wall", pos);
+    } else if(move instanceof Move){
+        aiMove = new AIMove("move", pos);
+    }
+    else{
+        aiMove = new AIMove("idle", "");
+    }
+
+    return await ai.correction(aiMove);
+}
+
+async function setup(AIplay, playerID){
+    let pos = await ai.setup(AIplay);
+    return new Move(playerID, pos.charCodeAt(0)-96, pos.charCodeAt(1)-48);
+
+}
+
 exports.computeMove = computeMove;
+exports.updateBoard = updateBoard;
+exports.correction = correction;
+exports.setup = setup;
 
 
 

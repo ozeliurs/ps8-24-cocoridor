@@ -1,5 +1,6 @@
 const back = require("./logic/back.js")
 const ai = require("./logic/ai.js")
+const adaptator = require("./logic/aiAdaptator.js")
 
 // The http module contains methods to handle http queries.
 const http = require('http')
@@ -166,7 +167,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 sleep(1000)
                 let moved
                 do{
-                    let computemove = ai.computeMove(aiBoard);
+                    let computemove = await adaptator.computeMove(aiBoard);
                     moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
                 } while(!moved)
             }
@@ -193,7 +194,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 let moved
 
                 do{
-                    let computemove = ai.computeMove(aiBoard);
+                    let computemove = adaptator.computeMove(aiBoard);
                     moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
                 } while(!moved)
             }
@@ -229,7 +230,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 sleep(1000)
                 let moved
             do{
-                let computemove = ai.computeMove(aiBoard);
+                let computemove = adaptator.computeMove(aiBoard);
                 moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
             } while(!moved)
         }
