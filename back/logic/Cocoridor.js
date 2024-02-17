@@ -10,7 +10,6 @@ exports.setup = async function setup(AIplay) {
 };
 
 exports.nextMove = async function nextMove(gameState) {
-
     //currentPosition is the position where you find a 1 in gamesState.board
     let currentPosition;
     for(let i = 0; i < gameState.board.length; i++){

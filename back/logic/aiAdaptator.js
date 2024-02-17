@@ -37,6 +37,10 @@ class Move extends Action{
 class Wall extends Action{
     /**
      *
+<<<<<<< HEAD
+=======
+     * @param {Player} player
+>>>>>>> 85723c48b579788ebab45b6b3480422e0739df5c
      * @param {Number} x
      * @param {Number} y
      * @param {Boolean} vertical
