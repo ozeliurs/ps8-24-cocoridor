@@ -166,7 +166,7 @@ function convertToGameState(board, playerID){
 async function computeMove(board, playerID=2) {
     let gameState = convertToGameState(board, playerID);
     let nextMove = await ai.nextMove(gameState);
-    console.log("nextMove: "+nextMove.value);
+
     if(nextMove.action === "move"){
         let pos = parseInt(nextMove.value);
         return new Move(playerID,Math.floor(pos/10)-1 , pos%10-1);
@@ -174,8 +174,7 @@ async function computeMove(board, playerID=2) {
     if(nextMove.action === "wall"){
         let pos = parseInt(nextMove.value[0]);
 
-        console.log(nextMove.value[1]);
-        console.log("pos : " + pos);
+ 
         return new Wall(playerID, Math.floor(pos/10)-1, pos%10-1, nextMove.value[1] === 1);
     }
     if(nextMove.action === "idle"){
