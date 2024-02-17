@@ -3,13 +3,13 @@
 
 exports.setup = async function setup(AIplay) {
     
-    let wall1 = "a1";
-    let wall2 = "i1"; 
+
+
     
     if (AIplay === 1) {
-        return Promise.resolve(wall1 + " " + wall2);
+        return Promise.resolve("99");
     } else {
-        return Promise.resolve(wall2 + " " + wall1);
+        return Promise.resolve("09");
     }
 };
 
