@@ -169,7 +169,12 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 let moved
                 do{
                     let computemove = await adaptator.computeMove(aiBoard);
-                    moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
+                    if(computemove.vertical===undefined){
+                        moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                    }
+                    else{
+                        moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
+                    }
                 } while(!moved)
             }
             board = back.getBoard();
@@ -195,7 +200,13 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 let moved
                 do {
                     let computemove = await adaptator.computeMove(aiBoard);
-                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                    console.log(computemove.vertical);
+                    if(computemove.vertical===undefined){
+                        moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                    }
+                    else{
+                        moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
+                    }
                 } while (!moved)
             }
             board = back.getBoard();
@@ -231,7 +242,13 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 let moved
                 do {
                     let computemove = await adaptator.computeMove(aiBoard);
-                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                    console.log(computemove.vertical);
+                    if(computemove.vertical===undefined){
+                        moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                    }
+                    else{
+                        moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
+                    }
                 } while (!moved)
             }
             board = back.getBoard();

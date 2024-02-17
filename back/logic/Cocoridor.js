@@ -20,13 +20,16 @@ exports.nextMove = async function nextMove(gameState) {
         }
     }
     console.log(currentPosition)
+    
     let nextPosition = currentPosition - 1;
     let wallAtNextPosition = gameState.opponentWalls.find(wall => wall[0] === currentPosition && wall[1] === 0);
-    
+    console.log(gameState.opponentWalls[0]);
     if (!wallAtNextPosition && nextPosition >= 1) {
+        
         return Promise.resolve({ action: "move", value: nextPosition.toString() });
     } else {
-        return Promise.resolve({ action: "idle" });
+
+        return Promise.resolve({ action: "wall", value: ["54",1]});
     }
 };
 

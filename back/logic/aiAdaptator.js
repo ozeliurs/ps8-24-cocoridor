@@ -37,10 +37,7 @@ class Move extends Action{
 class Wall extends Action{
     /**
      *
-<<<<<<< HEAD
-=======
-     * @param {Player} player
->>>>>>> 85723c48b579788ebab45b6b3480422e0739df5c
+
      * @param {Number} x
      * @param {Number} y
      * @param {Boolean} vertical
@@ -134,25 +131,36 @@ function convertToGameState(board, playerID){
             }else{
                 console.log("Error");
             }
-            if(board[i][j].BorderR.wallBy !== undefined){
-                let pos = (j + 1) * 10 + i + 1;
-                if(board[i][j].BorderR.wallBy.id === playerID){
-                    ownWalls.push([pos, 1]);
-                }else if(board[i][j].BorderR.wallBy.id !== undefined){
-                    opponentWalls.push([pos, 1]);
-                }
+         
+       
+
+            let pos = (j + 1) * 10 + i + 1;
+            
+            
+
+            if(board[i][j].BorderR.playerId === playerID){
+                ownWalls.push([pos, 1]);
+                
             }
-            if(board[i][j].BorderD.wallBy !== undefined) {
-                let pos = (j + 1) * 10 + i + 1;
-                if (board[i][j].BorderD.wallBy.id === playerID) {
-                    ownWalls.push([pos, 0]);
-                } else if (board[i][j].BorderD.wallBy.id !== undefined) {
-                    opponentWalls.push([pos, 0]);
-                }
+
+
+            else if(board[i][j].BorderR.playerId !== null){
+                opponentWalls.push([pos, 1]);
+                
+            } 
+                
+            if (board[i][j].BorderD.playerId === playerID) {
+                ownWalls.push([pos, 0]);
+            } 
+            
+            else if (board[i][j].BorderD.playerId !== null) {
+                opponentWalls.push([pos, 0]);
             }
+            
         }
     }
-    return new gameState(newBoard, ownWalls, opponentWalls);
+
+    return new gameState(newBoard, opponentWalls, ownWalls);
 }
 
 async function computeMove(board, playerID=2) {
@@ -166,7 +174,9 @@ async function computeMove(board, playerID=2) {
     if(nextMove.action === "wall"){
         let pos = parseInt(nextMove.value[0]);
 
-        return new Wall(playerID, Math.floor(pos/10)-1, pos%10-1, nextMove.value[1] === "1");
+        console.log(nextMove.value[1]);
+        console.log("pos : " + pos);
+        return new Wall(playerID, Math.floor(pos/10)-1, pos%10-1, nextMove.value[1] === 1);
     }
     if(nextMove.action === "idle"){
         return new Move(playerID, 0, 0);

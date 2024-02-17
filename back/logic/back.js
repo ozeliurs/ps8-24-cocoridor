@@ -350,7 +350,7 @@ class Border {
 
   
     toFront(){
-      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle(),this.wallBy.id)
+      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle(),this.wallBy==null?null:this.wallBy.id)
     }
     /**
      * 
