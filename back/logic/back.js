@@ -132,7 +132,11 @@ class Player {
     }else{
         this.id = player.id;
         this.modifier = player.modifier;
-        this.start = {X:player.start.X,Y:player.start.Y};
+        if(player.start!=null){
+          this.start = {X:player.start.X,Y:player.start.Y};
+        }else{
+          this.start = null;
+        }
         this.end = player.end;
         this.nbWalls = player.nbWalls;
         this.image = player.image;
@@ -432,7 +436,6 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
     for(let y=0;y<boardHeight;y++)
       for(let x=0;x<boardLength;x++)
         Board[y][x] = new Tile(null,null,null,null,board[y][x]);
-
   }
 
     //Place Player

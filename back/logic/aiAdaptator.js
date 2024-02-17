@@ -37,7 +37,6 @@ class Move extends Action{
 class Wall extends Action{
     /**
      *
-     * @param {Player} player
      * @param {Number} x
      * @param {Number} y
      * @param {Boolean} vertical
@@ -112,21 +111,27 @@ function convertToGameState(board, playerID){
     let newBoard = [];
     let ownWalls = [];
     let opponentWalls = [];
+    for (let i = 0; i < board[0].length; i++) {
+        newBoard.push([]);
+        for (let j = 0; j < board.length; j++) {
+            newBoard[i].push(-1);
+        }
+    }
     for (let i = 0; i < board.length; i++) {
         for (let j = 0; j < board[0].length; j++) {
             if(board[i][j].occupied === false) {
-                newBoard[i][j] = -1;
-            }else if(board[i][j].occupied === false){
-                newBoard[i][j] = 0;
+                newBoard[j][i] = -1;
+            }else if(board[i][j].occupied === true){
+                newBoard[j][i] = 0;
             }else if(board[i][j].occupied.id === playerID){
-                newBoard[i][j] = 1;
+                newBoard[j][i] = 1;
             }else if(board[i][j].occupied.id !== undefined) {
-                newBoard[i][j] = 2;
+                newBoard[j][i] = 2;
             }else{
                 console.log("Error");
             }
             if(board[i][j].BorderR.wallBy !== undefined){
-                let pos = (i+1)*10+j+1;
+                let pos = (j + 1) * 10 + i + 1;
                 if(board[i][j].BorderR.wallBy.id === playerID){
                     ownWalls.push([pos, 1]);
                 }else if(board[i][j].BorderR.wallBy.id !== undefined){
@@ -134,10 +139,10 @@ function convertToGameState(board, playerID){
                 }
             }
             if(board[i][j].BorderD.wallBy !== undefined) {
-                let pos = (i + 1) * 10 + j + 1;
-                if (board[i][j].BorderB.wallBy.id === playerID) {
+                let pos = (j + 1) * 10 + i + 1;
+                if (board[i][j].BorderD.wallBy.id === playerID) {
                     ownWalls.push([pos, 0]);
-                } else if (board[i][j].BorderB.wallBy.id !== undefined) {
+                } else if (board[i][j].BorderD.wallBy.id !== undefined) {
                     opponentWalls.push([pos, 0]);
                 }
             }
@@ -149,12 +154,15 @@ function convertToGameState(board, playerID){
 async function computeMove(board, playerID=2) {
     let gameState = convertToGameState(board, playerID);
     let nextMove = await ai.nextMove(gameState);
-    console.log("nextMove: "+ nextMove);
+    console.log("nextMove: "+nextMove.value);
     if(nextMove.action === "move"){
-        return new Move(playerID, nextMove.value.charCodeAt(0)-96, nextMove.value.charCodeAt(1)-48);
+        let pos = parseInt(nextMove.value);
+        return new Move(playerID,Math.floor(pos/10)-1 , pos%10-1);
     }
     if(nextMove.action === "wall"){
-        return new Wall(playerID, nextMove.value[0].charCodeAt(0)-96, nextMove.value[0].charCodeAt(1)-48, nextMove.value[1]===1);
+        let pos = parseInt(nextMove.value[0]);
+
+        return new Wall(playerID, Math.floor(pos/10)-1, pos%10-1, nextMove.value[1] === "1");
     }
     if(nextMove.action === "idle"){
         return new Move(playerID, 0, 0);
@@ -185,7 +193,8 @@ async function correction(move){
 
 async function setup(AIplay, playerID){
     let pos = await ai.setup(AIplay);
-    return new Move(playerID, pos.charCodeAt(0)-96, pos.charCodeAt(1)-48);
+    let newPos = { X: Math.floor(pos/10)-1, Y: pos%10-1};
+    return newPos;
 
 }
 

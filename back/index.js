@@ -149,8 +149,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
         playerList = back.getPlayerList();
         board = back.getBoard();
         turnNb = back.getTurnNb();
-        let aiMove = ai.setUp(playerList[1], back.setUpBoard(playerList[1]).Positions)
-        back.placePlayer(playerList[1].id, aiMove)
+        let aiMove = await adaptator.setup(2, back.setUpBoard(playerList[1]).Positions);
+        back.placePlayer(playerList[1].id, aiMove);
         gameId = await saveGame(board, playerId, turnNb, playerList);
         let currentPlayer = playerList[turnNb % playerList.length]
         let newBoard =  back.setUpBoard(currentPlayer).Board;
@@ -158,6 +158,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
     })
     socket.on('retrieveGame', async (playerId, gameId) => {
         let game = await getGame(gameId);
+        console.log(game);
         back.init(game.board.length, game.board[0].length, game.board, game.turnNb, game.playerList);
         playerList = back.getPlayerList();
         turnNb = back.getTurnNb();
@@ -179,70 +180,69 @@ io.of("/api/AIgame").on('connection', (socket) => {
         socket.emit("launch", newBoard, turnNb, gameId);
     })
 
-    socket.on('move', (move,gameId,playerId) => {
+    socket.on('move', async (move, gameId, playerId) => {
         console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
-        let actionDone = back.execMove(move.playerID,move.x,move.y);
-        if(actionDone){
-            board=back.getBoard();
+        let actionDone = back.execMove(move.playerID, move.x, move.y);
+        if (actionDone) {
+            board = back.getBoard();
             turnNb = back.getTurnNb();
-            saveGame(board,playerId,turnNb,playerList,gameId);
+            saveGame(board, playerId, turnNb, playerList, gameId);
             let newBoard = back.BoardFor(playerList[0]);
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard", newBoard);
             let aiBoard = back.BoardFor(playerList[1]);
-           {
+            {
                 sleep(1000)
                 let moved
-
-                do{
-                    let computemove = adaptator.computeMove(aiBoard);
-                    moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
-                } while(!moved)
+                do {
+                    let computemove = await adaptator.computeMove(aiBoard);
+                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                } while (!moved)
             }
             board = back.getBoard();
             turnNb = back.getTurnNb();
-            saveGame(board,playerId,turnNb,playerList,gameId);
+            saveGame(board, playerId, turnNb, playerList, gameId);
             newBoard = back.BoardFor(playerList[0]);
 
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard", newBoard);
         }
         let winners = back.GameWinner();
-        if(winners != null){
+        if (winners != null) {
             socket.emit("endGame", winners);
         }
-        
-       
+
+
     });
 
-    socket.on('wall', (wall,gameId,playerId) => {
+    socket.on('wall', async (wall, gameId, playerId) => {
         console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
-        let actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
+        let actionDone = back.execWall(wall.playerID, wall.x, wall.y, wall.vertical)
 
 
-        if(actionDone){
+        if (actionDone) {
             board = back.getBoard();
             turnNb = back.getTurnNb();
-            saveGame(board,playerId,turnNb,playerList,gameId);
+            saveGame(board, playerId, turnNb, playerList, gameId);
             let newBoard = back.BoardFor(playerList[0]);
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard", newBoard);
             let aiBoard = back.BoardFor(playerList[1]);
 
             {
                 sleep(1000)
                 let moved
-            do{
-                let computemove = adaptator.computeMove(aiBoard);
-                moved = back.execMove(computemove.playerID,computemove.x,computemove.y);
-            } while(!moved)
-        }
+                do {
+                    let computemove = await adaptator.computeMove(aiBoard);
+                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                } while (!moved)
+            }
             board = back.getBoard();
             turnNb = back.getTurnNb();
-            saveGame(board,playerId,turnNb,playerList,gameId);
+            saveGame(board, playerId, turnNb, playerList, gameId);
             newBoard = back.BoardFor(playerList[0])
-            socket.emit("updateBoard",newBoard)
+            socket.emit("updateBoard", newBoard)
         }
-        
+
         let winners = back.GameWinner();
-        if(winners !=null){
+        if (winners != null) {
             socket.emit("endGame", winners);
         }
     });

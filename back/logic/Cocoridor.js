@@ -2,28 +2,31 @@
 
 
 exports.setup = async function setup(AIplay) {
-    
-
-
-    
-    if (AIplay === 1) {
+    if (AIplay === 2) {
         return Promise.resolve("99");
     } else {
-        return Promise.resolve("09");
+        return Promise.resolve("11");
     }
 };
 
 exports.nextMove = async function nextMove(gameState) {
 
-    let currentPosition = gameState.board.find(row => row.includes(1)).indexOf(1) + 1; 
-    let nextPosition = currentPosition - 1; 
-
-    let wallAtNextPosition = gameState.opponentWalls.find(wall => wall[0] === String.fromCharCode(nextPosition + 96) + String.fromCharCode(currentPosition + 48));
+    //currentPosition is the position where you find a 1 in gamesState.board
+    let currentPosition;
+    for(let i = 0; i < gameState.board.length; i++){
+        for(let j = 0; j < gameState.board[i].length; j++){
+            if(gameState.board[i][j] === 1){
+                currentPosition = (i+1)*10+j+1;
+            }
+        }
+    }
+    console.log(currentPosition)
+    let nextPosition = currentPosition - 1;
+    let wallAtNextPosition = gameState.opponentWalls.find(wall => wall[0] === currentPosition && wall[1] === 0);
     
     if (!wallAtNextPosition && nextPosition >= 1) {
-        return Promise.resolve({ action: "move", value: String.fromCharCode(nextPosition + 96) + String.fromCharCode(currentPosition + 48) });
+        return Promise.resolve({ action: "move", value: nextPosition.toString() });
     } else {
-
         return Promise.resolve({ action: "idle" });
     }
 };
