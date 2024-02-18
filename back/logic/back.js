@@ -625,7 +625,7 @@ function actionDone(){
       if(killTimer--<=0) {console.log("aStar too long");return null;}
   
       frontier.sort((a,b)=>{
-        let diff = a.estimate-b.estimate;
+        let diff = (a.estimate+a.cost)-(b.estimate+b.cost);
         if(diff!=0)return diff;
         else return Math.random() > 0.5 ? 1 : -1
       });

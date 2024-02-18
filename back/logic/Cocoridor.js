@@ -1,15 +1,23 @@
 // yourTeam.js
 
+const { CurrentPlayer } = require("./back");
+
 let PreviousGameState = null;
 let EnnemyPos = null;
-
+let startPos = null
+let endPos = []
 
 exports.setup = async function setup(AIplay) {
     if (AIplay === 2) {
-        return Promise.resolve("99");
+        startPos = 99
+        for(let i=0;i<9;i++)endPos.push({X:i,Y:0})
+        console.log(endPos)
     } else {
-        return Promise.resolve("11");
+        startPos = 11
+        for(let i=0;i<9;i++)endPos.push({X:i,Y:8})
+        console.log(endPos)
     }
+    return Promise.resolve(startPos.toString());
 };
 
 exports.nextMove = async function nextMove(gameState) {
@@ -21,26 +29,28 @@ exports.nextMove = async function nextMove(gameState) {
     console.log("pos : " + EnnemyPos);
     //currentPosition is the position where you find a 1 in gamesState.board
     let currentPosition;
-    for(let i = 0; i < gameState.board.length; i++){
+    let path
+    for(let i = 0; i < gameState.board.length; i++)if(currentPosition==null){
         for(let j = 0; j < gameState.board[i].length; j++){
             if(gameState.board[i][j] === 1){
                 currentPosition = (i+1)*10+j+1;
+                path = aStar({gameState:gameState,currentPosition:{Y:j,X:i}})
+                break;
             }
         }
     }
-    
-    
-    let nextPosition = currentPosition - 1;
-    let wallAtNextPosition = gameState.opponentWalls.find(wall => wall[0] === currentPosition && wall[1] === 0);
-    
+    while(path.previous!=null){path = path.previous}
+    let nextPosition = (path.node.X+1)*10+path.node.Y+1;
+    //let wallAtNextPosition = gameState.opponentWalls.find(wall => wall[0] === currentPosition && wall[1] === 0);
     PreviousGameState = gameState;
-    if (!wallAtNextPosition && nextPosition >= 1) {
+    /*if (!wallAtNextPosition && nextPosition >= 1) {
         
         return Promise.resolve({ action: "move", value: nextPosition.toString() });
     } else {
 
         return Promise.resolve({ action: "wall", value: ["54",1]});
-    }
+    }*/
+    return Promise.resolve({ action: "move", value: nextPosition.toString() });
     
 };
 
@@ -128,3 +138,150 @@ function findEnnemy(gamestate) {
     return res;
 
 }
+
+  /**
+   * 
+   * @param {{gameState:gameState,playerId:Number,MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
+   * @returns {{node:{X:Number,Y:Number},cost:Number,estimate:Number,previous: null} | null}
+   */
+  function aStar({gameState, currentPosition, maxCost = null, addWalls = [],opponentBlock=false}= {}){
+    let length = gameState.board.length;
+    let height = gameState.board[0].length;
+    let killTimer = length*height;
+    let playerPos = currentPosition
+    let ends = endPos
+    let allWalls =  [...gameState.ownWalls,...gameState.opponentWalls,...addWalls]
+    console.log("coco - ",currentPosition,ends)
+    function inGame(coords){
+        return coords!=null && coords.X!=null && coords.Y!=null && 0<=coords.X && 0<=coords.Y && coords.X<length && coords.Y<height
+    }
+    /**
+     * 
+     * @param {{X:Number,Y:Number}} from 
+     * @returns {{Coords:{X:Number,Y:Number},Value:Number}} 
+     */
+    function nearestEnd(from){
+        let nearestCoords = ends[0]
+        let nearestVal = Math.abs(from.X-nearestCoords.X)+Math.abs(from.Y-nearestCoords.Y)
+        for(let end of ends) {
+            let dist = Math.abs(from.X-end.X)+Math.abs(from.Y-end.Y)
+            if(dist < nearestVal){
+                nearestCoords = end
+                nearestVal = dist
+            }
+        }
+        return {Coords:nearestCoords,Value:nearestVal};
+    }
+    
+    function wallAt(from,vertical){
+    let element = allWalls.find((e)=>{
+        return e[0] == ((from.X+1)*10)+ from.Y+1 && e[1] == vertical?1:0
+    })
+    return element!=undefined;
+    }
+    /**
+     * 
+     * @returns {Tile[]}
+     */
+    function getNeighbour(coords){
+      let result = [];
+
+      let current = {X:coords.X,Y:coords.Y+1};
+      if(inGame(current) ) {//tant que la case existe
+        if(!wallAt(current,false)) { // si je peux me deplacer sur cette case
+          result.push(current); // si il y a personne alors je renvois que cette tuile est ma voisine
+        }
+      }
+      current = {X:coords.X+1,Y:coords.Y};
+      if(inGame(current) ) {
+        if(!wallAt({X:current.X-1,Y:current.Y},true)) {
+          result.push(current);
+        }
+      }
+      current = {X:coords.X,Y:coords.Y-1};
+      if(inGame(current) ) {
+        if(!wallAt({X:current.X,Y:current.Y+1},false)) {
+          result.push(current);
+        }
+      }
+      current = {X:coords.X-1,Y:coords.Y};
+      if(inGame(current) ) {
+        if(!wallAt(current,true)) {
+          result.push(current);
+        }
+      }
+      return result;
+    }
+  
+    let explored= [];
+  
+    let frontier =[]
+    for(let modif of [{X:0,Y:1,wall:{X:0,Y:0}},{X:1,Y:0,wall:{X:-1,Y:0}},{X:0,Y:-1,wall:{X:0,Y:1}},{X:-1,Y:0,wall:{X:0,Y:0}}]){
+        let current = playerPos;
+        do{
+            current = {X:(current.X+modif.X),Y:(current.Y+modif.Y)}
+            if(!inGame(current) || wallAt({X:current.X+modif.wall.X,Y:current.Y+modif.wall.Y},modif.Y!=0?0:1)){
+                current=null;
+                break;
+            }
+            console.log(Date.now())
+        }while(inGame(current) && opponentBlock && gameState.board[current.X][current.Y]!=0 && gameState.board[current.X][current.Y]!=-1)
+        if(inGame(current)) frontier.push({
+            node : current,
+            cost : 1,
+            estimate : nearestEnd(current),
+            previous : null
+        })
+    }
+  
+  
+    while(frontier.length>0){
+      if(killTimer--<=0){
+      console.log("aStar overload")
+        return null;}
+  
+      
+        frontier.sort((a,b)=>{
+            let diff = (a.estimate.Value+a.cost)-(b.estimate.Value+b.cost);
+            if(diff!=0)return diff;
+            else return Math.random() > 0.5 ? 1 : -1
+        });
+  
+      let currentBest = frontier.shift();
+      if(currentBest.estimate.Value == 0) {
+        if(maxCost!=null && maxCost<currentBest.cost){
+          console.log("tooExpensive")
+          return null;
+        } 
+        else {
+          return currentBest;
+        }
+      }
+  
+      explored.push(currentBest)
+      for(let step of getNeighbour(currentBest.node,addWalls)){
+        let isExplored = (explored.find( e => {
+            return e.node.X == step.X 
+            &&  e.node.Y == step.Y
+            &&  e.cost<=currentBest.cost+1;
+        }))
+  
+        let isFrontier = (frontier.find( e => {
+            return e.node.X == step.X 
+            &&  e.node.Y == step.Y
+            &&  e.cost<=currentBest.cost+1;
+        }))
+  
+        if (!isExplored && !isFrontier) {
+          frontier.push({
+            node: step,
+            cost: currentBest.cost+1,
+            estimate: nearestEnd(step),
+            previous : currentBest
+          });
+        }
+      }
+    }
+    console.log("impossible to reach")
+    return null;
+  }
