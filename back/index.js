@@ -200,7 +200,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 let moved
                 do {
                     let computemove = await adaptator.computeMove(aiBoard);
-                    console.log(computemove.vertical);
                     if(computemove.vertical===undefined){
                         moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
                     }
@@ -242,7 +241,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 let moved
                 do {
                     let computemove = await adaptator.computeMove(aiBoard);
-                    console.log(computemove.vertical);
                     if(computemove.vertical===undefined){
                         moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
                     }
