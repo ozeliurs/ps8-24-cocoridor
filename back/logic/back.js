@@ -11,6 +11,7 @@ const jumpOverWall = false; // if players can jump above walls by jumping on ano
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
+const fog = false;
 
 let remainingAction = numActions;
 let boardLength = 0;
@@ -238,7 +239,7 @@ class Tile {
     if(this.occupied!=null && this.occupied.id==player.id) {
         visi = this.occupied;
 
-    } else if(this.visibility*player.modifier>=0) {
+    } else if(!fog||this.visibility*player.modifier>=0) {
       if(this.occupied!=null) visi = this.occupied;
       else visi = true;
     } else visi = false;
@@ -251,20 +252,37 @@ class Tile {
    * 
    * @returns {Tile[]}
    */
-  getNeighbour(jumpWalls=false, fictionnalWalls = []){
+  getNeighbour(opponentBlock=false, jumpWalls=false, fictionnalWalls = []){
     let result = [];
 
     let current = getTile(this.X,this.Y+1);
-    if(current!=null && (jumpWalls || current.BorderD.wallBy==null) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
-
+    while(current!=null ) {
+      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
+        if(opponentBlock&&current.occupied!=null) current = getTile(current.X,current.Y+1)
+        else {result.push(current);break;}
+      }else break;
+    }
     current = getTile(this.X+1,this.Y);
-    if(current!=null && (jumpWalls || this.BorderR.wallBy==null ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
-
+    while(current!=null ) {
+      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
+        if(opponentBlock&&current.occupied!=null) current = getTile(current.X+1,current.Y)
+        else {result.push(current);break;}
+      }else break;
+    }
     current = getTile(this.X,this.Y-1);
-    if(current!=null && (jumpWalls || this.BorderD.wallBy==null ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
-
+    while(current!=null ) {
+      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
+        if(opponentBlock&&current.occupied!=null) current = getTile(current.X,current.Y-1)
+        else {result.push(current);break;}
+      }else break;
+    }
     current = getTile(this.X-1,this.Y);
-    if(current!=null && (jumpWalls || current.BorderR.wallBy==null ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
+    while(current!=null ) {
+      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
+        if(opponentBlock&&current.occupied!=null) current = getTile(current.X-1,current.Y)
+        else {result.push(current);break;}
+      }else break;
+    }
     return result;
   }
   /**
@@ -560,24 +578,18 @@ function actionDone(){
   function playersCanReachEnd(additionnalWalls = []){
     for(let player of playerList){
       if(player.end==null|| player.end.length==0)continue;
-      let foundPath = false
-      for(let goal of player.end){
-        let path = aStar({start:player.getTile(),end:goal,addWalls: additionnalWalls});
-        if(path!=null){
-          foundPath=true;
-          break;}
-      }
-      if(!foundPath)return false;
+      if(aStar({start:player.getTile(),ends:player.end,addWalls: additionnalWalls})==null) return false;
+      
     }
     return true;
   }
   /**
    * 
-   * @param {{start:Tile,end:Tile,MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
+   * @param {{start:Tile,end:Tile[],MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
    * @returns 
    */
-  function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls = []}= {}){
-    if(start==null || end ==null)return null;
+  function aStar({start=null ,ends=null, maxCost = null,opponentBlock = false,jumpWall = false, addWalls = []}= {}){
+    if(start==null || ends ==null)return null;
     let killTimer=boardLength*boardHeight;
     /**
      * 
@@ -585,16 +597,18 @@ function actionDone(){
      * @returns {Number}
      */
     function heuristic(tile){
-      return distTo(tile,end);
-    }
-  
-    /**
-     * 
-     * @param {Tile} tile 
-     * @returns 
-     */
-    function progressOf(tile){
-      return Math.abs(Math.abs((tile.X - start.X)/(end.X - start.X))-Math.abs((tile.Y - start.Y)/(end.Y - start.Y)))
+      let nearestDist = null;
+      let closestEnd = null;
+      for(let end of ends) {
+        let dist = Math.abs(tile.X-end.X)+Math.abs(tile.Y-end.Y)
+        if(nearestDist ==null || dist<nearestDist){
+          nearestDist = dist;
+          closestEnd=end;
+
+        }
+
+      }
+      return distTo(tile,closestEnd);
     }
   
     let explored= [];
@@ -608,21 +622,16 @@ function actionDone(){
   
   
     while(frontier.length>0){
-      if(killTimer--<=0){
-      
-        return null;}
+      if(killTimer--<=0) {console.log("aStar too long");return null;}
   
       frontier.sort((a,b)=>{
         let diff = a.estimate-b.estimate;
-        if(diff!=0) return diff;
-        else {
-          if(progressOf(a.node)<progressOf(b.node)) return -1;
-          else return 1;
-        }
+        if(diff!=0)return diff;
+        else return Math.random() > 0.5 ? 1 : -1
       });
   
       let currentBest = frontier.shift();
-      if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
+      for(let end of ends) if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
         if(maxCost!=null && maxCost<currentBest.cost){
           console.log("tooExpensive")
           return null;
@@ -633,23 +642,25 @@ function actionDone(){
       }
   
       explored.push(currentBest)
-      for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
+      for(let step of currentBest.node.getNeighbour(opponentBlock,jumpWall,addWalls)){
+        let cost = currentBest.cost+1;
         let isExplored = (explored.find( e => {
-            return e.node.X == step.X && 
-                e.node.Y == step.Y;
+            return e.node.X == step.X 
+            &&  e.node.Y == step.Y
+            && e.cost<=cost;
         }))
   
         let isFrontier = (frontier.find( e => {
-            return e.node.X == step.X && 
-                e.node.Y == step.Y;
+            return e.node.X == step.X 
+            &&  e.node.Y == step.Y
+            && e.cost<=cost;
         }))
   
         if (!isExplored && !isFrontier) {
-          let cost = currentBest.cost+1;
           frontier.push({
             node: step,
             cost: cost,
-            estimate: cost + heuristic(step),
+            estimate: heuristic(step),
             previous : currentBest
           });
         }
@@ -708,15 +719,14 @@ function actionDone(){
      */
     constructor(player, x,y){
       super(player);
-      let start = currentPlayer().getTile();
+      let start = player.getTile();
       let end = getTile(x,y);
       if(start==end)return undefined;
       let dirs = start.tileInDir(end);
-      let path = aStar({start:start,end:end,maxCost:travelDist});
-      
+      let path = aStar({start:start,ends:[end],maxCost:travelDist});
       if(path==null) return undefined;
       while(path.node.occupied!=null){
-        path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
+        path = aStar({start,ends:[end],maxCost:dirs.length,jumpwall:jumpOverWall});
         if(path==null) return undefined;
         start = end;
         end = path.node.getTileInDir(dirs);
