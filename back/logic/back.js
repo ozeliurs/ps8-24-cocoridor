@@ -252,37 +252,20 @@ class Tile {
    * 
    * @returns {Tile[]}
    */
-  getNeighbour(opponentBlock=false, jumpWalls=false, fictionnalWalls = []){
+  getNeighbour(jumpWalls=false, fictionnalWalls = []){
     let result = [];
 
     let current = getTile(this.X,this.Y+1);
-    while(current!=null ) {
-      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
-        if(opponentBlock&&current.occupied!=null) current = getTile(current.X,current.Y+1)
-        else {result.push(current);break;}
-      }else break;
-    }
+    if(current!=null && (jumpWalls || current.BorderD.wallBy==null) && !fictionnalWalls.includes(current.BorderD)) result.push(current);
+
     current = getTile(this.X+1,this.Y);
-    while(current!=null ) {
-      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
-        if(opponentBlock&&current.occupied!=null) current = getTile(current.X+1,current.Y)
-        else {result.push(current);break;}
-      }else break;
-    }
+    if(current!=null && (jumpWalls || this.BorderR.wallBy==null ) && !fictionnalWalls.includes(this.BorderR)) result.push(current);
+
     current = getTile(this.X,this.Y-1);
-    while(current!=null ) {
-      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
-        if(opponentBlock&&current.occupied!=null) current = getTile(current.X,current.Y-1)
-        else {result.push(current);break;}
-      }else break;
-    }
+    if(current!=null && (jumpWalls || this.BorderD.wallBy==null ) && !fictionnalWalls.includes(this.BorderD)) result.push(current);
+
     current = getTile(this.X-1,this.Y);
-    while(current!=null ) {
-      if(jumpWalls || current.BorderR.wallBy==null || !fictionnalWalls.includes(current.BorderR)) {
-        if(opponentBlock&&current.occupied!=null) current = getTile(current.X-1,current.Y)
-        else {result.push(current);break;}
-      }else break;
-    }
+    if(current!=null && (jumpWalls || current.BorderR.wallBy==null ) && !fictionnalWalls.includes(current.BorderR)) result.push(current);
     return result;
   }
   /**
@@ -578,7 +561,8 @@ function actionDone(){
   function playersCanReachEnd(additionnalWalls = []){
     for(let player of playerList){
       if(player.end==null|| player.end.length==0)continue;
-      if(aStar({start:player.getTile(),ends:player.end,addWalls: additionnalWalls})==null) return false;
+      let path= aStar({start:player.getTile(),ends:player.end,addWalls: additionnalWalls})
+      if(path==null) return false;
       
     }
     return true;
@@ -642,7 +626,7 @@ function actionDone(){
       }
   
       explored.push(currentBest)
-      for(let step of currentBest.node.getNeighbour(opponentBlock,jumpWall,addWalls)){
+      for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
         let cost = currentBest.cost+1;
         let isExplored = (explored.find( e => {
             return e.node.X == step.X 

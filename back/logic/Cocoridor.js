@@ -11,11 +11,9 @@ exports.setup = async function setup(AIplay) {
     if (AIplay === 2) {
         startPos = 99
         for(let i=0;i<9;i++)endPos.push({X:i,Y:0})
-        console.log(endPos)
     } else {
         startPos = 11
         for(let i=0;i<9;i++)endPos.push({X:i,Y:8})
-        console.log(endPos)
     }
     return Promise.resolve(startPos.toString());
 };
@@ -151,7 +149,6 @@ function findEnnemy(gamestate) {
     let playerPos = currentPosition
     let ends = endPos
     let allWalls =  [...gameState.ownWalls,...gameState.opponentWalls,...addWalls]
-    console.log("coco - ",currentPosition,ends)
     function inGame(coords){
         return coords!=null && coords.X!=null && coords.Y!=null && 0<=coords.X && 0<=coords.Y && coords.X<length && coords.Y<height
     }
@@ -224,7 +221,6 @@ function findEnnemy(gamestate) {
                 current=null;
                 break;
             }
-            console.log(Date.now())
         }while(inGame(current) && opponentBlock && gameState.board[current.X][current.Y]!=0 && gameState.board[current.X][current.Y]!=-1)
         if(inGame(current)) frontier.push({
             node : current,

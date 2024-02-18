@@ -132,7 +132,7 @@ function convertToGameState(board, playerID){
             }else if(board[i][j].occupied.id !== undefined) {
                 newBoard[j][i] = 2;
             }else{
-                console.log("Error");
+                console.error("unknown value");
             }
          
        
