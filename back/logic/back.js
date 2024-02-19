@@ -11,7 +11,7 @@ const jumpOverWall = false; // if players can jump above walls by jumping on ano
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
-const fog = false;
+const fog = true;
 
 let remainingAction = numActions;
 let boardLength = 0;
@@ -763,15 +763,14 @@ function actionDone(){
 
   }
 
-  function execWall(playerID, x, y, vertical){
-    let player = playerList[playerID-1];
-    if(wallLength==0)return false;
+  function createWall(player, x, y, vertical){
     let borders = []
+    if(getTile(x,y) == null) return null  
     if(vertical) {
       borders = [getTile(x,y).BorderR]
       for(let i=0;i<wallLength-1;i++){
         let test = getTile(x,y+1+i)
-        if(test == null) return false;
+        if(test == null) return null
         borders.push(test.Edge)
         borders.push(test.BorderR)
       }
@@ -780,17 +779,57 @@ function actionDone(){
       borders = [getTile(x,y).BorderD]
       for(let i=0;i<wallLength-1;i++){
         let test = getTile(x+1+i,y)
-        if(test == null)return false;
+        if(test == null)return null
         borders.push(getTile(x+i,y).Edge);
         borders.push(test.BorderD);
       }
     }
-    
-    for(let border of borders) if(border.wallBy!=null || (border.X==boardLength) || (border.lat && border.Y==0)) return false;
+    for(let border of borders) if(border.wallBy!=null) return null;
+    if(playersCanReachEnd(borders)) return new Wall(player,borders);
+    return null
+  }
 
-    if(playersCanReachEnd(borders)) return new Wall(player,borders).execute();
-    return false;
-    
+  function execWall(playerID, x, y, vertical){
+    let player = playerList[playerID-1];
+    if(wallLength===0)return false;
+    let wall = createWall(player,x,y,vertical);
+    if (wall==null) return false;
+    return wall.execute();
+  }
+
+  function execRandomMove(playerId){
+    let player = playerList[playerId-1];
+    let play;
+    if(player.nbWalls>0 && Math.random()>0.5){
+      let played
+        do {
+          let x = Math.floor(Math.random()*boardLength);
+          let y = Math.floor(Math.random()*boardHeight);
+          let vertical = Math.random()>0.5;
+          play = createWall(player,x,y,vertical);
+          if(play==null) played = false;
+          else played = play.execute();
+        }while(!played)
+    }else{
+        let played
+        do {
+            let possiblepos=[]
+            if(player.OnTile.X+1<boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
+            if(player.OnTile.X-1>=0) possiblepos.push([player.OnTile.X-1,player.OnTile.Y])
+            if(player.OnTile.Y+1<boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
+            if(player.OnTile.Y-1>=0) possiblepos.push([player.OnTile.X,player.OnTile.Y-1])
+            let moove=possiblepos[Math.floor(Math.random()*possiblepos.length)]
+
+            let x = Math.floor(moove[0]);
+            let y = Math.floor(moove[1]);
+
+            play = new Move(player,x,y);
+            if(play==null) played = false;
+            else played = play.execute();
+        }while(!played)
+    }
+  
+    return play;
   }
 
   function getBoard(){
@@ -849,3 +888,4 @@ function actionDone(){
   exports.CurrentPlayer = currentPlayer;
   exports.setUpBoard = setUpBoard;
   exports.placePlayer = placePlayer;
+  exports.execRandomMove = execRandomMove;
