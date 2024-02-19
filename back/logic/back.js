@@ -11,7 +11,7 @@ const jumpOverWall = false; // if players can jump above walls by jumping on ano
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
-const fog = false;
+const fog = true;
 
 let remainingAction = numActions;
 let boardLength = 0;

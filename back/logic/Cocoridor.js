@@ -5,8 +5,14 @@ let PreviousGameState = null;
 let EnnemyPos = null;
 let startPos = null
 let endPos = []
+let wallState = -1;
 
 exports.setup = async function setup(AIplay) {
+    PreviousGameState = null;
+    EnnemyPos = null;
+    startPos = null
+    endPos = []
+    wallState = -1;
     if (AIplay === 2) {
         startPos = 99
         for(let i=0;i<9;i++)endPos.push({X:i,Y:0})
@@ -47,6 +53,11 @@ exports.nextMove = async function nextMove(gameState) {
 
         return Promise.resolve({ action: "wall", value: ["54",1]});
     }*/
+    if(wallState == -1){
+        wallState = 0;
+        //return Promise.resolve({ action: "move", value: (currentPosition-2).toString() });
+        return Promise.resolve({ action: "wall", value: ["33",0]});
+    }
     return Promise.resolve({ action: "move", value: nextPosition.toString() });
     
 };
@@ -115,7 +126,7 @@ function findEnnemy(gamestate) {
 
             //si on a gagné la vision a droite, il n'est pas allé a droite ect ...
 
-            for (i in range ( possiblepos.length-1)){
+            for (i in ( possiblepos.length-1)){
                 if(gameState.board[pos.x][pos.y] === 0 ){
                     possiblepos.splice(i, 1);
                 }
