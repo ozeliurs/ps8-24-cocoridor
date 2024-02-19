@@ -33,15 +33,6 @@ exports.setup = async function setup(AIplay) {
 
 exports.nextMove = async function nextMove(gamestate) {
 
-    findEnnemy(gamestate);
-    PreviousGameState = gamestate;
-
-    if(wallState == -1){
-        wallState = 0;
-        //return Promise.resolve({ action: "move", value: (currentPosition-2).toString() });
-        return Promise.resolve({ action: "wall", value: ["33",0]});
-    }
-    //currentPosition is the position where you find a 1 in gamesState.board
     let currentPosition;
     for(let i = 0; i < gamestate.board.length; i++)if(currentPosition==null){
         for(let j = 0; j < gamestate.board[i].length; j++){
@@ -51,6 +42,15 @@ exports.nextMove = async function nextMove(gamestate) {
             }
         }
     }
+    findEnnemy(gamestate,currentPosition);
+    PreviousGameState = gamestate;
+
+    if(wallState == -1){
+        wallState = 0;
+        //return Promise.resolve({ action: "move", value: (currentPosition-2).toString() });
+        return Promise.resolve({ action: "wall", value: ["33",0]});
+    }
+    //currentPosition is the position where you find a 1 in gamesState.board
     function aStarFor(me=true,additionnalWalls=[]){
         if(me) return aStar({gameState:gamestate,currentPosition,endPos:endPos,addWalls:additionnalWalls})
         else {
@@ -130,15 +130,56 @@ exports.correction = async function correction(rightMove) {
 };
 
 
-exports.updateBoard = async function updateBoard(gameState) {
-    findEnnemy(gameState);
-    PreviousGameState = gameState;
+exports.updateBoard = async function updateBoard(gamestate) {
+    
+    let currentPosition;
+    for(let i = 0; i < gamestate.board.length; i++)if(currentPosition==null){
+        for(let j = 0; j < gamestate.board[i].length; j++){
+            if(gamestate.board[i][j] === 1){
+                currentPosition = {Y:j,X:i};
+                break;
+            }
+        }
+    }
+    findEnnemy(gamestate, currentPosition);
+    PreviousGameState = gamestate;
     return Promise.resolve(true);
 };
 
+/**
+ * 
+ * @param {gamestate} gamestate 
+ * @param {{X:Number,Y:Number}} currentPos 
+ * @returns 
+ */
+function findEnnemy(gamestate,currentPos) {
 
-function findEnnemy(gamestate) {
+    /**
+     * 
+     * @param {Boolean} me
+     * @param {[String,Number]} wall
+     */
+    function wallLight(me,wall){
+        let pos = parseInt(wall[0])
+        let x = Math.floor((pos-1)/10)
+        let y = pos%10-1
 
+        //TODO garder seulement les casess dans le plateau
+        if(wall[1]==0) for(let modif of [[0,0],[-1,0],[0,1],[1,0],[0,-1],[-1,-1],[0,-2],[1,-1]]) {
+            let newX = currentPos.X+modif[0]
+            let newY = currentPos.Y+modif[1]
+            if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
+            visibility[x+modif[0]][y+modif[1]]+=me?1:-1;
+            visibility[x+modif[0]+1][y+modif[1]]+=me?1:-1;
+        }
+        else for(let modif of [[0,0],[0,1],[-1,0],[0,-1],[1,0],[1,1],[2,0],[1,-1]]){    
+            let newX = currentPos.X+modif[0]
+            let newY = currentPos.Y+modif[1]    
+            if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
+            visibility[x+modif[0]-1][y+modif[1]]+=me?1:-1;
+            visibility[x+modif[0]-1][y+modif[1]-1]+=me?1:-1;
+        }
+    }
 
     if(PreviousGameState !== null && PreviousGameState.opponentWalls.length!== gamestate.opponentWalls.length ){
         console.log("opponnents walls old : " + PreviousGameState.opponentWalls + "new : "+ gamestate.opponentWalls);
@@ -149,6 +190,8 @@ function findEnnemy(gamestate) {
 
 
 
+
+    // Si je vois l'ennemi
     let res = null;
     for(let i = 0; i < gamestate.board.length; i++){
 
@@ -163,6 +206,34 @@ function findEnnemy(gamestate) {
         }
     }
 
+    //Visi de base
+    let visibility = []
+    let boardLength = gamestate.board.length
+    let boardHeight = gamestate.board[0].length
+    for (let x=0;x<boardLength;x++){
+        visibility.push([])
+        for(let y=0;y<boardHeight;y++){
+            if(y<(boardHeight-1)/2)visibility[x][y] = -1
+            else if(y>(boardHeight)/2)visibility[x][y] = 1
+            else visibility[x][y] = 0
+        }
+    }
+    console.log(visibility)
+    //Visi des murs
+    for(let wall of gamestate.ownWalls) wallLight(true,wall)
+    for(let wall of gamestate.opponentWalls) wallLight(false,wall)
+    console.log(visibility)
+    //Visi du joueur
+
+    for(let modif of [[0,0],[0,1],[1,0],[-1,0],[0,-1]]) {
+        let newX = currentPos.X+modif[0]
+        let newY = currentPos.Y+modif[1]
+        if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
+        visibility[newX][newY] +=1
+    }
+
+
+    console.log(visibility)
     if (res === null) {
         if(EnnemyPos !== null){
             //verifier les 4 cases autour de EnnemyPos
@@ -201,6 +272,7 @@ function findEnnemy(gamestate) {
 
     
     }
+    
     
     EnnemyPos = res;
     return res;
