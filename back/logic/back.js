@@ -786,7 +786,7 @@ function actionDone(){
       }
     }
     
-    for(let border of borders) if(border.wallBy!=null) return false;
+    for(let border of borders) if(border.wallBy!=null || (border.X==boardLength) || (border.lat && border.Y==0)) return false;
 
     if(playersCanReachEnd(borders)) return new Wall(player,borders).execute();
     return false;
