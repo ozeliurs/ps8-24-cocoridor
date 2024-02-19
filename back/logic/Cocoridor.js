@@ -25,6 +25,8 @@ exports.setup = async function setup(AIplay) {
 
 exports.nextMove = async function nextMove(gameState) {
     adaptGameStateWalls(gameState);
+    console.log(gameState)
+
     findEnnemy(gameState);
     //currentPosition is the position where you find a 1 in gamesState.board
     let currentPosition;
@@ -306,4 +308,4 @@ function findEnnemy(gamestate) {
       WallsToAdd.push([wall[0]+(wall[1]==1?1:10),wall[1]])
     }
     gameState.opponentWalls = gameState.opponentWalls.concat(WallsToAdd);
-}
+  }

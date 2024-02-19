@@ -186,15 +186,12 @@ async function computeMove(board, playerID=2) {
 }
 
 async function updateBoard(board, playerID){
-    console.log(playerID)
     let gameState = convertToGameState(board, playerID);
-    console.log(gameState)
     return await ai.updateBoard(gameState);
 }
 
 async function correction(move){
-
-    let pos = ((move.x()+1)*10 + move.y()+1).toString();
+    let pos = ((move.X+1)*10 + move.Y+1).toString();
     let aiMove;
     if(move instanceof Wall){
         pos = (pos,(move.vertical ? 1 : 0));

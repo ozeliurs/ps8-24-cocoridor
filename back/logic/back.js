@@ -765,6 +765,7 @@ function actionDone(){
 
   function createWall(player, x, y, vertical){
     let borders = []
+    if(getTile(x,y) == null) return null  
     if(vertical) {
       borders = [getTile(x,y).BorderR]
       for(let i=0;i<wallLength-1;i++){
@@ -805,20 +806,29 @@ function actionDone(){
           let x = Math.floor(Math.random()*boardLength);
           let y = Math.floor(Math.random()*boardHeight);
           let vertical = Math.random()>0.5;
-          play = createWall();
-          if(play!=null) played = false;
+          play = createWall(player,x,y,vertical);
+          if(play==null) played = false;
           else played = play.execute();
         }while(!played)
     }else{
         let played
         do {
-            let x = Math.floor(Math.random()*boardLength);
-            let y = Math.floor(Math.random()*boardHeight);
+            let possiblepos=[]
+            if(player.OnTile.X+1<boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
+            if(player.OnTile.X-1>=0) possiblepos.push([player.OnTile.X-1,player.OnTile.Y])
+            if(player.OnTile.Y+1<boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
+            if(player.OnTile.Y-1>=0) possiblepos.push([player.OnTile.X,player.OnTile.Y-1])
+            let moove=possiblepos[Math.floor(Math.random()*possiblepos.length)]
+
+            let x = Math.floor(moove[0]);
+            let y = Math.floor(moove[1]);
+
             play = new Move(player,x,y);
-            if(play!=null) played = false;
+            if(play==null) played = false;
             else played = play.execute();
         }while(!played)
     }
+  
     return play;
   }
 
