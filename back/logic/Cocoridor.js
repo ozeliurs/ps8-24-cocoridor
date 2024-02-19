@@ -80,7 +80,7 @@ function findEnnemy(gamestate) {
     }
 
     if(PreviousGameState.opponentWalls.length!== gamestate.opponentWalls.length ){
-        console.log("opponnents walls old : " + PreviousGameState.opponentWalls + "new : "+ gamestate.opponentWalls);
+       // console.log("opponnents walls old : " + PreviousGameState.opponentWalls + "new : "+ gamestate.opponentWalls);
 
         return;
 
@@ -292,17 +292,18 @@ function findEnnemy(gamestate) {
   }
 
   function adaptGameStateWalls(gameState){
-      for(let i=0;i<gameState.opponentWalls.length;i++){
-          if(gameState.opponentWalls[i][1] === 0)
-            gameState.push([gameState.opponentWalls[i][0]+10,0])
-          else if(gameState.opponentWalls[i][1] === 1)
-            gameState.push([gameState.opponentWalls[i][0]+1,1])
-      }
-      for(let i=0;i<gameState.ownWalls.length;i++){
-          if(gameState.ownWalls[i][1] === 0)
-            gameState.push([gameState.ownWalls[i][0]+10,0])
-          else if(gameState.ownWalls[i][1] === 1)
-            gameState.push([gameState.ownWalls[i][0]+1,1])
-      }
+    let ownWalls =gameState.ownWalls;
+    let opponentWalls=gameState.opponentWalls;
 
-  }
+    let WallsToAdd=[]
+    for(let wall of ownWalls){
+      WallsToAdd.push([wall[0]+(wall[1]==1?1:10),wall[1]])
+    }
+    gameState.ownWalls = gameState.ownWalls.concat(WallsToAdd);
+
+    WallsToAdd=[]
+    for(let wall of opponentWalls){
+      WallsToAdd.push([wall[0]+(wall[1]==1?1:10),wall[1]])
+    }
+    gameState.opponentWalls = gameState.opponentWalls.concat(WallsToAdd);
+}

@@ -149,7 +149,6 @@ function convertToGameState(board, playerID){
                     alreadyCheckedVertical.push(pos + 1);
                 }
             }
-
             if(!alreadyCheckedHorizontal.includes(pos)) {
                 if (board[i][j].BorderD.playerId === playerID) {
                     ownWalls.push([pos, 0]);
@@ -162,7 +161,7 @@ function convertToGameState(board, playerID){
                 }
             }
         }
-    }
+    }   
     return new gameState(newBoard, opponentWalls, ownWalls);
 }
 
@@ -187,7 +186,9 @@ async function computeMove(board, playerID=2) {
 }
 
 async function updateBoard(board, playerID){
+    console.log(playerID)
     let gameState = convertToGameState(board, playerID);
+    console.log(gameState)
     return await ai.updateBoard(gameState);
 }
 
