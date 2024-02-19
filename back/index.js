@@ -178,6 +178,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
                     await adaptator.correction(move);
                 }
             }
+            aiBoard = back.BoardFor(playerList[1]);
+            await adaptator.updateBoard(aiBoard);
             board = back.getBoard();
             turnNb = back.getTurnNb();
 
@@ -211,6 +213,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
                     await adaptator.correction(move);
                 }
             }
+            aiBoard = back.BoardFor(playerList[1]);
+            await adaptator.updateBoard(aiBoard);
             board = back.getBoard();
             turnNb = back.getTurnNb();
             saveGame(board, playerId, turnNb, playerList, gameId);
@@ -254,6 +258,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
                     console.log("correction : " + move);
                 }
             }
+            aiBoard = back.BoardFor(playerList[1]);
+            await adaptator.updateBoard(aiBoard);
             board = back.getBoard();
             turnNb = back.getTurnNb();
             saveGame(board, playerId, turnNb, playerList, gameId);

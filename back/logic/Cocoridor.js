@@ -53,12 +53,13 @@ exports.nextMove = async function nextMove(gameState) {
 
 
 exports.correction = async function correction(rightMove) {
-
+    
     return Promise.resolve(true);
 };
 
 
 exports.updateBoard = async function updateBoard(gameState) {
+    findEnnemy(gameState);
     PreviousGameState = gameState;
     return Promise.resolve(true);
 };
