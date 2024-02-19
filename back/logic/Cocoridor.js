@@ -60,6 +60,7 @@ exports.correction = async function correction(rightMove) {
 
 
 exports.updateBoard = async function updateBoard(gameState) {
+    PreviousGameState = gameState;
     return Promise.resolve(true);
 };
 

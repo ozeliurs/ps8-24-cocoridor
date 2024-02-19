@@ -763,15 +763,13 @@ function actionDone(){
 
   }
 
-  function execWall(playerID, x, y, vertical){
-    let player = playerList[playerID-1];
-    if(wallLength==0)return false;
+  function createWall(player, x, y, vertical){
     let borders = []
     if(vertical) {
       borders = [getTile(x,y).BorderR]
       for(let i=0;i<wallLength-1;i++){
         let test = getTile(x,y+1+i)
-        if(test == null) return false;
+        if(test == null) return null
         borders.push(test.Edge)
         borders.push(test.BorderR)
       }
@@ -780,17 +778,48 @@ function actionDone(){
       borders = [getTile(x,y).BorderD]
       for(let i=0;i<wallLength-1;i++){
         let test = getTile(x+1+i,y)
-        if(test == null)return false;
+        if(test == null)return null
         borders.push(getTile(x+i,y).Edge);
         borders.push(test.BorderD);
       }
     }
-    
-    for(let border of borders) if(border.wallBy!=null) return false;
+    for(let border of borders) if(border.wallBy!=null) return null;
+    if(playersCanReachEnd(borders)) return new Wall(player,borders);
+    return null
+  }
 
-    if(playersCanReachEnd(borders)) return new Wall(player,borders).execute();
-    return false;
-    
+  function execWall(playerID, x, y, vertical){
+    let player = playerList[playerID-1];
+    if(wallLength===0)return false;
+    let wall = createWall(player,x,y,vertical);
+    if (wall==null) return false;
+    return wall.execute();
+  }
+
+  function execRandomMove(playerId){
+    let player = playerList[playerId-1];
+    let play;
+    if(player.nbWalls>0 && Math.random()>0.5){
+      let played
+        do {
+          let x = Math.floor(Math.random()*boardLength);
+          let y = Math.floor(Math.random()*boardHeight);
+          let vertical = Math.random()>0.5;
+          play = createWall();
+          if(play!=null) played = false;
+          else played = play.execute();
+        }while(!played)
+    }else{
+        let played
+        do {
+            let x = Math.floor(Math.random()*boardLength);
+            let y = Math.floor(Math.random()*boardHeight);
+            play = new Move(player,x,y);
+            if(play!=null) played = false;
+            else played = play.execute();
+        }while(!played)
+    }
+    return play;
   }
 
   function getBoard(){
@@ -849,3 +878,4 @@ function actionDone(){
   exports.CurrentPlayer = currentPlayer;
   exports.setUpBoard = setUpBoard;
   exports.placePlayer = placePlayer;
+  exports.execRandomMove = execRandomMove;

@@ -187,7 +187,7 @@ async function updateBoard(board, playerID){
 }
 
 async function correction(move){
-    //todo on back
+
     let pos = ((move.x()+1)*10 + move.y()+1).toString();
     let aiMove;
     if(move instanceof Wall){
@@ -199,7 +199,6 @@ async function correction(move){
     else{
         aiMove = new AIMove("idle", "");
     }
-
     return await ai.correction(aiMove);
 }
 

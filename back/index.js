@@ -167,18 +167,20 @@ io.of("/api/AIgame").on('connection', (socket) => {
             {
                 sleep(1000)
                 let moved
-                do{
-                    let computemove = await adaptator.computeMove(aiBoard);
-                    if(computemove.vertical===undefined){
-                        moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
-                    }
-                    else{
-                        moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
-                    }
-                } while(!moved)
+                let computemove = await adaptator.computeMove(aiBoard);
+                if(computemove.vertical===undefined) {
+                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                }else{
+                    moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
+                }
+                if (!moved) {
+                    let move = back.execRandomMove(playerList[1].id);
+                    await adaptator.correction(move);
+                }
             }
             board = back.getBoard();
             turnNb = back.getTurnNb();
+
             saveGame(board,playerId,turnNb,playerList,gameId);
         }
         let newBoard = back.BoardFor(playerList[turnNb%playerList.length]);
@@ -198,15 +200,16 @@ io.of("/api/AIgame").on('connection', (socket) => {
             {
                 sleep(1000)
                 let moved
-                do {
-                    let computemove = await adaptator.computeMove(aiBoard);
-                    if(computemove.vertical===undefined){
-                        moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
-                    }
-                    else{
-                        moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
-                    }
-                } while (!moved)
+                let computemove = await adaptator.computeMove(aiBoard);
+                if(computemove.vertical===undefined) {
+                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                }else{
+                    moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
+                }
+                if (!moved) {
+                    let move = back.execRandomMove(playerList[1].id);
+                    await adaptator.correction(move);
+                }
             }
             board = back.getBoard();
             turnNb = back.getTurnNb();
@@ -239,15 +242,17 @@ io.of("/api/AIgame").on('connection', (socket) => {
             {
                 sleep(1000)
                 let moved
-                do {
-                    let computemove = await adaptator.computeMove(aiBoard);
-                    if(computemove.vertical===undefined){
-                        moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
-                    }
-                    else{
-                        moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
-                    }
-                } while (!moved)
+                let computemove = await adaptator.computeMove(aiBoard);
+                if(computemove.vertical===undefined) {
+                    moved = back.execMove(computemove.playerID, computemove.x, computemove.y);
+                }else{
+                    moved = back.execWall(computemove.playerID,computemove.x,computemove.y,computemove.vertical);
+                }
+                if (!moved) {
+                    let move = back.execRandomMove(playerList[1].id);
+                    await adaptator.correction(move);
+                    console.log("correction : " + move);
+                }
             }
             board = back.getBoard();
             turnNb = back.getTurnNb();
