@@ -121,6 +121,8 @@ function convertToGameState(board, playerID){
             newBoard[i].push(-1);
         }
     }
+    let alreadyCheckedVertical = [];
+    let alreadyCheckedHorizontal = [];
     for (let i = 0; i < board.length; i++) {
         for (let j = 0; j < board[0].length; j++) {
             if(board[i][j].occupied === false) {
@@ -134,27 +136,30 @@ function convertToGameState(board, playerID){
             }else{
                 console.error("unknown value");
             }
-         
-       
-
             let pos = (j + 1) * 10 + i + 1;
-            
-            
 
-            if(board[i][j].BorderR.playerId === playerID){
-                ownWalls.push([pos, 1]);
+            if(!alreadyCheckedVertical.includes(pos)) {
+                if (board[i][j].BorderR.playerId === playerID) {
+                    ownWalls.push([pos + 1, 1]);
+                    alreadyCheckedVertical.push(pos);
+                    alreadyCheckedVertical.push(pos + 1);
+                } else if (board[i][j].BorderR.playerId !== null) {
+                    opponentWalls.push([pos + 1, 1]);
+                    alreadyCheckedVertical.push(pos);
+                    alreadyCheckedVertical.push(pos + 1);
+                }
             }
 
-            else if(board[i][j].BorderR.playerId !== null){
-                opponentWalls.push([pos, 1]);
-            } 
-                
-            if (board[i][j].BorderD.playerId === playerID) {
-                ownWalls.push([pos, 0]);
-            } 
-            
-            else if (board[i][j].BorderD.playerId !== null) {
-                opponentWalls.push([pos, 0]);
+            if(!alreadyCheckedHorizontal.includes(pos)) {
+                if (board[i][j].BorderD.playerId === playerID) {
+                    ownWalls.push([pos, 0]);
+                    alreadyCheckedHorizontal.push(pos);
+                    alreadyCheckedHorizontal.push(pos + 10);
+                } else if (board[i][j].BorderD.playerId !== null) {
+                    opponentWalls.push([pos, 0]);
+                    alreadyCheckedHorizontal.push(pos);
+                    alreadyCheckedHorizontal.push(pos + 10);
+                }
             }
         }
     }
