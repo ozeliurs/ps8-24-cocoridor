@@ -18,12 +18,8 @@ exports.setup = async function setup(AIplay) {
 };
 
 exports.nextMove = async function nextMove(gameState) {
-    console.log("EnnemyPos : " + EnnemyPos);
-    console.log("PreviousGameState : " + PreviousGameState);    
-    
-    
+    adaptGameStateWalls(gameState);
     findEnnemy(gameState);
-    console.log("pos : " + EnnemyPos);
     //currentPosition is the position where you find a 1 in gamesState.board
     let currentPosition;
     let path
@@ -53,12 +49,13 @@ exports.nextMove = async function nextMove(gameState) {
 
 
 exports.correction = async function correction(rightMove) {
-    
+
     return Promise.resolve(true);
 };
 
 
 exports.updateBoard = async function updateBoard(gameState) {
+    adaptGameStateWalls(gameState);
     findEnnemy(gameState);
     PreviousGameState = gameState;
     return Promise.resolve(true);
@@ -281,4 +278,20 @@ function findEnnemy(gamestate) {
     }
     console.log("impossible to reach")
     return null;
+  }
+
+  function adaptGameStateWalls(gameState){
+      for(let i=0;i<gameState.opponentWalls.length;i++){
+          if(gameState.opponentWalls[i][1] === 0)
+            gameState.push([gameState.opponentWalls[i][0]+10,0])
+          else if(gameState.opponentWalls[i][1] === 1)
+            gameState.push([gameState.opponentWalls[i][0]+1,1])
+      }
+      for(let i=0;i<gameState.ownWalls.length;i++){
+          if(gameState.ownWalls[i][1] === 0)
+            gameState.push([gameState.ownWalls[i][0]+10,0])
+          else if(gameState.ownWalls[i][1] === 1)
+            gameState.push([gameState.ownWalls[i][0]+1,1])
+      }
+
   }
