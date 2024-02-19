@@ -1,6 +1,5 @@
 // yourTeam.js
 
-const { CurrentPlayer } = require("./back");
 
 let PreviousGameState = null;
 let EnnemyPos = null;
