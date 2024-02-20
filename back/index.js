@@ -1,5 +1,4 @@
 const back = require("./logic/back.js")
-const ai = require("./logic/ai.js")
 const adaptator = require("./logic/aiAdaptator.js")
 
 // The http module contains methods to handle http queries.
@@ -137,7 +136,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
     let playerList
     let board
     let turnNb
-    let posPlayer = [];
+    
     
     socket.on('newGame',async (playerId) => {
         back.init();

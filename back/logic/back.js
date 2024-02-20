@@ -174,11 +174,9 @@ class Tile {
    *
    * @param {Number} x
    * @param {Number} y
-   * @param {Number} maxX
-   * @param {Number} maxY
    * @param Tile
    */
-  constructor(x, y, maxX, maxY, Tile=null) {
+  constructor(x, y, Tile=null) {
     if(Tile===null) {
       this.X = Math.floor(x);
       this.Y = Math.floor(y);
@@ -428,7 +426,7 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
     for (y = boardHeight-1; y >= 0; y--) {
       Board[y] = [];
       for (x = 0; x < boardLength; x++) {
-        let elemtCreated = new Tile(x, y, boardLength-1, boardHeight);
+        let elemtCreated = new Tile(x, y);
         Board[y][x] = elemtCreated;
       }
     }
@@ -437,7 +435,7 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
     boardHeight = board.length;
     for(let y=0;y<boardHeight;y++)
       for(let x=0;x<boardLength;x++)
-        Board[y][x] = new Tile(null,null,null,null,board[y][x]);
+        Board[y][x] = new Tile(null,null,board[y][x]);
   }
 
     //Place Player
@@ -529,19 +527,11 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
   
 
 function actionDone(){
-
-    remainingAction--;
-    
+    remainingAction--; 
     if(remainingAction<=0){
       remainingAction=numActions;
       turnNb++;
-
-      
-      
-    }
-  
-  
-    
+    } 
   }
   
   /**
