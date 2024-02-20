@@ -164,20 +164,22 @@ function findEnnemy(gamestate,currentPos) {
         let x = Math.floor((pos-1)/10)
         let y = pos%10-1
 
-        //TODO garder seulement les casess dans le plateau
         if(wall[1]==0) for(let modif of [[0,0],[-1,0],[0,1],[1,0],[0,-1],[-1,-1],[0,-2],[1,-1]]) {
-            let newX = currentPos.X+modif[0]
-            let newY = currentPos.Y+modif[1]
-            if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
-            visibility[x+modif[0]][y+modif[1]]+=me?1:-1;
-            visibility[x+modif[0]+1][y+modif[1]]+=me?1:-1;
+            for(let pair of [[0,0],[1,0]]){
+                let newX = x + modif[0] + pair[0] - 1
+                let newY = y + modif[1] + pair[1]
+                if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
+                visibility[newX][newY]+=me?1:-1;
+            }
         }
         else for(let modif of [[0,0],[0,1],[-1,0],[0,-1],[1,0],[1,1],[2,0],[1,-1]]){    
-            let newX = currentPos.X+modif[0]
-            let newY = currentPos.Y+modif[1]    
-            if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
-            visibility[x+modif[0]-1][y+modif[1]]+=me?1:-1;
-            visibility[x+modif[0]-1][y+modif[1]-1]+=me?1:-1;
+            
+            for(let pair of [[0,0],[0,-1]]){
+                let newX = x + modif[0] + pair[0] - 1
+                let newY = y + modif[1] + pair[1]
+                if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
+                visibility[newX][newY]+=me?1:-1;
+            }
         }
     }
 
@@ -218,11 +220,9 @@ function findEnnemy(gamestate,currentPos) {
             else visibility[x][y] = 0
         }
     }
-    console.log(visibility)
     //Visi des murs
     for(let wall of gamestate.ownWalls) wallLight(true,wall)
     for(let wall of gamestate.opponentWalls) wallLight(false,wall)
-    console.log(visibility)
     //Visi du joueur
 
     for(let modif of [[0,0],[0,1],[1,0],[-1,0],[0,-1]]) {
@@ -232,8 +232,33 @@ function findEnnemy(gamestate,currentPos) {
         visibility[newX][newY] +=1
     }
 
+    let visionDifference = []
+    //Detect differences
+    for(let x=0;x<boardLength;x++) for(let y=0;y<boardHeight;y++) {
+        console.log(x,y,"",gamestate.board[x][y], visibility[x][y])
+        if((gamestate.board[x][y]<0 && visibility[x][y]<0)||(gamestate.board[x][y]>=0 && visibility[x][y]>=0)) visibility[x][y]=0
+        else {
+            visibility[x][y]=1
+            visionDifference.push([x,y])
+        }
+    }
+    let posPossible = []
+    switch(visionDifference.length){
+        case 1:
+            for(let modif of [[0,1],[1,0],[0,-1],[-1,0]])posPossible.push()
+        break;
+        case 2:
+        break;
+        case 3:
+        case 4:
+        case 5:
+        break;
+    }
+    posPossible.filter((e)=>0<=e[0] && 0<=e[1] && e[0]<boardLength && e[1]<boardHeight)
 
-    console.log(visibility)
+
+    console.log("posPossible: ",posPossible)
+
     if (res === null) {
         if(EnnemyPos !== null){
             //verifier les 4 cases autour de EnnemyPos
@@ -451,6 +476,7 @@ function findEnnemy(gamestate,currentPos) {
     
     return false;
   }
+  
   function canPlaceWall(gamestate, coords,vertical){
     if(vertical) return !(wallAt(gamestate, {X:coords.X,Y:coords.Y+1},true)
         || wallAt(gamestate, {X:coords.X,Y:coords.Y},false)
