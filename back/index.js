@@ -63,10 +63,7 @@ async function saveGame(board,idUser,turnNb,playerList,gameId=null){
 
 async function getGame(idGame){
     let res = null;
-    let req = {
-        gameId:idGame
-    }
-    res = await apiQuery.getGame(req);
+    res = await apiQuery.getGame(idGame);
     return res;
 }
 
@@ -95,8 +92,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
     })
     socket.on('retrieveGame', async (playerId, gameId) => {
         let game = await getGame(gameId);
-        console.log(game);
-        back.init(game.board.length, game.board[0].length, game.board, game.turnNb, game.playerList);
+        console.log(game[0]);
+        back.init(game[0].board.length, game[0].board[0].length, game[0].board, game[0].turnNb, game[0].playerList);
         playerList = back.getPlayerList();
         turnNb = back.getTurnNb();
         if(turnNb%playerList.length!==0){

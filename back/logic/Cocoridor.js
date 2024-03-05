@@ -78,13 +78,11 @@ exports.nextMove = async function nextMove(gamestate) {
     let currentPaths = calculatePaths();
     //Si je peux aller a la ligne d'arrivé
     if(currentPaths.Me.cost == 1){
-        console.log("!je peux gagner!")
         return followPath(currentPaths.Me)
     }
 
     //TODO on Test le placement de plusieurs murs
     let bestWall =null;
-    console.log(gamestate.ownWalls)
     if(EnnemyPos!=null && gamestate.ownWalls.length<10){
         let length = gamestate.board.length;
         let height = gamestate.board[0].length
@@ -94,28 +92,19 @@ exports.nextMove = async function nextMove(gamestate) {
             let testWall = calculatePaths([[(x+1)*10+y+1,vert]])
             if(testWall==null)continue;
             if(bestScore==null || bestScore>testWall.Score){
-                console.log("new LowScore: ",testWall.Action)
-                console.log("scores: ",testWall.Me.cost," ",testWall.Opponent.cost)
-                console.log("MyPath:")
                 let log = testWall.Me
-                while(log!=null){console.log("- ",log.node);log=log.previous}
-                console.log("OpponentPath:")
                 log = testWall.Opponent
-                while(log!=null){console.log("- ",log.node);log=log.previous}
                 bestWall = testWall;
                 bestScore = testWall.Score;
             }
         }
     }
     //on compare un move avec le meilleur mur
-    if((bestWall!=null && currentPaths.Score-1>bestWall.Score )||(currentPaths.Opponent!=null&&currentPaths.Opponent.cost == 1)){ // si avancer d'une case rapporte moins que placer un mur
+    if(bestWall!=null && (currentPaths.Score-1>bestWall.Score ||(currentPaths.Opponent!=null&&currentPaths.Opponent.cost == 1))){ // si avancer d'une case rapporte moins que placer un mur
         //on place un mur
-        console.log("placeWall")
-        console.log(bestWall.Action)
         return Promise.resolve({ action: "wall", value: bestWall.Action[0] });
     }else{
         //on se deplace
-        console.log("move")
         return followPath(currentPaths.Me)
     }
 
@@ -125,7 +114,6 @@ exports.nextMove = async function nextMove(gamestate) {
 
 
 exports.correction = async function correction(rightMove) {
-    console.log("correction")
     return Promise.resolve(true);
 };
 
@@ -184,7 +172,6 @@ function findEnnemy(gamestate,currentPos) {
     }
 
     if(PreviousGameState !== null && PreviousGameState.opponentWalls.length!== gamestate.opponentWalls.length ){
-        console.log("opponnents walls old : " + PreviousGameState.opponentWalls + "new : "+ gamestate.opponentWalls);
 
         return;
 
@@ -201,7 +188,6 @@ function findEnnemy(gamestate,currentPos) {
             if(gamestate.board[i][j] === 2){
                 
                 res = {x:i, y:j};//(i+1)*10+j+1;
-                console.log("ennemy : " + res.x + " " + res.y);
                 EnnemyPos = res;
                 return res;
             }
@@ -235,7 +221,6 @@ function findEnnemy(gamestate,currentPos) {
     let visionDifference = []
     //Detect differences
     for(let x=0;x<boardLength;x++) for(let y=0;y<boardHeight;y++) {
-        console.log(x,y,"",gamestate.board[x][y], visibility[x][y])
         if((gamestate.board[x][y]<0 && visibility[x][y]<0)||(gamestate.board[x][y]>=0 && visibility[x][y]>=0)) visibility[x][y]=0
         else {
             visibility[x][y]=1
@@ -255,9 +240,6 @@ function findEnnemy(gamestate,currentPos) {
         break;
     }
     posPossible.filter((e)=>0<=e[0] && 0<=e[1] && e[0]<boardLength && e[1]<boardHeight)
-
-
-    console.log("posPossible: ",posPossible)
 
     if (res === null) {
         if(EnnemyPos !== null){
@@ -395,7 +377,6 @@ function findEnnemy(gamestate,currentPos) {
   
     while(frontier.length>0){
       if(killTimer--<=0){
-      console.log("aStar overload")
         return null;}
   
       
@@ -408,7 +389,6 @@ function findEnnemy(gamestate,currentPos) {
       let currentBest = frontier.shift();
       if(currentBest.estimate.Value == 0) {
         if(maxCost!=null && maxCost<currentBest.cost){
-          console.log("tooExpensive")
           return null;
         } 
         else {
@@ -440,7 +420,6 @@ function findEnnemy(gamestate,currentPos) {
         }
       }
     }
-    console.log("impossible to reach")
     return null;
   }
 
