@@ -53,55 +53,10 @@ function sleep(milliseconds) {
 
 async function saveGame(board,idUser,turnNb,playerList,gameId=null){
     let res = null;
-    if(gameId==null){
-        let game = {
-            board: board,
-            idUser: idUser,
-            turnNb: turnNb,
-            playerList: playerList
-        };
-        await fetch('http://localhost:8000/api/savegame', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(game)
-        }).then(response => {
-            if (response.ok) {
-                console.log("Nouvelle partie enregistrée");
-                return response.json(); // Convertit la réponse en JSON
-                
-            } else {
-                throw new Error('La requête a échoué'); // Gestion des erreurs
-            }
-        }).then(data => {
-            res=data;
-        });
-
+    if(gameId===null){
+        res = await apiQuery.createGame(idUser, board, turnNb, playerList);
     }else{
-        let game = {
-            board: board,
-            idUser: idUser,
-            turnNb: turnNb,
-            playerList: playerList,
-            gameId:gameId
-        };
-        await fetch('http://localhost:8000/api/savegame', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(game)
-        }).then(response => {
-            if (response.ok) {
-                console.log("partie sauvegardée");
-                return response.json(); // Convertit la réponse en JSON
-            } else {
-                throw new Error('La requête a échoué'); // Gestion des erreurs
-            }
-        }).then(data => {
-            res = gameId;
-        });
+        res = await apiQuery.updateGame(idUser, board, turnNb, playerList, gameId);
     }
     return res;
 }
@@ -111,25 +66,8 @@ async function getGame(idGame){
     let req = {
         gameId:idGame
     }
-    await fetch('http://localhost:8000/api/retrievegame', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(req)
-
-    }).then(response => {
-        if (response.ok) {
-            return response.json(); // Convertit la réponse en JSON
-        } else {
-            throw new Error('La requête a échoué'); // Gestion des erreurs
-        }
-    }).then(data => {
-        res=data[0];
-    });
+    res = await apiQuery.getGame(req);
     return res;
-
-
 }
 
 io.of("/api/AIgame").on('connection', (socket) => {
@@ -150,7 +88,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         turnNb = back.getTurnNb();
         let aiMove = await adaptator.setup(2, back.setUpBoard(playerList[1]).Positions);
         back.placePlayer(playerList[1].id, aiMove);
-        gameId = await saveGame(board, playerId, turnNb, playerList);
+        let  gameId = await saveGame(board, playerId, turnNb, playerList);
         let currentPlayer = playerList[turnNb % playerList.length]
         let newBoard =  back.setUpBoard(currentPlayer).Board;
         socket.emit("launch", newBoard, turnNb, gameId);

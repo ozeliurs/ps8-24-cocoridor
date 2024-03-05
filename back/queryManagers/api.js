@@ -83,7 +83,7 @@ async function createOrUpdateUser(email, username, password, response, isNewUser
     }
 }
 
-async function createGame(idUser, board, turnNb,playerList, response) {
+async function createGame(idUser, board, turnNb,playerList, response = null) {
     const NewGame = {
         board: board,
         idUser: idUser,
@@ -91,17 +91,20 @@ async function createGame(idUser, board, turnNb,playerList, response) {
         playerList: playerList
     };
     let gameCreated = await db.createGame(NewGame);
-    if (gameCreated) {
-        response.writeHead(200, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify(gameCreated.insertedId));
-    } else {
-        response.writeHead(500, {'Content-Type': 'application/json'});
-        response.end(JSON.stringify({error: 'Erreur lors de la création de la partie'}));
+    if(response !== null) {
+        if (gameCreated) {
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify(gameCreated.insertedId));
+        } else {
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la création de la partie'}));
+        }
     }
+    return NewGame._id;
 }
 
 
-async function updateGame(idUser, board, turnNb,playerList, gameId, response) {
+async function updateGame(idUser, board, turnNb,playerList, gameId, response = null) {
     console.log("updateGame")
     const updatedGame = {
         board: board,
@@ -110,13 +113,16 @@ async function updateGame(idUser, board, turnNb,playerList, gameId, response) {
         playerList: playerList
     };
     let gameUpdated = await db.updateGame(updatedGame, gameId);
-    if (gameUpdated) {
-        response.writeHead(200, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ message: 'Partie mise à jour avec succès' }));
-    } else {
-        response.writeHead(500, { 'Content-Type': 'application/json' });
-        response.end(JSON.stringify({ error: 'Erreur lors de la mise à jour de la partie' }));
+    if(response !== null) {
+        if (gameUpdated) {
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({message: 'Partie mise à jour avec succès'}));
+        } else {
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la mise à jour de la partie'}));
+        }
     }
+    return updatedGame._id;
 }
 
 
@@ -241,11 +247,16 @@ async function retrieveGame(request, response) {
             response.end(JSON.stringify({ error: 'Données manquantes' }));
             return;
         }
-        let game=await db.getGame(body.gameId);
+        let game=await getGame(body.gameId);
         response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(game));
     });
 
+}
+
+async function getGame(gameId){
+    let game=await db.getGame(gameId);
+    return game;
 }
 
 
@@ -285,4 +296,8 @@ function addCors(response) {
 }
 
 exports.manage = manageRequest;
+exports.createGame = createGame;
+exports.updateGame = updateGame;
+exports.getGame = getGame;
+
 
