@@ -64,11 +64,19 @@ exports.nextMove = async function nextMove(gamestate) {
         if(findEnnemy(gamestate,currentPosition)==null && worstEnnemyPos!=null){
             let nextMove = aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos})
             while(nextMove.previous.previous!=null) nextMove = nextMove.previous;
-            worstEnnemyPos = nextMove
-            console.log("ennemy in : ",worstEnnemyPos)
-            if(aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos, MaxCost:1})!=null){
-                //go placer un mur en supposant l'ennemie sur worstEnnemyPos
-                console.log("MUST PLACE A WALL OR THE DIYING")
+            if(gamestate.board[nextMove.node.x][nextMove.node.y]<0){
+                console.log("ennemy was in : ",worstEnnemyPos)
+
+                worstEnnemyPos = nextMove.node
+                
+                console.log("ennemy may be in : ",worstEnnemyPos)
+                if(aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos, maxCost:1})!=null){
+                    //go placer un mur en supposant l'ennemie sur worstEnnemyPos
+                    console.log("MUST PLACE A WALL OR THE DIYING")
+                }
+            }
+            else {
+                worstEnnemyPos=null
             }
         }
     }
@@ -79,13 +87,13 @@ exports.nextMove = async function nextMove(gamestate) {
     if(wallState == -1){
         wallState = 0;
         if (playerturn === 2){
-            if (startPos === 39){
+            if (startPos === 29){
                 return Promise.resolve({ action: "wall", value: ["63",0]});
             } else {
                 return Promise.resolve({ action: "wall", value: ["33",0]});
             }
         } else {
-            if (startPos === 31){
+            if (startPos === 21){
                 return Promise.resolve({ action: "wall", value: ["68",0]});
             } else {
                 return Promise.resolve({ action: "wall", value: ["38",0]});
@@ -126,7 +134,6 @@ exports.nextMove = async function nextMove(gamestate) {
         return followPath(currentPaths.Me)
     }
 
-    //TODO on Test le placement de plusieurs murs
     let bestWall =null;
     if(EnnemyPos!=null && gamestate.ownWalls.length<10){
         let length = gamestate.board.length;
@@ -303,9 +310,6 @@ function findEnnemy(gamestate,currentPos) {
     posPossible = posPossible.filter((e)=>gamestate.board[e[0]][e[1]]==-1)
     posPossible = posPossible.filter((e)=>gamestate.board[e[0]][e[1]]==-1)
 
-    //on enleve les cases sur lequel le joueur n'a pas pu se deplacer avec le nombre de mouvement qu'il a effectue
-    if(EnnemyPos!=null) posPossible = posPossible.filter((e)=> (Math.abs(e.x-EnnemyPos.x) + Math.abs(e.y-EnnemyPos.y))%2 == worstEnnemyPos%2)
-
     {
         let newPosPossible = []
         for(pos of posPossible){
@@ -335,33 +339,42 @@ function findEnnemy(gamestate,currentPos) {
         }
         posPossible = newPosPossible
     }
-    console.log("case possibles:")
-    console.log(posPossible)
 
-    switch(posPossible.length){
-        case 0:
-            return null;
-        case 1:
-            return worstEnnemyPos = EnnemyPos = {x:posPossible[0][0],y:posPossible[0][1]}
-        default:
-        break;
+    if(posPossible.length==1){
+        return worstEnnemyPos = EnnemyPos = {x:posPossible[0][0],y:posPossible[0][1]}
     }
     if (res === null) {
         if(EnnemyPos !== null){
             //verifier les 4 cases autour de EnnemyPos
-            let possiblepos = [];
-            if(EnnemyPos.x>0){
-                possiblepos.push({x:EnnemyPos.x-1, y:EnnemyPos.y});
+            let possiblepos = posPossible;
+            //possiblepos = possiblepos.filter((e)=> aStar({gameState:gamestate, currentPosition:EnnemyPos,endPos:[e],maxCost:1})!=null)
+            {
+                let newpossiblepos = []
+                for (pos of possiblepos){
+                    let path = aStar({gameState:gamestate, currentPosition:EnnemyPos,endPos:[{x:pos[0],y:pos[1]}],maxCost:1})
+                    console.log(path)
+                    if(path!=null) newpossiblepos.push(pos)
+                }
+                possiblepos = newpossiblepos
             }
-            if(EnnemyPos.x<gamestate.board.length-1){
-                possiblepos.push({x:EnnemyPos.x+1, y:EnnemyPos.y});
+            console.log(possiblepos)
+            if(possiblepos.length==1) return worstEnnemyPos = EnnemyPos = {x:posPossible[0][0],y:posPossible[0][1]}
+            if(possiblepos==[]){
+                if(EnnemyPos.x>0){
+                    possiblepos.push({x:EnnemyPos.x-1, y:EnnemyPos.y});
+                }
+                if(EnnemyPos.x<gamestate.board.length-1){
+                    possiblepos.push({x:EnnemyPos.x+1, y:EnnemyPos.y});
+                }
+                if(EnnemyPos.y>0){
+                    possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y-1});
+                }
+                if(EnnemyPos.y<gamestate.board[0].length-1){
+                    possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y+1});
+                }
             }
-            if(EnnemyPos.y>0){
-                possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y-1});
-            }
-            if(EnnemyPos.y<gamestate.board[0].length-1){
-                possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y+1});
-            }
+
+            
 
             //si on a gagné la vision a droite, il n'est pas allé a droite ect ...
 
@@ -476,8 +489,7 @@ function findEnnemy(gamestate,currentPos) {
   
   
     while(frontier.length>0){
-      if(killTimer--<=0){
-        return null;}
+      if(killTimer--<=0){ console.log("it's kill time!");return null; }
   
       
         frontier.sort((a,b)=>{
@@ -520,6 +532,7 @@ function findEnnemy(gamestate,currentPos) {
         }
       }
     }
+    console.log("no path found")
     return null;
   }
 
