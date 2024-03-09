@@ -137,7 +137,7 @@ exports.nextMove = async function nextMove(gamestate) {
 
     let currentPaths = calculatePaths();
     //Si je peux aller a la ligne d'arrivé
-    if(currentPaths.Me.cost === 1 && (currentPaths.Opponent.cost > 1 || playerturn === 2)){
+    if(currentPaths.Me.cost === 1 && ((currentPaths.Opponent!=null&&currentPaths.Opponent.cost > 1) || playerturn === 2)){
         return followPath(currentPaths.Me);
     }
 
@@ -145,7 +145,7 @@ exports.nextMove = async function nextMove(gamestate) {
     if(EnnemyPos!=null && gamestate.ownWalls.length<10){
         let length = gamestate.board.length;
         let height = gamestate.board[0].length
-        let bestScore = null;
+        let bestScore = currentPaths.Score;
         for(let vert of [0,1]) for(let x=0;x<length;x++) for(let y=0;y<height;y++){
             if(!canPlaceWall(gamestate,{x:x,y:y},vert)) continue;
             let testWall = calculatePaths([[(x+1)*10+y+1,vert]])
@@ -157,6 +157,8 @@ exports.nextMove = async function nextMove(gamestate) {
         }
     }
     if (bestWall!=null && (currentPaths.Score-1>bestWall.Score || (currentPaths.Opponent!=null&&currentPaths.Opponent.cost === 1))) forceWall = true;
+    console.log("forceWall : ",forceWall)
+    console.log("bestWall : ",bestWall)
     //on compare un move avec le meilleur mur
     if(forceWall && bestWall!=null){ // si avancer d'une case rapporte moins que placer un mur
         //on place un mur
@@ -565,6 +567,9 @@ function findEnnemy(gamestate,currentPos) {
   }
   
   function canPlaceWall(gamestate, coords,vertical){
+      //if (vertical && coords.y === 1) console.log(coords); return false;
+      if (!vertical && (coords.x === gamestate.board.length-1 || coords.y === 0)) return false;
+      if (vertical && (coords.y === 0 || coords.x === 0)) return false;
     if(vertical) return !(wallAt(gamestate, {x:coords.x,y:coords.y+1},true)
         || wallAt(gamestate, {x:coords.x,y:coords.y},false)
         || wallAt(gamestate, {x:coords.x,y:coords.y},true)
