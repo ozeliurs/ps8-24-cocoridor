@@ -108,25 +108,7 @@ exports.nextMove = async function nextMove(gamestate) {
         }
 
     }
-    //currentPosition is the position where you find a 1 in gamesState.board
-    function aStarFor(me=true,additionnalWalls=[]){
-        if(me) {
-            return aStar({gameState:gamestate,currentPosition,endPos:endPos,addWalls:additionnalWalls})
-        }
-        else {
-            if(EnnemyPos==null) return null;
-            return aStar({gameState:gamestate,currentPosition: {x:EnnemyPos.x,y:EnnemyPos.y},endPos:ennemyEndPos,addWalls:additionnalWalls})
-        }
-    }
 
-    function calculatePaths(additionnalWalls=[]){
-        let myPath = aStarFor(true,additionnalWalls);
-        if(myPath==null){return null;}
-        if(EnnemyPos==null) return {Score:myPath.cost,Me:myPath,Opponent:null,Action:additionnalWalls}
-        let ennemyPath = aStarFor(false,additionnalWalls);
-        if(ennemyPath==null){return null;}
-        return {Score:myPath.cost-ennemyPath.cost,Me:myPath,Opponent:ennemyPath,Action:additionnalWalls}
-    }
 
     function followPath(path){
         while(path.previous!=null){path = path.previous}
@@ -135,7 +117,7 @@ exports.nextMove = async function nextMove(gamestate) {
 
     }
 
-    let currentPaths = calculatePaths();
+    let currentPaths = calculatePaths({gameState:gamestate,myPos:currentPosition,opponentPos:EnnemyPos});
     //Si je peux aller a la ligne d'arrivé
     if(currentPaths.Me.cost === 1 && ((currentPaths.Opponent!=null&&currentPaths.Opponent.cost > 1) || playerturn === 2)){
         return followPath(currentPaths.Me);
@@ -148,7 +130,7 @@ exports.nextMove = async function nextMove(gamestate) {
         let bestScore = currentPaths.Score;
         for(let vert of [0,1]) for(let x=0;x<length;x++) for(let y=0;y<height;y++){
             if(!canPlaceWall(gamestate,{x:x,y:y},vert)) continue;
-            let testWall = calculatePaths([[(x+1)*10+y+1,vert]])
+            let testWall = calculatePaths({gameState:gamestate,myPos:currentPosition,opponentPos:EnnemyPos , additionnalWalls:[[(x+1)*10+y+1,vert]]})
             if(testWall==null)continue;
             if(bestScore==null || bestScore>testWall.Score){
                 bestWall = testWall;
@@ -203,6 +185,23 @@ exports.updateBoard = async function updateBoard(gamestate) {
     PreviousGameState = gamestate;
     return Promise.resolve(true);
 };
+
+/**
+ * 
+ * @param {gameState:gameState, myPos:{x:Number,y:Number}, opponentPos:{x:Number,y:Number}, myEnds:[{x:Number,y:Number}], opponentEnds:[{x:Number,y:Number}], additionnalWalls:[]} param0 
+ * @returns 
+ */
+function calculatePaths({gameState, myPos, opponentPos, additionnalWalls=[]} = {}){
+    let myPath = aStar({gameState:gameState,currentPosition: myPos,endPos:endPos,addWalls:additionnalWalls})
+    if(myPath==null){return null;}
+
+    if(opponentPos==null) return {Score:myPath.cost,Me:myPath,Opponent:null,Action:additionnalWalls}
+
+    let ennemyPath = aStar({gameState:gameState,currentPosition: opponentPos,endPos:ennemyEndPos,addWalls:additionnalWalls})
+    if(ennemyPath==null){return null;}
+
+    return {Score:myPath.cost-ennemyPath.cost,Me:myPath,Opponent:ennemyPath,Action:additionnalWalls}
+}
 
 /**
  * 
@@ -415,7 +414,7 @@ function findEnnemy(gamestate,currentPos) {
 
   /**
    * 
-   * @param {{gameState:gameState,playerId:Number,MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
+   * @param {{gameState:gameState,currentPosition:{x:Number,y:Number},endPos:[{x:Number,y:Number}],MaxCost:Number,addWalls:Border[],opponentBlock:Boolean}} param0 
    * @returns {{node:{x:Number,y:Number},cost:Number,estimate:Number,previous: null} | null}
    */
   function aStar({gameState: gamestate, currentPosition, endPos, maxCost = null, addWalls = [],opponentBlock=false}= {}){
@@ -580,3 +579,5 @@ function findEnnemy(gamestate,currentPos) {
         || wallAt(gamestate, {x:coords.x,y:coords.y},true)
         || wallAt(gamestate, {x:coords.x+1,y:coords.y},false))
   }
+
+
