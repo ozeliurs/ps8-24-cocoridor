@@ -700,6 +700,7 @@ function actionDone(){
       let path = aStar({start:start,ends:[end],maxCost:travelDist});
       if(path==null) return undefined;
       while(path.node.occupied!=null){
+        if(end==null) return undefined;
         path = aStar({start,ends:[end],maxCost:dirs.length,jumpwall:jumpOverWall});
         if(path==null) return undefined;
         start = end;
