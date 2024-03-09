@@ -138,11 +138,27 @@ exports.nextMove = async function nextMove(gamestate) {
             }
         }
     }
-    if (bestWall!=null && (currentPaths.Score-1>bestWall.Score || (currentPaths.Opponent!=null&&currentPaths.Opponent.cost === 1))) forceWall = true;
+    if(currentPaths.Opponent!=null && currentPaths.Opponent.cost === 1 && gamestate.ownWalls.length < 10){
+        if(playerturn === 2){
+            if(EnnemyPos.x >4) {
+                if(canPlaceWall(gamestate, {x: EnnemyPos.x, y: EnnemyPos.y+1}, 0)){
+                    return Promise.resolve({ action: "wall", value: [((EnnemyPos.x+1)*10+EnnemyPos.y+2).toString(),0] });
+                }
+            }
+        } else {
+            if(EnnemyPos.x >4) {
+                if(canPlaceWall(gamestate, {x: EnnemyPos.x, y: EnnemyPos.y}, 0)){
+                    return Promise.resolve({ action: "wall", value: [((EnnemyPos.x+1)*10+EnnemyPos.y+1).toString(),0] });
+                }
+            }
+        }
+        forceWall = true;
+    }
+    if (bestWall!=null && (currentPaths.Score-1>bestWall.Score)) forceWall = true;
     console.log("forceWall : ",forceWall)
     console.log("bestWall : ",bestWall)
     //on compare un move avec le meilleur mur
-    if(forceWall && bestWall!=null){ // si avancer d'une case rapporte moins que placer un mur
+    if(forceWall && bestWall!=null){
         //on place un mur
         let val = [bestWall.Action[0][0].toString(),bestWall.Action[0][1]]
         return Promise.resolve({ action: "wall", value: val });
