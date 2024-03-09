@@ -111,7 +111,19 @@ exports.nextMove = async function nextMove(gamestate) {
 
 
     function followPath(path){
-        while(path.previous!=null){path = path.previous}
+        let before = null;
+        while(path.previous!=null){
+            before = {x:path.node.x,y:path.node.y};
+            path = path.previous;
+        }
+        console.log(before)
+        console.log(path.node)
+        console.log(EnnemyPos)
+        if (EnnemyPos!=null && path.node.x == EnnemyPos.x && path.node.y == EnnemyPos.y) {
+            console.log("OMG")
+            let nextPosition = (before.x+1)*10+before.y+1;
+            return Promise.resolve({ action: "move", value: nextPosition.toString() });
+        }
         let nextPosition = (path.node.x+1)*10+path.node.y+1;
         return Promise.resolve({ action: "move", value: nextPosition.toString() });
 
