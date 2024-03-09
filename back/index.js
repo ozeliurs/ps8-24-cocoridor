@@ -92,7 +92,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
     })
     socket.on('retrieveGame', async (playerId, gameId) => {
         let game = await getGame(gameId);
-        console.log(game[0]);
         back.init(game[0].board.length, game[0].board[0].length, game[0].board, game[0].turnNb, game[0].playerList);
         playerList = back.getPlayerList();
         turnNb = back.getTurnNb();
