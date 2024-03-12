@@ -11,6 +11,7 @@ const jumpOverWall = false; // if players can jump above walls by jumping on ano
 const nbWallsPerPlayer = 10 //number max of wall a player can place
 const absoluteSight = false;
 const sightForce = 1;
+const fog = true;
 
 let remainingAction = numActions;
 let boardLength = 0;
@@ -51,12 +52,13 @@ class TileFront {
 }
 
 class BorderFront{
-  constructor(x, y, lng, lat ,color) {
+  constructor(x, y, lng, lat ,color, playerId) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
     this.color = color;
     this.lng = lng;
     this.lat = lat;
+    this.playerId = playerId;
   }
 }
 
@@ -132,7 +134,11 @@ class Player {
     }else{
         this.id = player.id;
         this.modifier = player.modifier;
-        this.start = {X:player.start.X,Y:player.start.Y};
+        if(player.start!=null){
+          this.start = {X:player.start.X,Y:player.start.Y};
+        }else{
+          this.start = null;
+        }
         this.end = player.end;
         this.nbWalls = player.nbWalls;
         this.image = player.image;
@@ -168,11 +174,9 @@ class Tile {
    *
    * @param {Number} x
    * @param {Number} y
-   * @param {Number} maxX
-   * @param {Number} maxY
    * @param Tile
    */
-  constructor(x, y, maxX, maxY, Tile=null) {
+  constructor(x, y, Tile=null) {
     if(Tile===null) {
       this.X = Math.floor(x);
       this.Y = Math.floor(y);
@@ -233,7 +237,7 @@ class Tile {
     if(this.occupied!=null && this.occupied.id==player.id) {
         visi = this.occupied;
 
-    } else if(this.visibility*player.modifier>=0) {
+    } else if(!fog||this.visibility*player.modifier>=0) {
       if(this.occupied!=null) visi = this.occupied;
       else visi = true;
     } else visi = false;
@@ -345,7 +349,7 @@ class Border {
 
   
     toFront(){
-      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle())
+      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle(),this.wallBy==null?null:this.wallBy.id)
     }
     /**
      * 
@@ -422,7 +426,7 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
     for (y = boardHeight-1; y >= 0; y--) {
       Board[y] = [];
       for (x = 0; x < boardLength; x++) {
-        let elemtCreated = new Tile(x, y, boardLength-1, boardHeight);
+        let elemtCreated = new Tile(x, y);
         Board[y][x] = elemtCreated;
       }
     }
@@ -431,8 +435,7 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
     boardHeight = board.length;
     for(let y=0;y<boardHeight;y++)
       for(let x=0;x<boardLength;x++)
-        Board[y][x] = new Tile(null,null,null,null,board[y][x]);
-
+        Board[y][x] = new Tile(null,null,board[y][x]);
   }
 
     //Place Player
@@ -524,19 +527,11 @@ function init(lng = 9, lat = 9,board=null,nbTurn=0,listPlayer=null) {
   
 
 function actionDone(){
-
-    remainingAction--;
-    
+    remainingAction--; 
     if(remainingAction<=0){
       remainingAction=numActions;
       turnNb++;
-
-      
-      
-    }
-  
-  
-    
+    } 
   }
   
   /**
@@ -556,24 +551,19 @@ function actionDone(){
   function playersCanReachEnd(additionnalWalls = []){
     for(let player of playerList){
       if(player.end==null|| player.end.length==0)continue;
-      let foundPath = false
-      for(let goal of player.end){
-        let path = aStar({start:player.getTile(),end:goal,addWalls: additionnalWalls});
-        if(path!=null){
-          foundPath=true;
-          break;}
-      }
-      if(!foundPath)return false;
+      let path= aStar({start:player.getTile(),ends:player.end,addWalls: additionnalWalls})
+      if(path==null) return false;
+      
     }
     return true;
   }
   /**
    * 
-   * @param {{start:Tile,end:Tile,MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
+   * @param {{start:Tile,end:Tile[],MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
    * @returns 
    */
-  function aStar({start=null ,end=null, maxCost = null,jumpWall = false, addWalls = []}= {}){
-    if(start==null || end ==null)return null;
+  function aStar({start=null ,ends=null, maxCost = null,opponentBlock = false,jumpWall = false, addWalls = []}= {}){
+    if(start==null || ends ==null)return null;
     let killTimer=boardLength*boardHeight;
     /**
      * 
@@ -581,16 +571,18 @@ function actionDone(){
      * @returns {Number}
      */
     function heuristic(tile){
-      return distTo(tile,end);
-    }
-  
-    /**
-     * 
-     * @param {Tile} tile 
-     * @returns 
-     */
-    function progressOf(tile){
-      return Math.abs(Math.abs((tile.X - start.X)/(end.X - start.X))-Math.abs((tile.Y - start.Y)/(end.Y - start.Y)))
+      let nearestDist = null;
+      let closestEnd = null;
+      for(let end of ends) {
+        let dist = Math.abs(tile.X-end.X)+Math.abs(tile.Y-end.Y)
+        if(nearestDist ==null || dist<nearestDist){
+          nearestDist = dist;
+          closestEnd=end;
+
+        }
+
+      }
+      return distTo(tile,closestEnd);
     }
   
     let explored= [];
@@ -604,21 +596,16 @@ function actionDone(){
   
   
     while(frontier.length>0){
-      if(killTimer--<=0){
-      
-        return null;}
+      if(killTimer--<=0) {console.log("aStar too long");return null;}
   
       frontier.sort((a,b)=>{
-        let diff = a.estimate-b.estimate;
-        if(diff!=0) return diff;
-        else {
-          if(progressOf(a.node)<progressOf(b.node)) return -1;
-          else return 1;
-        }
+        let diff = (a.estimate+a.cost)-(b.estimate+b.cost);
+        if(diff!=0)return diff;
+        else return Math.random() > 0.5 ? 1 : -1
       });
   
       let currentBest = frontier.shift();
-      if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
+      for(let end of ends) if(currentBest.node.X == end.X && currentBest.node.Y == end.Y) {
         if(maxCost!=null && maxCost<currentBest.cost){
           console.log("tooExpensive")
           return null;
@@ -630,22 +617,24 @@ function actionDone(){
   
       explored.push(currentBest)
       for(let step of currentBest.node.getNeighbour(jumpWall,addWalls)){
+        let cost = currentBest.cost+1;
         let isExplored = (explored.find( e => {
-            return e.node.X == step.X && 
-                e.node.Y == step.Y;
+            return e.node.X == step.X 
+            &&  e.node.Y == step.Y
+            && e.cost<=cost;
         }))
   
         let isFrontier = (frontier.find( e => {
-            return e.node.X == step.X && 
-                e.node.Y == step.Y;
+            return e.node.X == step.X 
+            &&  e.node.Y == step.Y
+            && e.cost<=cost;
         }))
   
         if (!isExplored && !isFrontier) {
-          let cost = currentBest.cost+1;
           frontier.push({
             node: step,
             cost: cost,
-            estimate: cost + heuristic(step),
+            estimate: heuristic(step),
             previous : currentBest
           });
         }
@@ -704,15 +693,15 @@ function actionDone(){
      */
     constructor(player, x,y){
       super(player);
-      let start = currentPlayer().getTile();
+      let start = player.getTile();
       let end = getTile(x,y);
       if(start==end)return undefined;
       let dirs = start.tileInDir(end);
-      let path = aStar({start:start,end:end,maxCost:travelDist});
-      
+      let path = aStar({start:start,ends:[end],maxCost:travelDist});
       if(path==null) return undefined;
       while(path.node.occupied!=null){
-        path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
+        if(end==null) return undefined;
+        path = aStar({start,ends:[end],maxCost:dirs.length,jumpwall:jumpOverWall});
         if(path==null) return undefined;
         start = end;
         end = path.node.getTileInDir(dirs);
@@ -765,15 +754,14 @@ function actionDone(){
 
   }
 
-  function execWall(playerID, x, y, vertical){
-    let player = playerList[playerID-1];
-    if(wallLength==0)return false;
+  function createWall(player, x, y, vertical){
     let borders = []
+    if(getTile(x,y) == null) return null  
     if(vertical) {
       borders = [getTile(x,y).BorderR]
       for(let i=0;i<wallLength-1;i++){
         let test = getTile(x,y+1+i)
-        if(test == null) return false;
+        if(test == null) return null
         borders.push(test.Edge)
         borders.push(test.BorderR)
       }
@@ -782,17 +770,57 @@ function actionDone(){
       borders = [getTile(x,y).BorderD]
       for(let i=0;i<wallLength-1;i++){
         let test = getTile(x+1+i,y)
-        if(test == null)return false;
+        if(test == null)return null
         borders.push(getTile(x+i,y).Edge);
         borders.push(test.BorderD);
       }
     }
-    
-    for(let border of borders) if(border.wallBy!=null) return false;
+    for(let border of borders) if(border.wallBy!=null) return null;
+    if(playersCanReachEnd(borders)) return new Wall(player,borders);
+    return null
+  }
 
-    if(playersCanReachEnd(borders)) return new Wall(player,borders).execute();
-    return false;
-    
+  function execWall(playerID, x, y, vertical){
+    let player = playerList[playerID-1];
+    if(wallLength===0)return false;
+    let wall = createWall(player,x,y,vertical);
+    if (wall==null) return false;
+    return wall.execute();
+  }
+
+  function execRandomMove(playerId){
+    let player = playerList[playerId-1];
+    let play;
+    if(player.nbWalls>0 && Math.random()>0.5){
+      let played
+        do {
+          let x = Math.floor(Math.random()*boardLength);
+          let y = Math.floor(Math.random()*boardHeight);
+          let vertical = Math.random()>0.5;
+          play = createWall(player,x,y,vertical);
+          if(play==null) played = false;
+          else played = play.execute();
+        }while(!played)
+    }else{
+        let played
+        do {
+            let possiblepos=[]
+            if(player.OnTile.X+1<boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
+            if(player.OnTile.X-1>=0) possiblepos.push([player.OnTile.X-1,player.OnTile.Y])
+            if(player.OnTile.Y+1<boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
+            if(player.OnTile.Y-1>=0) possiblepos.push([player.OnTile.X,player.OnTile.Y-1])
+            let moove=possiblepos[Math.floor(Math.random()*possiblepos.length)]
+
+            let x = Math.floor(moove[0]);
+            let y = Math.floor(moove[1]);
+
+            play = new Move(player,x,y);
+            if(play==null) played = false;
+            else played = play.execute();
+        }while(!played)
+    }
+  
+    return play;
   }
 
   function getBoard(){
@@ -851,3 +879,4 @@ function actionDone(){
   exports.CurrentPlayer = currentPlayer;
   exports.setUpBoard = setUpBoard;
   exports.placePlayer = placePlayer;
+  exports.execRandomMove = execRandomMove;

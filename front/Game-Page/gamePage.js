@@ -186,12 +186,13 @@ class TileFront {
 }
 
 class BorderFront{
-  constructor(x, y, lng, lat ,color) {
+  constructor(x, y, lng, lat ,color, playerId) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
     this.color = color;
     this.lng = lng;
     this.lat = lat;
+    this.playerId = playerId;
   }
 
     /**
@@ -364,9 +365,9 @@ function DisplayBoard(board,positions=null){
   for (let y=boardHeight-1;y>=0;y-- ) {
     for (let tile of board[y]) {
 
-      tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
-      tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
-      tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
+      tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color, tile.BorderD.playerId);
+      tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color, tile.BorderR.playerId);
+      tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color, tile.Edge.playerId);
       tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
 
       tile.generateElement();
