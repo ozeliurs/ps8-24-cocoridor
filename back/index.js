@@ -365,7 +365,7 @@ io.of("/api/1vs1").on('connection', (socket) => {
     socket.emit('getRoom', roomNo);
     socket.on('go', () => {
         console.log(roomNo)
-        console.log(io.of("api/1v1").to(roomNo).emit('start'));
+        console.log(io.to(roomNo).emit('start'));
     });
   
 });
