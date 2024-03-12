@@ -5,18 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./WaitForGame.css">
     <title>GamePage</title>
+    <script src="../js/socket.io.js"> </script>
 </head>
 
 <h1>En attente d'un joueur</h1>
 
 <img src="polos.gif" alt="Loading">
-
+<button id="btnStart" >test</button>
 
 <a href="../index.html"><button >Annuler</button></a>
 
+<script>
+    console.log("test");
+    let clientRoom;
+    socket=io('/api/1vs1');
+    socket.on('getRoom',(data)=>{
+        clientRoom=data
+        console.log("client :"+clientRoom)
 
+    });
 
-
+    document.getElementById("btnStart").addEventListener('click',()=>{
+        console.log("click")
+        socket.emit('go');
+        console.log("client :"+clientRoom);
+    });
+    
+    socket.on('start',function(){
+        console.log("start");
+        console.log(document.body.style.background)
+        if(document.body.style.background=='brown'){
+            document.body.style.background='white';
+        }else{
+            document.body.style.background='brown';
+        }
+    })
+</script>
 
 </body>
 </html>

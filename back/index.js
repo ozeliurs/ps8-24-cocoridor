@@ -360,18 +360,12 @@ let clientNo = 0;
 io.of("/api/1vs1").on('connection', (socket) => {
     clientNo++;
     const roomNo = Math.ceil(clientNo / 2);
+    console.log(roomNo)
     socket.join(roomNo);
     socket.emit('getRoom', roomNo);
-
-    socket.on('StartGame', () => {
-        // Quelles que soient les opérations que vous souhaitez effectuer lorsque le jeu commence.
-        io.to(roomNo).emit('StartGame');
+    socket.on('go', () => {
+        console.log(roomNo)
+        console.log(io.of("api/1v1").to(roomNo).emit('start'));
     });
-
-    socket.on('disconnect', () => {
-        // Traitez les déconnexions si nécessaire.
-        console.log('Un joueur s\'est déconnecté');
-    });
-
-    // Vous pouvez ajouter d'autres gestionnaires d'événements en fonction de votre logique de jeu.
+  
 });
