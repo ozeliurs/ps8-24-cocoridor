@@ -4,118 +4,178 @@
 let PreviousGameState = null;
 let EnnemyPos = null;
 let startPos = null
-let endPos = []
+let endPos = [];
 let wallState = -1;
 let ennemyEndPos = []
+let worstEnnemyPos = null
+let playerturn = null;
 
 exports.setup = async function setup(AIplay) {
     PreviousGameState = null;
     EnnemyPos = null;
-    startPos = null
-    endPos = []
+    startPos = null;
+    endPos = [];
     wallState = -1;
     ennemyEndPos = []
+    worstEnnemyPos = null
+    playerturn = AIplay;
     if (AIplay === 2) {
-        startPos = 99
+        let random = Math.floor(Math.random() * 2);
+        if (random === 0){
+            startPos = 29;
+        } else {
+            startPos = 89;
+        }
         for(let i=0;i<9;i++){
-            endPos.push({X:i,Y:0})
-            ennemyEndPos.push({X:i,Y:8})
+            endPos.push({x:i,y:0})
+            ennemyEndPos.push({x:i,y:8})
         }
     } else {
-        startPos = 11
+        let random = Math.floor(Math.random() * 2);
+        if (random === 0){
+            startPos = 21;
+        } else {
+            startPos = 81;
+        }
+
         for(let i=0;i<9;i++){
-            endPos.push({X:i,Y:8})
-            ennemyEndPos.push({X:i,Y:0})
+            endPos.push({x:i,y:8})
+            ennemyEndPos.push({x:i,y:0})
         }
     }
     return Promise.resolve(startPos.toString());
 };
 
 exports.nextMove = async function nextMove(gamestate) {
-
+    let forceWall = false;
     let currentPosition;
     for(let i = 0; i < gamestate.board.length; i++)if(currentPosition==null){
         for(let j = 0; j < gamestate.board[i].length; j++){
             if(gamestate.board[i][j] === 1){
-                currentPosition = {Y:j,X:i};
+                currentPosition = {y:j,x:i};
                 break;
             }
         }
     }
-    findEnnemy(gamestate,currentPosition);
-    PreviousGameState = gamestate;
 
-    if(wallState == -1){
-        wallState = 0;
-        //return Promise.resolve({ action: "move", value: (currentPosition-2).toString() });
-        return Promise.resolve({ action: "wall", value: ["33",0]});
+    if(EnnemyPos !== null) {
+        console.log("EnnemyPos : ", EnnemyPos.x + " " + EnnemyPos.y);
     }
-    //currentPosition is the position where you find a 1 in gamesState.board
-    function aStarFor(me=true,additionnalWalls=[]){
-        if(me) return aStar({gameState:gamestate,currentPosition,endPos:endPos,addWalls:additionnalWalls})
-        else {
-            if(EnnemyPos==null) return null;
-            return aStar({gameState:gamestate,currentPosition: {X:EnnemyPos.x,Y:EnnemyPos.y},endPos:ennemyEndPos,addWalls:additionnalWalls})
+    if(!(PreviousGameState !== null && PreviousGameState.opponentWalls.length!== gamestate.opponentWalls.length) ){
+        let ennemyPos = findEnnemy(gamestate, currentPosition);
+        if(ennemyPos !== null) {
+            console.log("findEnnemy : ", ennemyPos.x + " " + ennemyPos.y);
+        }
+        if(ennemyPos==null && worstEnnemyPos!=null){
+            let nextMove = aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos})
+            while(nextMove.previous!=null) nextMove = nextMove.previous;
+            if(gamestate.board[nextMove.node.x][nextMove.node.y]<0){
+                console.log("ennemy was in : ",worstEnnemyPos)
+
+                worstEnnemyPos = nextMove.node;
+                
+                console.log("ennemy may be in : ",worstEnnemyPos)
+                EnnemyPos = worstEnnemyPos;
+                if(aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos, maxCost:1})!=null){
+                    //go placer un mur en supposant l'ennemie sur worstEnnemyPos
+                    console.log("MUST PLACE A WALL OR THE DIYING")
+                    forceWall = true;
+                }
+            }
+            else {
+                worstEnnemyPos=null
+            }
         }
     }
 
-    function calculatePaths(additionnalWalls=[]){
-        let myPath = aStarFor(true,additionnalWalls);
-        if(myPath==null){return null;}
-        if(EnnemyPos==null) return {Score:myPath.cost,Me:myPath,Opponent:null,Action:additionnalWalls}
-        let ennemyPath = aStarFor(false,additionnalWalls);
-        if(ennemyPath==null){return null;}
-        return {Score:myPath.cost-ennemyPath.cost,Me:myPath,Opponent:ennemyPath,Action:additionnalWalls}
+
+    PreviousGameState = gamestate;
+
+    if(wallState === -1){
+        wallState = 0;
+        if (playerturn === 2){
+            if (startPos === 29){
+                return Promise.resolve({ action: "wall", value: ["63",0]});
+            } else {
+                return Promise.resolve({ action: "wall", value: ["33",0]});
+            }
+        } else {
+            if (startPos === 21){
+                return Promise.resolve({ action: "wall", value: ["68",0]});
+            } else {
+                return Promise.resolve({ action: "wall", value: ["38",0]});
+            }
+        }
+
     }
 
+
     function followPath(path){
-        while(path.previous!=null){path = path.previous}
-        let nextPosition = (path.node.X+1)*10+path.node.Y+1;
+        let before = null;
+        while(path.previous!=null){
+            before = {x:path.node.x,y:path.node.y};
+            path = path.previous;
+        }
+        console.log(before)
+        console.log(path.node)
+        console.log(EnnemyPos)
+        if (EnnemyPos!=null && path.node.x == EnnemyPos.x && path.node.y == EnnemyPos.y) {
+            console.log("OMG")
+            let nextPosition = (before.x+1)*10+before.y+1;
+            return Promise.resolve({ action: "move", value: nextPosition.toString() });
+        }
+        let nextPosition = (path.node.x+1)*10+path.node.y+1;
         return Promise.resolve({ action: "move", value: nextPosition.toString() });
 
     }
 
-    let currentPaths = calculatePaths();
+    let currentPaths = calculatePaths({gameState:gamestate,myPos:currentPosition,opponentPos:EnnemyPos});
     //Si je peux aller a la ligne d'arrivé
-    if(currentPaths.Me.cost == 1){
-        console.log("!je peux gagner!")
-        return followPath(currentPaths.Me)
+    if(currentPaths.Me.cost === 1 && ((currentPaths.Opponent!=null&&currentPaths.Opponent.cost > 1) || playerturn === 2)){
+        return followPath(currentPaths.Me);
     }
 
-    //TODO on Test le placement de plusieurs murs
     let bestWall =null;
-    console.log(gamestate.ownWalls)
     if(EnnemyPos!=null && gamestate.ownWalls.length<10){
         let length = gamestate.board.length;
         let height = gamestate.board[0].length
-        let bestScore = null;
+        let bestScore = currentPaths.Score;
         for(let vert of [0,1]) for(let x=0;x<length;x++) for(let y=0;y<height;y++){
-            if(!canPlaceWall(gamestate,{X:x,Y:y},vert)) continue;
-            let testWall = calculatePaths([[(x+1)*10+y+1,vert]])
+            if(!canPlaceWall(gamestate,{x:x,y:y},vert)) continue;
+            let testWall = calculatePaths({gameState:gamestate,myPos:currentPosition,opponentPos:EnnemyPos , additionnalWalls:[[(x+1)*10+y+1,vert]]})
             if(testWall==null)continue;
             if(bestScore==null || bestScore>testWall.Score){
-                console.log("new LowScore: ",testWall.Action)
-                console.log("scores: ",testWall.Me.cost," ",testWall.Opponent.cost)
-                console.log("MyPath:")
-                let log = testWall.Me
-                while(log!=null){console.log("- ",log.node);log=log.previous}
-                console.log("OpponentPath:")
-                log = testWall.Opponent
-                while(log!=null){console.log("- ",log.node);log=log.previous}
                 bestWall = testWall;
                 bestScore = testWall.Score;
             }
         }
     }
+    if(currentPaths.Opponent!=null && currentPaths.Opponent.cost === 1 && gamestate.ownWalls.length < 10){
+        if(playerturn === 2){
+            if(EnnemyPos.x >4) {
+                if(canPlaceWall(gamestate, {x: EnnemyPos.x, y: EnnemyPos.y+1}, 0)){
+                    return Promise.resolve({ action: "wall", value: [((EnnemyPos.x+1)*10+EnnemyPos.y+2).toString(),0] });
+                }
+            }
+        } else {
+            if(EnnemyPos.x >4) {
+                if(canPlaceWall(gamestate, {x: EnnemyPos.x, y: EnnemyPos.y}, 0)){
+                    return Promise.resolve({ action: "wall", value: [((EnnemyPos.x+1)*10+EnnemyPos.y+1).toString(),0] });
+                }
+            }
+        }
+        forceWall = true;
+    }
+    if (bestWall!=null && (currentPaths.Score-1>bestWall.Score)) forceWall = true;
+    console.log("forceWall : ",forceWall)
+    console.log("bestWall : ",bestWall)
     //on compare un move avec le meilleur mur
-    if((bestWall!=null && currentPaths.Score-1>bestWall.Score )||(currentPaths.Opponent!=null&&currentPaths.Opponent.cost == 1)){ // si avancer d'une case rapporte moins que placer un mur
+    if(forceWall && bestWall!=null){
         //on place un mur
-        console.log("placeWall")
-        console.log(bestWall.Action)
-        return Promise.resolve({ action: "wall", value: bestWall.Action[0] });
+        let val = [bestWall.Action[0][0].toString(),bestWall.Action[0][1]]
+        return Promise.resolve({ action: "wall", value: val });
     }else{
         //on se deplace
-        console.log("move")
         return followPath(currentPaths.Me)
     }
 
@@ -125,35 +185,59 @@ exports.nextMove = async function nextMove(gamestate) {
 
 
 exports.correction = async function correction(rightMove) {
-    console.log("correction")
     return Promise.resolve(true);
 };
 
-
+/**
+ * 
+ * @param {gameState} gamestate 
+ * @returns 
+ */
 exports.updateBoard = async function updateBoard(gamestate) {
-    
     let currentPosition;
     for(let i = 0; i < gamestate.board.length; i++)if(currentPosition==null){
         for(let j = 0; j < gamestate.board[i].length; j++){
             if(gamestate.board[i][j] === 1){
-                currentPosition = {Y:j,X:i};
+                currentPosition = {y:j,x:i};
                 break;
             }
         }
     }
-    findEnnemy(gamestate, currentPosition);
+    let ennemyPos = findEnnemy(gamestate, currentPosition);
+    if(ennemyPos !== null) {
+        console.log("findEnnemy : ", ennemyPos.x + " " + ennemyPos.y);
+    }
+    if(EnnemyPos !== null) {
+        console.log("EnnemyPos : ", EnnemyPos.x + " " + EnnemyPos.y);
+    }
     PreviousGameState = gamestate;
     return Promise.resolve(true);
 };
 
 /**
  * 
+ * @param {gameState:gameState, myPos:{x:Number,y:Number}, opponentPos:{x:Number,y:Number}, myEnds:[{x:Number,y:Number}], opponentEnds:[{x:Number,y:Number}], additionnalWalls:[]} param0 
+ * @returns 
+ */
+function calculatePaths({gameState, myPos, opponentPos, additionnalWalls=[]} = {}){
+    let myPath = aStar({gameState:gameState,currentPosition: myPos,endPos:endPos,addWalls:additionnalWalls})
+    if(myPath==null){return null;}
+
+    if(opponentPos==null) return {Score:myPath.cost,Me:myPath,Opponent:null,Action:additionnalWalls}
+
+    let ennemyPath = aStar({gameState:gameState,currentPosition: opponentPos,endPos:ennemyEndPos,addWalls:additionnalWalls})
+    if(ennemyPath==null){return null;}
+
+    return {Score:myPath.cost-ennemyPath.cost,Me:myPath,Opponent:ennemyPath,Action:additionnalWalls}
+}
+
+/**
+ * 
  * @param {gamestate} gamestate 
- * @param {{X:Number,Y:Number}} currentPos 
+ * @param {{x:Number,y:Number}} currentPos 
  * @returns 
  */
 function findEnnemy(gamestate,currentPos) {
-
     /**
      * 
      * @param {Boolean} me
@@ -183,16 +267,6 @@ function findEnnemy(gamestate,currentPos) {
         }
     }
 
-    if(PreviousGameState !== null && PreviousGameState.opponentWalls.length!== gamestate.opponentWalls.length ){
-        console.log("opponnents walls old : " + PreviousGameState.opponentWalls + "new : "+ gamestate.opponentWalls);
-
-        return;
-
-    }
-
-
-
-
     // Si je vois l'ennemi
     let res = null;
     for(let i = 0; i < gamestate.board.length; i++){
@@ -201,13 +275,12 @@ function findEnnemy(gamestate,currentPos) {
             if(gamestate.board[i][j] === 2){
                 
                 res = {x:i, y:j};//(i+1)*10+j+1;
-                console.log("ennemy : " + res.x + " " + res.y);
-                EnnemyPos = res;
+                worstEnnemyPos = EnnemyPos = res;
                 return res;
             }
         }
     }
-
+    
     //Visi de base
     let visibility = []
     let boardLength = gamestate.board.length
@@ -226,8 +299,8 @@ function findEnnemy(gamestate,currentPos) {
     //Visi du joueur
 
     for(let modif of [[0,0],[0,1],[1,0],[-1,0],[0,-1]]) {
-        let newX = currentPos.X+modif[0]
-        let newY = currentPos.Y+modif[1]
+        let newX = currentPos.x+modif[0]
+        let newY = currentPos.y+modif[1]
         if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
         visibility[newX][newY] +=1
     }
@@ -235,48 +308,114 @@ function findEnnemy(gamestate,currentPos) {
     let visionDifference = []
     //Detect differences
     for(let x=0;x<boardLength;x++) for(let y=0;y<boardHeight;y++) {
-        console.log(x,y,"",gamestate.board[x][y], visibility[x][y])
-        if((gamestate.board[x][y]<0 && visibility[x][y]<0)||(gamestate.board[x][y]>=0 && visibility[x][y]>=0)) visibility[x][y]=0
-        else {
-            visibility[x][y]=1
-            visionDifference.push([x,y])
-        }
+        if((gamestate.board[x][y]<0 && visibility[x][y]>=0)||(gamestate.board[x][y]>=0 && visibility[x][y]<0)) visionDifference.push([x,y])
     }
     let posPossible = []
     switch(visionDifference.length){
         case 1:
-            for(let modif of [[0,1],[1,0],[0,-1],[-1,0]])posPossible.push()
+            for(let modif of [[0,0],[0,1],[1,0],[0,-1],[-1,0]])posPossible.push([visionDifference[0][0]+modif[0],visionDifference[0][1]+modif[1]])
         break;
         case 2:
+            let tile1 = visionDifference[0]
+            let tile2 = visionDifference[1]
+            if(tile1[0] != tile2[0] && tile1[1] !=tile2[1]){//si les cases sont en diagonales
+                posPossible.push([tile1[0],tile2[1]])
+                posPossible.push([tile1[1],tile2[0]])
+            }else if(Math.abs(tile1[0]-tile2[0])+Math.abs(tile1[1]-tile2[1])==2 && Math.abs(tile1[0]-tile2[0])!=1){
+                if(tile1[0]==tile2[0]) posPossible.push([tile1[0],(tile1[1]+tile2[1])/2]);
+                else posPossible.push([(tile1[0]+tile2[0])/2,tile1[1]]);
+            }else if(Math.abs(tile1[0]-tile2[0])+Math.abs(tile1[1]-tile2[1]) == 1){
+                posPossible = visionDifference
+            }
         break;
         case 3:
         case 4:
         case 5:
+            let sumX = 0
+            let sumY = 0
+            for(let tile of visionDifference){
+                sumX += tile[0]
+                sumY += tile[1]
+            }
+            posPossible = [Math.round(sumX/visionDifference.length) , Math.round(sumY/visionDifference.length)]
+        break;
+        default: 
+            //on rajoute le meilleur deplacement possible du joueur adverse
+            posPossible
         break;
     }
-    posPossible.filter((e)=>0<=e[0] && 0<=e[1] && e[0]<boardLength && e[1]<boardHeight)
 
 
-    console.log("posPossible: ",posPossible)
+    //on enleve les cases qui ne sont pas dans le tableau
+    posPossible = posPossible.filter((e)=>0<=e[0] && 0<=e[1] && e[0]<boardLength && e[1]<boardHeight)
+    
+    //on enleve les cases sur lesquelles on a la vision
+    posPossible = posPossible.filter((e)=>gamestate.board[e[0]][e[1]]==-1)
+    posPossible = posPossible.filter((e)=>gamestate.board[e[0]][e[1]]==-1)
 
+    {
+        let newPosPossible = []
+        for(pos of posPossible){
+
+            let tabCopy = [];
+
+            for (let i = 0; i < visibility.length; i++)
+                tabCopy[i] = visibility[i].slice();
+
+
+            for(let modif of [[0,0],[0,1],[1,0],[-1,0],[0,-1]]) {
+                let newX = pos[0]+modif[0]
+                let newY = pos[1]+modif[1]
+                if(newX<0||boardLength<=newX||newY<0||boardHeight<=newY)continue;
+                tabCopy[newX][newY] -=1
+            }
+            let diffDetected = false
+            for(let x=0;x<boardLength;x++) for(let y=0;y<boardHeight;y++) {
+                if((gamestate.board[x][y]<0 && tabCopy[x][y]>=0)||(gamestate.board[x][y]>=0 && tabCopy[x][y]<0)) {
+                    diffDetected = true;
+                    break;
+                }
+                
+            }
+            if(!diffDetected) newPosPossible.push(pos)
+
+        }
+        posPossible = newPosPossible
+    }
+
+    if(posPossible.length==1){
+        return worstEnnemyPos = EnnemyPos = {x:posPossible[0][0],y:posPossible[0][1]}
+    }
     if (res === null) {
         if(EnnemyPos !== null){
             //verifier les 4 cases autour de EnnemyPos
-            let possiblepos = [];
-            if(EnnemyPos.x>0){
+            let possiblepos = posPossible;
+            //possiblepos = possiblepos.filter((e)=> aStar({gameState:gamestate, currentPosition:EnnemyPos,endPos:[e],maxCost:1})!=null)
+            {
+                let newpossiblepos = []
+                for (pos of possiblepos){
+                    let path = aStar({gameState:gamestate, currentPosition:EnnemyPos,endPos:[{x:pos[0],y:pos[1]}],maxCost:1})
+                    if(path!=null) newpossiblepos.push(pos)
+                }
+                possiblepos = newpossiblepos
+            }
+            if(possiblepos.length==1) return worstEnnemyPos = EnnemyPos = {x:posPossible[0][0],y:posPossible[0][1]}
+            if(possiblepos==[]){
+                if(EnnemyPos.x>0){
+                    possiblepos.push({x:EnnemyPos.x-1, y:EnnemyPos.y});
+                }
+                if(EnnemyPos.x<gamestate.board.length-1){
+                    possiblepos.push({x:EnnemyPos.x+1, y:EnnemyPos.y});
+                }
+                if(EnnemyPos.y>0){
+                    possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y-1});
+                }
+                if(EnnemyPos.y<gamestate.board[0].length-1){
+                    possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y+1});
+                }
+            }
 
-                possiblepos.push({x:EnnemyPos.x-1, y:EnnemyPos.y});
-
-            }
-            if(EnnemyPos.x<gamestate.board.length-1){
-                possiblepos.push({x:EnnemyPos.x+1, y:EnnemyPos.y});
-            }
-            if(EnnemyPos.y>0){
-                possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y-1});
-            }
-            if(EnnemyPos.y<gamestate.board[0].length-1){
-                possiblepos.push({x:EnnemyPos.x, y:EnnemyPos.y+1});
-            }
+            
 
             //si on a gagné la vision a droite, il n'est pas allé a droite ect ...
 
@@ -287,9 +426,7 @@ function findEnnemy(gamestate,currentPos) {
 
             }
             if(possiblepos.length === 1){
-                res = possiblepos[0];
-                EnnemyPos = res;
-                return res;
+                return worstEnnemyPos = EnnemyPos = {x:posPossible[0][0],y:posPossible[0][1]}
             }
 
 
@@ -299,15 +436,14 @@ function findEnnemy(gamestate,currentPos) {
     }
     
     
-    EnnemyPos = res;
-    return res;
+    return null;
 
 }
 
   /**
    * 
-   * @param {{gameState:gameState,playerId:Number,MaxCost:Number,jumpWall:Boolean,addWalls:Border[]}} param0 
-   * @returns {{node:{X:Number,Y:Number},cost:Number,estimate:Number,previous: null} | null}
+   * @param {{gameState:gameState,currentPosition:{x:Number,y:Number},endPos:[{x:Number,y:Number}],MaxCost:Number,addWalls:Border[],opponentBlock:Boolean}} param0 
+   * @returns {{node:{x:Number,y:Number},cost:Number,estimate:Number,previous: null} | null}
    */
   function aStar({gameState: gamestate, currentPosition, endPos, maxCost = null, addWalls = [],opponentBlock=false}= {}){
     let length = gamestate.board.length;
@@ -316,18 +452,18 @@ function findEnnemy(gamestate,currentPos) {
     let playerPos = currentPosition
     let ends = endPos
     function inGame(coords){
-        return coords!=null && coords.X!=null && coords.Y!=null && 0<=coords.X && 0<=coords.Y && coords.X<length && coords.Y<height
+        return coords!=null && coords.x!=null && coords.y!=null && 0<=coords.x && 0<=coords.y && coords.x<length && coords.y<height
     }
     /**
      * 
-     * @param {{X:Number,Y:Number}} from 
-     * @returns {{Coords:{X:Number,Y:Number},Value:Number}} 
+     * @param {{x:Number,y:Number}} from 
+     * @returns {{Coords:{x:Number,y:Number},Value:Number}} 
      */
     function nearestEnd(from){
         let nearestCoords = ends[0]
-        let nearestVal = Math.abs(from.X-nearestCoords.X)+Math.abs(from.Y-nearestCoords.Y)
+        let nearestVal = Math.abs(from.x-nearestCoords.x)+Math.abs(from.y-nearestCoords.y)
         for(let end of ends) {
-            let dist = Math.abs(from.X-end.X)+Math.abs(from.Y-end.Y)
+            let dist = Math.abs(from.x-end.x)+Math.abs(from.y-end.y)
             if(dist < nearestVal){
                 nearestCoords = end
                 nearestVal = dist
@@ -342,27 +478,27 @@ function findEnnemy(gamestate,currentPos) {
     function getNeighbour(coords){
       let result = [];
 
-      let current = {X:coords.X,Y:coords.Y+1};
+      let current = {x:coords.x,y:coords.y+1};
       if(inGame(current) ) {//tant que la case existe
-        if(!wallAt(gamestate, current,false, addWalls) && !wallAt(gamestate, {X:current.X-1,Y:current.Y},false, addWalls)) { // si je peux me deplacer sur cette case
+        if(!wallAt(gamestate, current,false, addWalls) && !wallAt(gamestate, {x:current.x-1,y:current.y},false, addWalls)) { // si je peux me deplacer sur cette case
           result.push(current); // si il y a personne alors je renvois que cette tuile est ma voisine
         }
       }
-      current = {X:coords.X+1,Y:coords.Y};
+      current = {x:coords.x+1,y:coords.y};
       if(inGame(current) ) {
-        if(!wallAt(gamestate, {X:current.X-1,Y:current.Y},true, addWalls) && !wallAt(gamestate, {X:current.X-1,Y:current.Y+1},true, addWalls)) {
+        if(!wallAt(gamestate, {x:current.x-1,y:current.y},true, addWalls) && !wallAt(gamestate, {x:current.x-1,y:current.y+1},true, addWalls)) {
           result.push(current);
         }
       }
-      current = {X:coords.X,Y:coords.Y-1};
+      current = {x:coords.x,y:coords.y-1};
       if(inGame(current) ) {
-        if(!wallAt(gamestate, {X:current.X,Y:current.Y+1},false, addWalls) && !wallAt(gamestate, {X:current.X-1,Y:current.Y+1},false, addWalls)) {
+        if(!wallAt(gamestate, {x:current.x,y:current.y+1},false, addWalls) && !wallAt(gamestate, {x:current.x-1,y:current.y+1},false, addWalls)) {
           result.push(current);
         }
       }
-      current = {X:coords.X-1,Y:coords.Y};
+      current = {x:coords.x-1,y:coords.y};
       if(inGame(current) ) {
-        if(!wallAt(gamestate, current,true, addWalls) && !wallAt(gamestate, {X:current.X,Y:current.Y+1},true, addWalls)) {
+        if(!wallAt(gamestate, current,true, addWalls) && !wallAt(gamestate, {x:current.x,y:current.y+1},true, addWalls)) {
           result.push(current);
         }
       }
@@ -375,15 +511,15 @@ function findEnnemy(gamestate,currentPos) {
 
 
 
-    for(let modif of [{X:0,Y:1,wall:{X:0,Y:0}},{X:1,Y:0,wall:{X:-1,Y:0}},{X:0,Y:-1,wall:{X:0,Y:1}},{X:-1,Y:0,wall:{X:0,Y:0}}]){
+    for(let modif of [{x:0,y:1,wall:{x:0,y:0}},{x:1,y:0,wall:{x:-1,y:0}},{x:0,y:-1,wall:{x:0,y:1}},{x:-1,y:0,wall:{x:0,y:0}}]){
         let current = playerPos;
         do{
-            current = {X:(current.X+modif.X),Y:(current.Y+modif.Y)}
-            if(!inGame(current) || wallAt(gamestate, {X:current.X+modif.wall.X,Y:current.Y+modif.wall.Y},modif.Y!=0?0:1, addWalls)|| wallAt(gamestate, {X:current.X+modif.wall.X+(modif.Y!=0?-1:0),Y:current.Y+modif.wall.Y+(modif.X!=0?1:0)},modif.Y!=0?0:1, addWalls)){
+            current = {x:(current.x+modif.x),y:(current.y+modif.y)}
+            if(!inGame(current) || wallAt(gamestate, {x:current.x+modif.wall.x,y:current.y+modif.wall.y},modif.y!=0?0:1, addWalls)|| wallAt(gamestate, {x:current.x+modif.wall.x+(modif.y!=0?-1:0),y:current.y+modif.wall.y+(modif.x!=0?1:0)},modif.y!=0?0:1, addWalls)){
                 current=null;
                 break;
             }
-        }while(inGame(current) && opponentBlock && gamestate.board[current.X][current.Y]!=0 && gamestate.board[current.X][current.Y]!=-1)
+        }while(inGame(current) && opponentBlock && gamestate.board[current.x][current.y]!=0 && gamestate.board[current.x][current.y]!=-1)
         if(inGame(current)) frontier.push({
             node : current,
             cost : 1,
@@ -394,9 +530,7 @@ function findEnnemy(gamestate,currentPos) {
   
   
     while(frontier.length>0){
-      if(killTimer--<=0){
-      console.log("aStar overload")
-        return null;}
+      if(killTimer--<=0){ return null; }
   
       
         frontier.sort((a,b)=>{
@@ -408,7 +542,6 @@ function findEnnemy(gamestate,currentPos) {
       let currentBest = frontier.shift();
       if(currentBest.estimate.Value == 0) {
         if(maxCost!=null && maxCost<currentBest.cost){
-          console.log("tooExpensive")
           return null;
         } 
         else {
@@ -419,14 +552,14 @@ function findEnnemy(gamestate,currentPos) {
       explored.push(currentBest)
       for(let step of getNeighbour(currentBest.node,addWalls)){
         let isExplored = (explored.find( e => {
-            return e.node.X == step.X 
-            &&  e.node.Y == step.Y
+            return e.node.x == step.x 
+            &&  e.node.y == step.y
             &&  e.cost<=currentBest.cost+1;
         }))
   
         let isFrontier = (frontier.find( e => {
-            return e.node.X == step.X 
-            &&  e.node.Y == step.Y
+            return e.node.x == step.x 
+            &&  e.node.y == step.y
             &&  e.cost<=currentBest.cost+1;
         }))
   
@@ -440,51 +573,39 @@ function findEnnemy(gamestate,currentPos) {
         }
       }
     }
-    console.log("impossible to reach")
+    console.log("no path found");
     return null;
-  }
-
-  function adaptGameStateWalls(gameState){
-    let ownWalls =gameState.ownWalls;
-    let opponentWalls=gameState.opponentWalls;
-
-    let WallsToAdd=[]
-    for(let wall of ownWalls){
-      WallsToAdd.push([wall[0]+(wall[1]==1?-1:10),wall[1]])
-    }
-    gameState.ownWalls = gameState.ownWalls.concat(WallsToAdd);
-
-    WallsToAdd=[]
-    for(let wall of opponentWalls){
-      WallsToAdd.push([wall[0]+(wall[1]==1?-1:10),wall[1]])
-    }
-    gameState.opponentWalls = gameState.opponentWalls.concat(WallsToAdd);
   }
 
   /**
    * 
    * @param {gamestate} gamestate 
-   * @param {{X:Number,Y:Number}} coords 
+   * @param {{x:Number,y:Number}} coords 
    * @param {Boolean} vertical 
    * @returns {Boolean}
    */
   function wallAt(gamestate , coords, vertical,additionnalWalls = []){
     let allWalls = [...gamestate.opponentWalls, ...gamestate.ownWalls, ...additionnalWalls]
     for(let wall of allWalls){
-        if(wall[0] == (coords.X+1)*10+coords.Y+1 && wall[1]==vertical?1:0) return true;
+        if(wall[0] == (coords.x+1)*10+coords.y+1 && wall[1]==vertical?1:0) return true;
     }
     
     return false;
   }
   
   function canPlaceWall(gamestate, coords,vertical){
-    if(vertical) return !(wallAt(gamestate, {X:coords.X,Y:coords.Y+1},true)
-        || wallAt(gamestate, {X:coords.X,Y:coords.Y},false)
-        || wallAt(gamestate, {X:coords.X,Y:coords.Y},true)
-        || wallAt(gamestate, {X:coords.X,Y:coords.Y-1},true))
+      //if (vertical && coords.y === 1) console.log(coords); return false;
+      if (!vertical && (coords.x === gamestate.board.length-1 || coords.y === 0)) return false;
+      if (vertical && (coords.y === 0 || coords.x === 0)) return false;
+    if(vertical) return !(wallAt(gamestate, {x:coords.x,y:coords.y+1},true)
+        || wallAt(gamestate, {x:coords.x,y:coords.y},false)
+        || wallAt(gamestate, {x:coords.x,y:coords.y},true)
+        || wallAt(gamestate, {x:coords.x,y:coords.y-1},true))
 
-    else return !(wallAt(gamestate, {X:coords.X-1,Y:coords.Y},false)
-        || wallAt(gamestate, {X:coords.X,Y:coords.Y},false)
-        || wallAt(gamestate, {X:coords.X,Y:coords.Y},true)
-        || wallAt(gamestate, {X:coords.X+1,Y:coords.Y},false))
+    else return !(wallAt(gamestate, {x:coords.x-1,y:coords.y},false)
+        || wallAt(gamestate, {x:coords.x,y:coords.y},false)
+        || wallAt(gamestate, {x:coords.x,y:coords.y},true)
+        || wallAt(gamestate, {x:coords.x+1,y:coords.y},false))
   }
+
+
