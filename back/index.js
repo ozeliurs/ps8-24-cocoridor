@@ -299,7 +299,17 @@ io.of("/api/1vs1").on('connection', (socket) => {
     socket.emit('getRoom', roomNo);
     socket.on('go', () => {
         console.log(roomNo)
-        console.log(io.to(roomNo).emit('start'));
+        console.log("testeeeeeeee")
+        io.of("/api/1vs1").to(roomNo).emit('start', function(err) {
+            console.log("ee")
+            if (err) {
+                console.error('Erreur lors de l\'émission de l\'événement start : ', err);
+            } else {
+                console.log('L\'événement start a été émis avec succès.');
+            }
+        });
+        io.of("/api/1vs1").to(roomNo).emit('test')
+
     });
   
 });
