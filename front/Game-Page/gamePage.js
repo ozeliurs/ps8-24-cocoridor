@@ -1,5 +1,5 @@
-let boardLength = 11;
-let boardHeight = 11;
+let boardLength = 9;
+let boardHeight = 9;
 let playerList = [1,2];
 let turnNb = 0;
 
@@ -28,6 +28,8 @@ class Color{
   static white = new Color(255,255,255);
   static darkGrey = new Color(50,50,50);
   static highlight = new Color(100,100,100);
+  static grey = new Color(125,125,125);
+  static lightgrey = new Color(175,175,175);
     constructor(r,g,b){
       this.R = r;
       this.G = g;
@@ -105,13 +107,10 @@ class TileFront {
   }
 
   onClick() {
-  //  if(currentPlayer()==this.occupied) return;
-
     let move = new Move(currentPlayerID(),this.X,this.Y);
     if(move == undefined)return;
-    //move.execute();.
-
-    socket.emit("move",move,gameId,user);
+    if(mode =="newAi" && gameId==null) socket.emit("gameSetup",move,user)
+    else socket.emit("move",move,gameId,user);
 
   }
 
@@ -187,12 +186,13 @@ class TileFront {
 }
 
 class BorderFront{
-  constructor(x, y, lng, lat ,color) {
+  constructor(x, y, lng, lat ,color, playerId) {
     this.X = Math.floor(x);
     this.Y = Math.floor(y);
     this.color = color;
     this.lng = lng;
     this.lat = lat;
+    this.playerId = playerId;
   }
 
     /**
@@ -355,8 +355,9 @@ function currentPlayerID(){
 /**
  *
  * @param {TileFront[][]} board
+ * @param {{X:Number,Y:Number}[]} positions
  */
-function DisplayBoard(board){
+function DisplayBoard(board,positions=null){
   currentBoard = board
   let gameDiv = document.getElementById("game");
   gameDiv.style.cssText = "display : grid; grid-template-columns: repeat("+boardLength+", max-content); grid-template-rows: repeat("+boardHeight+", max-content);";
@@ -364,12 +365,34 @@ function DisplayBoard(board){
   for (let y=boardHeight-1;y>=0;y-- ) {
     for (let tile of board[y]) {
 
-
-      tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color);
-      tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color);
-      tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color);
+      tile.BorderD = new BorderFront(tile.BorderD.X,tile.BorderD.Y,false,true,tile.BorderD.color, tile.BorderD.playerId);
+      tile.BorderR = new BorderFront(tile.BorderR.X,tile.BorderR.Y,true,false,tile.BorderR.color, tile.BorderR.playerId);
+      tile.Edge = new BorderFront(tile.Edge.X,tile.Edge.Y,true,true,tile.Edge.color, tile.Edge.playerId);
       tile = new TileFront(tile.X,tile.Y,tile.BorderR,tile.BorderD,tile.Edge,tile.occupied);
-      gameDiv.appendChild(tile.generateElement());
+
+      tile.generateElement();
+      if(positions!=null) {
+        for(co of positions) if(tile.X!=co.X && tile.Y!=co.Y){
+          tile.element = tile.element.cloneNode(true);
+          tile.element.style.backgroundColor = Color.lightgrey.toStyle();
+          break;
+        }
+          
+          while (tile.groupElement.firstChild) tile.groupElement.removeChild(tile.groupElement.firstChild);
+          tile.Edge.element = tile.Edge.element.cloneNode(true);
+          tile.BorderD.element = tile.BorderD.element.cloneNode(true);
+          tile.BorderR.element = tile.BorderR.element.cloneNode(true);
+
+          tile.groupElement.appendChild(tile.element);
+          tile.groupElement.appendChild(tile.BorderR.element);
+          tile.groupElement.appendChild(tile.BorderD.element);
+          tile.groupElement.appendChild(tile.Edge.element);
+
+          tile.Edge.element.style.backgroundColor = Color.darkGrey.toStyle()
+          tile.BorderD.element.style.backgroundColor = Color.grey.toStyle()
+          tile.BorderR.element.style.backgroundColor = Color.grey.toStyle()
+      }
+      gameDiv.appendChild(tile.groupElement);
     }
   }
   if(mode === "local") {
@@ -388,6 +411,4 @@ function DisplayBoard(board){
     }
   }
 }
-
-
 

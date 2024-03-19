@@ -59,3 +59,23 @@ div {
     position: relative;
     z-index: 0;
 }
+
+#gameCover h1 {
+    text-align: center;
+    margin-top: 20%;
+    font-size: 50px;
+    color: #FF6347;
+}
+
+.retour{
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #FF6347;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+}

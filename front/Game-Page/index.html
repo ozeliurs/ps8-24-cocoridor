@@ -9,7 +9,7 @@
     <script src="../js/socket.io.js"> </script>
 </head>
 <body>
-    <h1>Coucou</h1>
+    <h1>Cocoridor</h1>
     <h2 id="playerplaying"></h2>
     <div id ="gameDiv">
         <section id="game">
@@ -69,12 +69,17 @@
                 socket=io('/api/AIgame');
                 socket.emit('retrieveGame',user,gameId);
                 break;
+            case "1vs1":
+             
+            
+                break;
             default:
                 console.log("Mode inconnu");
                 break;
         }
         socket.on("launch",(board,turnNb,idGame)=>{gameId=idGame;init(board,mode,turnNb);DisplayBoard(board);})
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
+        socket.on("choosePos",(boardPos)=>{DisplayBoard(boardPos.Board,boardPos.Positions)})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
             else window.location.href = "../EndPage/endPage.html?winner=0"
@@ -82,5 +87,8 @@
 
 
     </script>
+    <br>
+
+    <button id="retour" onclick="window.location.href = '../index.html'">Retour</button>
 </body>
 </html>

@@ -107,6 +107,7 @@ html, body {
 
 /* Styling for the Sign Up button */
 #signUp {
+    margin-top: 15px;
     background-color: #baff1b; /* Green background */
     border-color: #c00;
     color: black;
@@ -128,6 +129,7 @@ html, body {
 
 /* Styling for the Sign In button */
 #signIn {
+    margin-top: 15px;
     background-color: #e1f05a; /* Blue background */
     border-color: #c00;
     color: black;
