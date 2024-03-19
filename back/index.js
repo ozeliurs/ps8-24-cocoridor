@@ -301,7 +301,8 @@ io.of("/api/1vs1").on('connection', (socket) => {
     socket.join(roomNo);
     socket.emit('getRoom', roomNo);
     socket.on('go', () => {
-        console.log(roomNo)
+
+        /*console.log(roomNo)   
         if(clientNo % 2 === 1) {
             playerId1=idUser;
             console.log("Player 1 : " + playerId1);
@@ -310,7 +311,21 @@ io.of("/api/1vs1").on('connection', (socket) => {
             console.log("Player 2 : " + playerId2);
 
             io.of("/api/1vs1").to(roomNo).emit('start', playerId1, playerId2);
-        }
+        }*/
+        console.log("testeeeeeeee")
+        io.of("/api/1vs1").to(roomNo).emit('start');
+        io.of("/api/1vs1").to(roomNo).emit('test')
     });
+
+    socket.on('sendMessage', (message) => {
+        console.log("testus a testé ici.");
+        io.of("/api/1vs1").to(roomNo).emit('receiveMessage', message);
+    });
+
+
   
 });
+
+
+
+
