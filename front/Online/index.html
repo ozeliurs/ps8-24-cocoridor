@@ -24,26 +24,12 @@
             console.log("client :"+clientRoom)
 
         });
-
-        document.getElementById("btnStart").addEventListener('click',()=>{
-            console.log("click")
-            socket.emit('go');
-            console.log("client :"+clientRoom);
-        });
-    
-                socket.on('start',function(){
-                    console.log("start");
-            console.log(document.body.style.background)
-            if(document.body.style.background=='brown'){
-                document.body.style.background='white';
-            }else{
-                document.body.style.background='brown';
-            }
+        socket.emit('go');
+        socket.on('start',function(playerid1,playerid2){
+            console.log("Player1 :"+playerid1);
+            console.log("Player2 :"+playerid2); 
         })
 
-        socket.on('test',function(){
-            console.log("teee");
-        })
     </script>
 
 </body>

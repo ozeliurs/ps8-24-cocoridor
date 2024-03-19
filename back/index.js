@@ -290,8 +290,11 @@ io.of("/api/testgame").on('connection', (socket) => {
     })
 });
 let clientNo = 0;
+let playerId1;
+let playerId2;
 
 io.of("/api/1vs1").on('connection', (socket) => {
+    
     clientNo++;
     const roomNo = Math.ceil(clientNo / 2);
     console.log(roomNo)
@@ -299,17 +302,15 @@ io.of("/api/1vs1").on('connection', (socket) => {
     socket.emit('getRoom', roomNo);
     socket.on('go', () => {
         console.log(roomNo)
-        console.log("testeeeeeeee")
-        io.of("/api/1vs1").to(roomNo).emit('start', function(err) {
-            console.log("ee")
-            if (err) {
-                console.error('Erreur lors de l\'émission de l\'événement start : ', err);
-            } else {
-                console.log('L\'événement start a été émis avec succès.');
-            }
-        });
-        io.of("/api/1vs1").to(roomNo).emit('test')
+        if(clientNo % 2 === 1) {
+            playerId1=idUser;
+            console.log("Player 1 : " + playerId1);
+        }else{
+            playerId2=idUser;
+            console.log("Player 2 : " + playerId2);
 
+            io.of("/api/1vs1").to(roomNo).emit('start', playerId1, playerId2);
+        }
     });
   
 });
