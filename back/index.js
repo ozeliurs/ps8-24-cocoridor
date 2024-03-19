@@ -302,16 +302,6 @@ io.of("/api/1vs1").on('connection', (socket) => {
     socket.emit('getRoom', roomNo);
     socket.on('go', () => {
 
-        /*console.log(roomNo)   
-        if(clientNo % 2 === 1) {
-            playerId1=idUser;
-            console.log("Player 1 : " + playerId1);
-        }else{
-            playerId2=idUser;
-            console.log("Player 2 : " + playerId2);
-
-            io.of("/api/1vs1").to(roomNo).emit('start', playerId1, playerId2);
-        }*/
         console.log("testeeeeeeee")
         io.of("/api/1vs1").to(roomNo).emit('start');
         io.of("/api/1vs1").to(roomNo).emit('test')

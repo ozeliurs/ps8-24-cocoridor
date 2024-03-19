@@ -115,17 +115,19 @@
     </script>
 
 <script>
-    // Vérifie si document.cookie n'est pas vide
-    if (document.cookie) {
-
-        var cookieParts = document.cookie.split('=');
-
-        var playerName = cookieParts[1];
-        if (playerName == undefined || playerName == "") {
-            playerName = "Player";
+    let cookies =document.cookie.split(';')
+    let playerName;
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].split('=');
+        if (cookie[0].trim() == 'nomCookie') {
+            playerName = cookie[1];
         }
-        var playerNameElement = document.getElementById('playerName');
-        playerNameElement.textContent = playerName;
+    }
+
+    if(playerName == undefined || playerName == ''){
+        document.getElementById('playerName').textContent = 'Player';
+    }else{
+        document.getElementById('playerName').textContent = playerName;
     }
 </script>
 </body>
