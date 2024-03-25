@@ -10,8 +10,17 @@ div {
     color: cadetblue;
 }
 
+
+
+
+
 #game {
-    display : inline-grid;
+    display: inline-block; /* Utilisez inline-block si vous souhaitez que la grille soit centree par rapport a son conteneur */
+    position: relative; /* Ajoutez une position relative si vous avez besoin de positionner des éléments enfants par rapport à celui-ci */
+    margin: auto; /* Centrer horizontalement */
+    top: 50%; /* Début à 50% du conteneur parent en hauteur */
+    transform: translateY(-50%); /* Décaler de 50% la hauteur de l'élément lui-même pour le centrer verticalement */
+    border: 2px solid black; /* Bordure noire */
 }
 
 
@@ -55,9 +64,14 @@ div {
     z-index: 10;
 }
 
+
+
 #gameDiv {
-    position: relative;
-    z-index: 0;
+    display: flex; /* Utiliser flex pour permettre le centrage vertical */
+    align-items: center; /* Centrer les enfants verticalement */
+    justify-content: center; /* Centrer les enfants horizontalement */
+    height: 70vh; /* Hauteur totale de la fenêtre de visualisation pour permettre le centrage vertical */
+    position: relative; /* Position relative pour le conteneur de jeu */
 }
 
 #gameCover h1 {
@@ -65,6 +79,12 @@ div {
     margin-top: 20%;
     font-size: 50px;
     color: #FF6347;
+}
+
+
+
+h1, h2 {
+    text-align: center;
 }
 
 .retour{
@@ -78,4 +98,60 @@ div {
     cursor: pointer;
     transition: background-color 0.3s ease;
 
+}
+
+body{
+    background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+button {
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+textarea#chatInput {
+    width: 80%; 
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+#chatPopup {
+    text-align: center; 
+}
+
+
+#retour {
+    background-color: #f44336; /* Red background */
+    color: white;
+    padding: 15px 32px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#retour:hover {
+    background-color: #d32f2f; /* Darker red on hover */
 }
