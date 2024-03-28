@@ -31,7 +31,7 @@
 html, body {
     margin: 0;
     padding-top: 25px; /* Augmentez cette valeur selon vos besoins */
-    height: 100%;
+
 }
 
 #upperZone{
@@ -99,7 +99,7 @@ html, body {
     flex-direction: row;
     justify-content: space-evenly;
     flex-wrap: wrap;
-    width: 100vw;
+    width: 100%;
     gap:10px;
     margin-bottom:70px;
 }
