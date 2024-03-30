@@ -15,6 +15,12 @@ async function manageRequest(request, response) {
             user=await db.getUsers();
             console.log(await user.find().toArray());
             break;
+        case 'addFriend':
+            await addFriend(request, response);
+            break;
+        case 'getFriends':
+            await getFriends(request, response);
+            break;
         case 'getFriendsRequest':
             await sendFriendRequest(request, response);
             break;
@@ -66,7 +72,7 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             email: email,
             username: username,
             password: password,
-            friendList: [],
+            friends: [],
             friendRequests: []
         };
         let userCreated = await db.createUser(newUser);
@@ -83,7 +89,7 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             email: email,
             username: username,
             password: password,
-            friendList: [],
+            friends: [],
             friendRequests: []
         };
         let userUpdated = await db.updateUser(updatedUser);
@@ -349,6 +355,46 @@ async function sendFriendRequest(request, response){
         
 }
 
+
+async function addFriend(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        await db.addFriend(body.username,body.friendName);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ message: 'connexion succés' }));
+    });
+        
+}
+
+
+async function getFriends(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let friends=await db.getFriends(body.username);
+        console.log("friends : ",friends)
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ friends: friends }));
+    });
+        
+}
 
 exports.manage = manageRequest;
 exports.createGame = createGame;

@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    console.log("test")
     await fetch('http://localhost:8000/api/getFriendsRequest', {
         method: 'POST',
         headers: {
@@ -56,6 +55,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         for (const friend of friends) {
             const friendElement = document.createElement("div");
             friendElement.textContent = friend;
+            const addButton = document.createElement("button");
+            addButton.textContent = "Ajouter un ami";
+            addButton.id = friend;
+        
+            addButton.addEventListener('click',async function() {
+                await fetch('http://localhost:8000/api/addFriend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: nameUser, friendName: this.id})
+                })
+                window.location.reload();
+            });
+            friendElement.appendChild(addButton);
             friendRequest.appendChild(friendElement);
         }
     })

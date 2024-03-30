@@ -77,9 +77,8 @@ async function verifMdp(username, mdp){
 }
 
 async function addFriendRequest(username, friend){
-    console.log("username : ", username)
     const users = await getUsers();
-    return await users.updateOne({ username: username }, { $push: { friendRequests: friend } });
+    return await users.updateOne({ username: friend }, { $push: { friendRequests: username } });
 }
 
 async function getFriendRequests(username){
@@ -87,6 +86,24 @@ async function getFriendRequests(username){
     const user= await users.findOne({ username: username });
     return user.friendRequests;
 }
+
+async function addFriend(username,usernameFriend){
+    const users = await getUsers();
+    await users.updateOne({ username: username }, { $push: { friends: usernameFriend } });
+    await users.updateOne({ username: usernameFriend }, { $push: { friends: username } });
+    await users.updateOne({ username: username }, { $pull: { friendRequests: usernameFriend } });
+    await users.updateOne({ username: usernameFriend }, { $pull: { friendRequests: username } });
+
+    return;  
+}
+
+async function getFriends(username){
+    const users = await getUsers();
+    const user=await users.findOne({ username: username })
+    return user.friends ;
+}
+
+
 
 exports.getUsers = getUsers;
 exports.getUser = getUser;
@@ -100,3 +117,5 @@ exports.verifMdp = verifMdp;
 exports.updateGame = updateGame;
 exports.addFriendRequest = addFriendRequest;
 exports.getFriendRequests = getFriendRequests;
+exports.addFriend = addFriend;
+exports.getFriends = getFriends;
