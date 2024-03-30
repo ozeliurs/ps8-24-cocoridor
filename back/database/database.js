@@ -76,6 +76,18 @@ async function verifMdp(username, mdp){
     
 }
 
+async function addFriendRequest(username, friend){
+    console.log("username : ", username)
+    const users = await getUsers();
+    return await users.updateOne({ username: username }, { $push: { friendRequests: friend } });
+}
+
+async function getFriendRequests(username){
+    const users = await getUsers();
+    const user= await users.findOne({ username: username });
+    return user.friendRequests;
+}
+
 exports.getUsers = getUsers;
 exports.getUser = getUser;
 exports.createUser = createUser;
@@ -86,3 +98,5 @@ exports.updateUser = updateUser;
 exports.clearDatabase = clearDatabase;
 exports.verifMdp = verifMdp;
 exports.updateGame = updateGame;
+exports.addFriendRequest = addFriendRequest;
+exports.getFriendRequests = getFriendRequests;

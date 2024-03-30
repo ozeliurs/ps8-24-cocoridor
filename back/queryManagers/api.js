@@ -11,6 +11,16 @@ async function manageRequest(request, response) {
     let endpoint = url.pathname.split('/')[2]; // Supposant que l'URL est sous la forme /api/endpoint
 
     switch (endpoint) {
+        case 'print':
+            user=await db.getUsers();
+            console.log(await user.find().toArray());
+            break;
+        case 'getFriendsRequest':
+            await sendFriendRequest(request, response);
+            break;
+        case 'friendRequest':
+            await friendRequest(request, response);
+            break;
         case 'clear':
             await db.clearDatabase();
             break;
@@ -49,13 +59,15 @@ function parsejson(request) {
     });
 }
 
-async function createOrUpdateUser(email, username, password, response, isNewUser) {
+async function createOrUpdateUser(email, username, password,response, isNewUser) {
 
     if (isNewUser) {
         const newUser = {
             email: email,
             username: username,
-            password: password
+            password: password,
+            friendList: [],
+            friendRequests: []
         };
         let userCreated = await db.createUser(newUser);
         if (userCreated) {
@@ -70,7 +82,9 @@ async function createOrUpdateUser(email, username, password, response, isNewUser
         const updatedUser = {
             email: email,
             username: username,
-            password: password
+            password: password,
+            friendList: [],
+            friendRequests: []
         };
         let userUpdated = await db.updateUser(updatedUser);
         if (userUpdated) {
@@ -294,6 +308,47 @@ function addCors(response) {
     // Set to true if you need the website to include cookies in the requests sent to the API.
     response.setHeader('Access-Control-Allow-Credentials', true);
 }
+
+async function friendRequest(request, response){
+    console.log("friendRequest")
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+       console.log("body : ",body)
+       if (!body.username || !body.friendName) {
+        response.writeHead(400, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Données manquantes' }));
+        return;
+    }
+    console.log(await db.addFriendRequest(body.username,body.friendName));
+    });
+}
+
+
+async function sendFriendRequest(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        console.log("sendFriendRequest : ",body.username)
+        let friends=await db.getFriendRequests(body.username);
+        console.log("friends : ",friends)
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ friends: friends }));
+    });
+        
+}
+
 
 exports.manage = manageRequest;
 exports.createGame = createGame;
