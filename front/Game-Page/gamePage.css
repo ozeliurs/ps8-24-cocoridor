@@ -70,7 +70,7 @@ div {
     display: flex; /* Utiliser flex pour permettre le centrage vertical */
     align-items: center; /* Centrer les enfants verticalement */
     justify-content: center; /* Centrer les enfants horizontalement */
-    height: 70vh; /* Hauteur totale de la fenêtre de visualisation pour permettre le centrage vertical */
+    height: 80vh; /* Hauteur totale de la fenêtre de visualisation pour permettre le centrage vertical */
     position: relative; /* Position relative pour le conteneur de jeu */
 }
 
