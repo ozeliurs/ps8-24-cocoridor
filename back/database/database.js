@@ -79,7 +79,7 @@ async function verifMdp(username, mdp){
 async function addFriendRequest(username, friend){
     const users = await getUsers();
     const user = await users.findOne({ username: friend });
-    if(user && !user.friendRequests.includes(username)){
+    if(user && !user.friendRequests.includes(username) && !user.friends.includes(username)){
         return await users.updateOne({ username: friend }, { $push: { friendRequests: username } });
     }
 }
