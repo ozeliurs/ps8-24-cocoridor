@@ -9,7 +9,7 @@
 <body>
     <h1>En attente d'un joueur</h1>
 
-    <img src="polos.gif" alt="Loading">
+    <img src="../Game-Page/polos.gif" alt="Loading">
     <button id="btnStart" >test</button>
 
     <a href="../index.html"><button >Annuler</button></a>
@@ -28,17 +28,15 @@
     <script>
         console.log("test");
         let clientRoom;
+        let gameId;
         socket=io('/api/1vs1');
-        socket.on('getRoom',(data)=>{
+        socket.on('getGame',(data)=>{
             clientRoom=data
             console.log("client :"+clientRoom)
-
         });
-        socket.emit('go', );
-        /*socket.on('start',function(playerid1,playerid2){
-            console.log("Player1 :"+playerid1);
-            console.log("Player2 :"+playerid2); 
-        })*/
+        socket.on('startGame',(gameId)=>{
+            window.location.href = "../Game-Page/index.html?mode=online&playerid="+ urlParams.get(playerid)+"&gameid="+gameId;
+        });
 
         document.getElementById("btnChat").addEventListener('click', function() {
             var messageButtons = document.getElementById("messageButtons");

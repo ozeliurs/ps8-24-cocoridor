@@ -749,6 +749,7 @@ function actionDone(){
   function execMove(playerID, x, y){
     let player = playerList[playerID-1];
     let move = new Move(player, x, y);
+    console.log(move);
     if(move==undefined) return false;
     return move.execute();
 
