@@ -116,15 +116,15 @@ class Player {
       this.nbWalls = nbWallsPerPlayer;
       switch (modifier) {
         case -1:
-          this.image = "./image1.png";
+          this.image = "../Game-Page/FermierJ2.png";
           this.color = Color.blue
           break;
 
         case 1:
-          this.image = "./image2.png";
+          this.image = "../Game-Page/PouletJ1.png";
           this.color = Color.red
           break;
-
+  
         default:
           console.error("unknown player modifier")
           break;

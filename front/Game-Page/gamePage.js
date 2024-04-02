@@ -144,7 +144,15 @@ class TileFront {
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
     else if (this.occupied === true) {}
-    else this.element.style.backgroundColor = new Color(this.occupied.color.R,this.occupied.color.G,this.occupied.color.B).toStyle();
+    else {
+      let img = document.createElement("img");
+      console.log(this.occupied.image)
+      img.src = this.occupied.image; 
+      img.style.width = "100%"; 
+      img.style.height = "100%";
+      console.log(img)
+      this.element.appendChild(img)
+    } 
 
     this.groupElement.appendChild(this.element);
 

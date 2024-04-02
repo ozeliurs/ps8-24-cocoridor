@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="../FriendChat/friendChat.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="title">Chat avec </h1>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const friendId = urlParams.get('friendId');
+    
+                if (friendId) {
+                    document.getElementById("title").textContent += friendId;
+                } else {
+                    document.getElementById("title").textContent += "";
+                }
+            });
+        </script>
+
+
+        
+        <form id="addFriendForm">
+            <label for="friendName">Chat</label>
+            <input type="text" id="friendName" name="friendName" required>
+            <button type="submit">Envoyer</button>
+        </form>
+        <div id="friendList">
+        </div>
+    </div>
+    <script src="../FriendChat/friendChat.js"></script>
+</body>
+</html>
