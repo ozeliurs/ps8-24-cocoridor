@@ -3,13 +3,17 @@ body {
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
+    background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
 }
 
 .container {
     max-width: 600px;
     margin: 50px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #ff9147;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -29,14 +33,18 @@ label {
 
 input[type="text"] {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    background: azure;
+    border: 3;
+    outline: 0;
+    width: 95%;
+    padding: 18px 15px;
+    color: #000000;
+
 }
 
 button {
     padding: 10px 20px;
-    background-color: #007bff;
+    background-color: #205c09;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -44,7 +52,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #acf70adc;
 }
 
 #friendList {
