@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const chatButton = document.createElement("button");
             chatButton.textContent = "Chat";
             chatButton.onclick = function() {
-                window.location.href = `../FriendChat/index.html?friendId=0`;
+                window.location.href = `../FriendChat/index.html?friendId=${friend}`;
             };
 
             friendElement.appendChild(chatButton);
