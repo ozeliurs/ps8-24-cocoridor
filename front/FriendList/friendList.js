@@ -23,7 +23,23 @@ document.addEventListener('DOMContentLoaded', async function() {
         for (const friend of friends) {
             const friendElement = document.createElement("div");
             friendElement.textContent = friend;
+
             friendRequest.appendChild(friendElement);
+
+
+
+
+            const chatButton = document.createElement("button");
+            chatButton.textContent = "Chat";
+            chatButton.onclick = function() {
+                window.location.href = `../FriendChat/index.html?friendId=0`;
+            };
+
+            friendElement.appendChild(chatButton);
+            
+
+
+
         }
     })
     .catch((error) => {
