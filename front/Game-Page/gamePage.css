@@ -1,9 +1,8 @@
 :root{
-    --SIZETILE : 2.5vw;
-    --SPACEBETWEENTILES : 1vw;
-    --TILECOLOR : rgb(255, 220, 155);
-    --BORDERCOLOR : rgb(255, 200, 99);
-    --EDGECOLOR : rgb(255, 182, 46);
+    --SIZETILE : 2.8vw;
+    --SPACEBETWEENTILES : 1.6vw;
+    --TILECOLOR :#98D492;
+    --BORDERCOLOR :#FFE0BB;
 }
 
 div {
@@ -47,7 +46,7 @@ div {
 .edge {
     width: var(--SPACEBETWEENTILES);
     height: var(--SPACEBETWEENTILES);
-    background-color: var(--EDGECOLOR);
+    background-color: var(--BORDERCOLOR);
 }
 .wall{
     background-color: black;
@@ -71,7 +70,7 @@ div {
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    height: 30vh; 
+    height: 50vh; 
     margin-left: 20%;
     margin-right: 20%;
     margin-top: 10%;
