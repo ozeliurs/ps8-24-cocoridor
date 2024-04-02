@@ -1,6 +1,6 @@
 :root{
-    --SIZETILE : 50px;
-    --SPACEBETWEENTILES : 20px;
+    --SIZETILE : 2.5vw;
+    --SPACEBETWEENTILES : 1vw;
     --TILECOLOR : rgb(255, 220, 155);
     --BORDERCOLOR : rgb(255, 200, 99);
     --EDGECOLOR : rgb(255, 182, 46);
@@ -15,12 +15,12 @@ div {
 
 
 #game {
-    display: inline-block; /* Utilisez inline-block si vous souhaitez que la grille soit centree par rapport a son conteneur */
-    position: relative; /* Ajoutez une position relative si vous avez besoin de positionner des éléments enfants par rapport à celui-ci */
-    margin: auto; /* Centrer horizontalement */
-    top: 50%; /* Début à 50% du conteneur parent en hauteur */
-    transform: translateY(-50%); /* Décaler de 50% la hauteur de l'élément lui-même pour le centrer verticalement */
-    border: 2px solid black; /* Bordure noire */
+    display: inline-block; 
+    position: relative; 
+    margin: auto; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    border: 2px solid black; 
 }
 
 
@@ -67,11 +67,17 @@ div {
 
 
 #gameDiv {
-    display: flex; /* Utiliser flex pour permettre le centrage vertical */
-    align-items: center; /* Centrer les enfants verticalement */
-    justify-content: center; /* Centrer les enfants horizontalement */
-    height: 80vh; /* Hauteur totale de la fenêtre de visualisation pour permettre le centrage vertical */
-    position: relative; /* Position relative pour le conteneur de jeu */
+
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    height: 30vh; 
+    margin-left: 20%;
+    margin-right: 20%;
+    margin-top: 10%;
+    margin-bottom: 25%;
+    position: relative; 
+
 }
 
 #gameCover h1 {
@@ -85,6 +91,8 @@ div {
 
 h1, h2 {
     text-align: center;
+    margin-top: 2%;
+    font-size: 3em;
 }
 
 .retour{
@@ -108,13 +116,13 @@ body{
 }
 
 button {
-    background-color: #4CAF50; /* Green background */
+    background-color: #4CAF50; 
     color: white;
-    padding: 15px 32px;
+    padding: 1.5vw;
     text-align: center;
     text-decoration: none;
     display: inline-block;
-    font-size: 16px;
+    font-size: calc(1vw + 10px);
     margin: 4px 2px;
     cursor: pointer;
     border: none;
@@ -143,15 +151,16 @@ textarea#chatInput {
 
 
 #retour {
-    background-color: #f44336; /* Red background */
+    background-color: #f44336; 
     color: white;
-    padding: 15px 32px;
+    padding: 1.5vw;
     border: none;
     border-radius: 5px;
+    font-size: calc(1vw + 10px);
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 #retour:hover {
-    background-color: #d32f2f; /* Darker red on hover */
+    background-color: #d32f2f; 
 }
