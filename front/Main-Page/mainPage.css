@@ -3,9 +3,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
-    height: 100%;
     gap:40px;
-    background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00);
 }
 
 .gameModeButton{
@@ -29,9 +27,10 @@
 }
 
 html, body {
+    background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00);
     margin: 0;
     padding-top: 25px; /* Augmentez cette valeur selon vos besoins */
-    height: 100%;
+
 }
 
 #upperZone{
@@ -99,7 +98,7 @@ html, body {
     flex-direction: row;
     justify-content: space-evenly;
     flex-wrap: wrap;
-    width: 100vw;
+    width: 100%;
     gap:10px;
     margin-bottom:70px;
 }

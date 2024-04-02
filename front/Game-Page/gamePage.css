@@ -67,6 +67,7 @@ div {
 
 
 #gameDiv {
+
     display: flex; 
     align-items: center; 
     justify-content: center; 
@@ -76,6 +77,7 @@ div {
     margin-top: 10%;
     margin-bottom: 25%;
     position: relative; 
+
 }
 
 #gameCover h1 {
