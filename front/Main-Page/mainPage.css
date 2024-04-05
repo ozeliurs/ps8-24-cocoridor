@@ -11,12 +11,12 @@
 }
 
 .btn{
+    font-family: 'Pixel', sans-serif;
     height: 150px;
     width: 225px;
     font-size: 1.5em;
     border: 2px solid #ff6347;  
     border-radius: 40px;
-    font-family: 'Arial', sans-serif;
     cursor: url(logo.png),pointer ;
     transition: 0.2s ease-in-out;
 

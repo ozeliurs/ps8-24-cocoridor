@@ -10,7 +10,10 @@ div {
 }
 
 
+body,html{
+    font-family: 'Pixel', sans-serif;
 
+}
 
 
 #game {
@@ -70,6 +73,7 @@ div {
     display: flex; 
     align-items: center; 
     justify-content: center; 
+
     height: 50vh; 
     margin-left: 20%;
     margin-right: 20%;
@@ -108,10 +112,7 @@ h1, h2 {
 }
 
 body{
-    background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
+    background-color:white
 }
 
 button {
@@ -162,4 +163,21 @@ textarea#chatInput {
 
 #retour:hover {
     background-color: #d32f2f; 
+}
+
+#playerTurn {
+    position: absolute;
+    top: 50%;
+    left: 20px; /* Ajustez la valeur en fonction de la position souhaitée */
+    transform: translateY(-50%);
+    width: 20%;
+    height: 50%;
+    font-weight: bold;
+    text-align: center; 
+    font-size: 1.5em; 
+    color: #333;
+    padding: 10px;
+    border-radius: 5px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+
 }

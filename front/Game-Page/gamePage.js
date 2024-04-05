@@ -143,11 +143,9 @@ class TileFront {
     else if (this.occupied === true) {}
     else {
       let img = document.createElement("img");
-      console.log(this.occupied.image)
       img.src = this.occupied.image; 
       img.style.width = "100%"; 
       img.style.height = "100%";
-      console.log(img)
       this.element.appendChild(img)
     } 
 
@@ -403,20 +401,30 @@ function DisplayBoard(board,positions=null){
       gameDiv.appendChild(tile.groupElement);
     }
   }
+  let playerTurn = document.getElementById("playerTurn");
+  playerTurn.innerHTML="";
+  let img = document.createElement("img");
+  img.style.width = "100%"; 
+  img.style.height = "100%";
+
+
+  if (turnNb % 2 === 0) {
+    img.src="../Game-Page/FermierJ2.png"
+    playerTurn.appendChild(img) 
+    if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 1 puis jouez"));}
+    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 1 de jouer"))};
+  }
+  else {
+    img.src = "../Game-Page/PouletJ1.png"
+    playerTurn.appendChild(img) 
+    if(turnNb==1){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 2 puis jouez"));}
+    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 2 de jouer"));}
+  }
   if(mode === "local") {
-    let gameCover = document.getElementById("gameCover");
-    gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
-
-    if (turnNb % 2 === 0) {
-      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:blue; padding-top: 50px; padding-bottom: 50px;";
-      gameCover.innerHTML = "<img src=\"PouletJ1.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    }
-
-    else {
-      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:red; padding-top: 50px; padding-bottom: 50px;";
-
-      gameCover.innerHTML = "<img src=\"FermierJ2.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    }
+  
+    let gC = document.getElementById("gameCover");
+    gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
+    gC.innerHTML = "Cliquez pour continuer ...";
   }
 }
 
