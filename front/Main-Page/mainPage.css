@@ -7,18 +7,7 @@
     width: 100vw;
 }
 
-#GamePlaySelection{
-    background-image: url("background.jpg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-around;
-    gap:40px;
-    width: 100vw;
-}
+
 .gameModeButton{
     margin: 0 10px;
 }
