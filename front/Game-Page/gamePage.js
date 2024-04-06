@@ -423,7 +423,7 @@ function DisplayBoard(board,positions=null){
   if(mode === "local") {
   
     let gC = document.getElementById("gameCover");
-    gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
+    gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 200px;";
     gC.innerHTML = "Cliquez pour continuer ...";
   }
 }
