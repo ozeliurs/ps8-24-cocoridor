@@ -17,6 +17,22 @@ async function clearDatabase() {
     await db.collection('games').deleteMany({});
     return; 
 }
+
+
+async function clearChat() {
+    const users= await getUsers();
+
+    for (const user of users) {
+        for (const conversation of user.conv) {
+            conversation.messages = [];
+        }
+        await users.updateOne(
+            { _id: user._id },
+            { $set: { conv: user.conv } }
+        );
+    }
+}
+
 async function getUsers() {
     const db = await getMongoDatabase();
 
@@ -92,11 +108,22 @@ async function getFriendRequests(username){
 
 async function addFriend(username,usernameFriend){
     const users = await getUsers();
-    await users.updateOne({ username: username }, { $push: { friends: usernameFriend } });
-    await users.updateOne({ username: usernameFriend }, { $push: { friends: username } });
-    await users.updateOne({ username: username }, { $pull: { friendRequests: usernameFriend } });
-    await users.updateOne({ username: usernameFriend }, { $pull: { friendRequests: username } });
-
+    await users.updateOne(
+        { username: username },
+        { 
+            $push: { friends: usernameFriend },
+            $pull: { friendRequests: usernameFriend },
+            $addToSet: { conv: { username: usernameFriend, messages: [] } } 
+        }
+    );
+    await users.updateOne(
+        { username: usernameFriend },
+        { 
+            $push: { friends: username },
+            $pull: { friendRequests: username },
+            $addToSet: { conv: { username: username, messages: [] } } 
+        }
+    );
     return;  
 }
 
@@ -106,6 +133,32 @@ async function getFriends(username){
     return user.friends ;
 }
 
+
+async function addMessage(username,friend,message){
+    const users = await getUsers();
+    console.log("username : ", username, " friend : ", friend, " message : ", message);
+    console.log(await users.findOne())
+    await users.updateOne(
+        { username: username, "conv.username": friend },
+        { 
+            $push: { "conv.$.messages": username+"/"+message } 
+        }
+    );
+    await users.updateOne(
+        { username: friend, "conv.username": username },
+        { 
+            $push: { "conv.$.messages": username+"/"+message }  
+        }
+    );
+}
+
+
+async function getConv(username,friend){
+    const users = await getUsers();
+    const user=await users.findOne({ username: username });
+    const friendConv = user.conv.find(conv => conv.username === friend);
+    return friendConv.messages;
+}
 
 
 exports.getUsers = getUsers;
@@ -122,3 +175,6 @@ exports.addFriendRequest = addFriendRequest;
 exports.getFriendRequests = getFriendRequests;
 exports.addFriend = addFriend;
 exports.getFriends = getFriends;
+exports. addMessage = addMessage;
+exports.clearChat = clearChat;
+exports.getConv = getConv;

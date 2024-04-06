@@ -27,8 +27,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             friendRequest.appendChild(friendElement);
 
 
-
-
             const chatButton = document.createElement("button");
             chatButton.textContent = "Chat";
             chatButton.onclick = function() {
@@ -37,9 +35,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             friendElement.appendChild(chatButton);
             
-
-
-
         }
     })
     .catch((error) => {

@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
     <link rel="stylesheet" href="../FriendChat/friendChat.css">
+    <style>
+        #chatContent {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px; /* Pour l'espace entre le formulaire et la div */
+            min-height: 100px; /* Hauteur minimale de la div */
+            overflow-y: auto; /* Pour permettre le défilement si le contenu dépasse la hauteur */
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -23,14 +33,14 @@
             });
         </script>
 
-
-        
         <form id="addFriendForm">
             <label for="friendName">Chat</label>
-            <input type="text" id="friendName" name="friendName" required>
+            <input type="text" id="textContent" required>
             <button type="submit">Envoyer</button>
         </form>
-        <div id="friendList">
+        
+        <!-- Ajouter la div rectangulaire blanche ici -->
+        <div id="chatContent">
         </div>
     </div>
     <script src="../FriendChat/friendChat.js"></script>
