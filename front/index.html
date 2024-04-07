@@ -4,24 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="Main-Page/mainPage.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <title>GamePage</title>
 </head>
 <body id=GamePlaySelection>
     <div id=upperZone>
-        <a href="signUp">
-            <button id=signUp>
-                S'inscrire
-            </button>
-        </a>
-        <a href="signIn">
-            <button id=signIn>
-                Se connecter
-            </button>
-        </a>
+        <div class="upperBtns">
+            <a href="signUp">
+                <button id=signUp>
+                    S'inscrire
+                </button>
+            </a>
+            <a href="signIn">
+                <button id=signIn>
+                    Se connecter
+                </button>
+            </a>
+        </div>
         <div id=playerCard>
-            <img class=shell src="Main-Page/mapFichier1.svg" alt="Coquille gauche">
             <div id=playerProfile>
-                <img src="Main-Page/screamingChicken.png" id="playerPicture" alt="Photo de profil">
+                <img src="Main-Page/chickenAsset.png" id="playerPicture" alt="Photo de profil">
                 <div id=playerInfo>
                     <div id=playerName>
                         Player
@@ -31,11 +35,19 @@
                     </div>
                 </div>
             </div> 
-            <img class=shell src="Main-Page/mapFichier2.svg" alt="Coquille droite">
         </div>
     </div>
 
 
+
+    <div class=buttonContainer>
+        <div class="iconContainer">
+            <img class="icon" src="Main-Page/gameIcon.png" alt="game">
+        </div>
+        <div class="iconContainer">
+            <img class="icon" src="Main-Page/settingsIcon.png" alt="settings">
+        </div>
+    </div>
 
     <div class=buttonContainer>
         <a href="Game-Page?mode=local">
@@ -43,9 +55,9 @@
                 Jouer en local
             </button>
         </a>
-        <a href="Game-Page?mode=1vs1&playerid=user" class="needID">
+        <a href="FriendPage/">
             <button class=btn class=gameModeButton>
-                Jouer en ligne
+                Ajout d'Ami
             </button>
         </a>
     </div>
@@ -63,9 +75,9 @@
     </div>
 
     <div class=buttonContainer>
-        <a href="FriendPage/">
+        <a href="Game-Page?mode=1vs1&playerid=user" class="needID">
             <button class=btn class=gameModeButton>
-                Ajout d'ami  
+                Jouer en ligne  
             </button>
         </a>
         <a href="FriendList/">

@@ -12,8 +12,24 @@ async function manageRequest(request, response) {
 
     switch (endpoint) {
         case 'print':
-            user=await db.getUsers();
-            console.log(await user.find().toArray());
+            user = await db.getUsers();
+            result = await user.find().toArray();
+            console.log(result);
+            break;
+        case 'printConv':
+            user = await db.getUsers();
+            result = await user.find().toArray();
+            for (const user of result) {
+                for(const conv of user.conv){
+                    console.log(conv)
+                }
+            }
+            break;
+        case 'addMessage':
+            await addMessage(request, response);
+            break;
+        case 'getConv':
+            await getConv(request, response);
             break;
         case 'addFriend':
             await addFriend(request, response);
@@ -29,6 +45,9 @@ async function manageRequest(request, response) {
             break;
         case 'clear':
             await db.clearDatabase();
+            break;
+        case 'clearChat':
+            await db.clearChat();
             break;
         case 'signup':
             await signup(request, response);
@@ -73,7 +92,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             username: username,
             password: password,
             friends: [],
-            friendRequests: []
+            friendRequests: [],
+            conv:[]
         };
         let userCreated = await db.createUser(newUser);
         if (userCreated) {
@@ -90,7 +110,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             username: username,
             password: password,
             friends: [],
-            friendRequests: []
+            friendRequests: [],
+            conv:[]
         };
         let userUpdated = await db.updateUser(updatedUser);
         if (userUpdated) {
@@ -389,13 +410,48 @@ async function getFriends(request, response){
             return;
         }
         let friends=await db.getFriends(body.username);
-        console.log("friends : ",friends)
         response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ friends: friends }));
     });
         
 }
 
+async function addMessage(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username || !body.friendName || !body.message){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));  
+            return;
+        }
+        await db.addMessage(body.username,body.friendName,body.message);
+    })
+}
+
+async function getConv(request, response){
+
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username || !body.friendName){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let conv=await db.getConv(body.username,body.friendName);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ conv: conv }));
+    });
+    
+
+}
 exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;
