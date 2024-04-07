@@ -20,18 +20,7 @@
     <div class="container">
         <h1 id="title">Chat avec </h1>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const friendId = urlParams.get('friendId');
-    
-                if (friendId) {
-                    document.getElementById("title").textContent += friendId;
-                } else {
-                    document.getElementById("title").textContent += "";
-                }
-            });
-        </script>
+       
 
         <form id="addFriendForm">
             <label for="friendName">Chat</label>
@@ -44,5 +33,28 @@
         </div>
     </div>
     <script src="../FriendChat/friendChat.js"></script>
+    <script src="../js/socket.io.js"> </script>
+    <script>
+        const socket = io();
+        socket.on('updateMessage', (data) => {
+            console.log(data)
+            if(data.friendName === nameUser && data.userName===friendName) {
+                updateConv(friendName,nameUser)        
+            }
+        });
+        
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const friendId = urlParams.get('friendId');
+
+            if (friendId) {
+                document.getElementById("title").textContent += friendId;
+            } else {
+                document.getElementById("title").textContent += "";
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,8 +1,6 @@
-//import { Server } from "../js/socket.io.js";
-//const io = new Server(Server);
+
 
 document.addEventListener("DOMContentLoaded", async function () {
-  //const socket = io();
   const addFriendForm = document.getElementById("addFriendForm");
   const textContent = document.getElementById("textContent");
 
@@ -41,13 +39,14 @@ document.addEventListener("DOMContentLoaded", async function () {
           console.error(error);
         });
       textContent.value = "";
+      console.log("emitting "+nameUser+" "+friendName)
+      socket.emit('updateMessage',nameUser,friendName);
       window.location.href = `../FriendChat/index.html?friendId=${friendName}`;
-      socket.emit('updateMessage');
+      
       
     }
   });
 
-  //socket.on('updateMessage',updateConv(nameUser, friendName));
   updateConv(nameUser, friendName);
 
   async function updateConv(nameUser, friendName) {
@@ -61,7 +60,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       .then((response) => response.json())
       .then((data) => {
         const conv = data.conv;
-        console.log(data.conv);
         const chatContent = document.getElementById("chatContent");
         for (const message of conv) {
           const messageElement = document.createElement("p");

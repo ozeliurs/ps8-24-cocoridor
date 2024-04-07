@@ -308,10 +308,10 @@ io.of("/api/1vs1").on('connection', (socket) => {
         console.log("testus a testé ici.");
         io.of("/api/1vs1").to(roomNo).emit('receiveMessage', message);
     });
-
-
-  
 });
+
+
+
 
 
 
