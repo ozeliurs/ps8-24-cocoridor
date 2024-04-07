@@ -25,7 +25,6 @@ signInBtn.onclick = async function(e){
         let expiresUTC = expirationDate.toUTCString();
         document.cookie = "nomCookie="+username.value+"; expires=" + expiresUTC + ";";
         window.location.href = "../index.html";
-        alert("Connexion réussie");
     })
     .catch((error) => {
         console.error('Error:', error);

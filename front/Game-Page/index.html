@@ -136,10 +136,16 @@
                 waiting[i].style.display = "none";
             }
         })
-        socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
-        socket.on("choosePos",(boardPos)=>{gameSetUp=true;DisplayBoard(boardPos.Board,boardPos.Positions)})
+        socket.on("updateBoard",(board,turnNumber)=>{
+            turnNb=turnNumber;
+            DisplayBoard(board);
+        })
+        socket.on("choosePos",(boardPos,turnNumber)=>{
+            turnNb = turnNumber
+            gameSetUp=true;DisplayBoard(boardPos.Board,boardPos.Positions)
+        })
         socket.on("endGame",(winners)=>{
-            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
+            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
             else window.location.href = "../EndPage/endPage.html?winner=0"
         })
         socket.on("initChoosePos",(gameId)=>{

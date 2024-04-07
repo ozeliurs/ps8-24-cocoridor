@@ -1,6 +1,6 @@
 :root{
-    --SIZETILE : 2.8vw;
-    --SPACEBETWEENTILES : 1.6vw;
+    --SIZETILE : 3vw;
+    --SPACEBETWEENTILES : 1vw;
     --TILECOLOR :#98D492;
     --BORDERCOLOR :#FFE0BB;
 }
@@ -118,8 +118,6 @@ img{
     margin-right: auto;
     width: 50%;
     height: 50%;
-    margin-top: 20px;
-    margin-bottom: 20px;
 }
 body{
     background-color:white

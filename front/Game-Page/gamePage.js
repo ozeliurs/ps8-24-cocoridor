@@ -65,7 +65,7 @@ class TileFront {
    * @param {BorderFront} bRight
    * @param {BorderFront} bDown
    * @param {BorderFront} edge
-   * @param {Player | Boolean} occupiedBy
+   * @param {PlayerGameInstance | Boolean} occupiedBy
    */
   constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
     this.X = Math.floor(x);
@@ -126,27 +126,13 @@ class TileFront {
 
     this.element.addEventListener("click", this.onClick.bind(this));
 
-    // Debut highlight deplacement
-    /*this.element.addEventListener("mouseover", ()=>{
-      let tile = getTile(this.X,this.Y)
-
-      let dir = this.tileInDir();
-      while(this.occupied!=null){
-        tile = tile.getTileInDir(dir)
-      }
-      this.highlight = tile
-      this.highlight.element.style.backgroundColor = Color.highlight.toStyle()
-    });
-    this.element.addEventListener("mouseout", ()=>{
-      if(this.highlight==null)return
-      this.highlight.element.style.backgroundColor = ""
-    });*/
     this.element.classList.add("tile");
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
     else if (this.occupied === true) {}
     else {
       let img = document.createElement("img");
+      console.log(this.occupied)
       img.src = this.occupied.image; 
       img.style.width = "100%"; 
       img.style.height = "100%";
@@ -411,8 +397,8 @@ function DisplayBoard(board,positions=null){
   img.style.width = "100%"; 
   img.style.height = "100%";
 
-
-  if (turnNb % 2 === 0) {
+  console.log("Trun nb: "+turnNb)
+  if (turnNb % 2 === 1) {
     img.src="../Game-Page/FermierJ2.png"
     playerTurn.appendChild(img) 
     if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 1 puis jouez"));}

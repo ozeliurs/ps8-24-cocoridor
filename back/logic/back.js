@@ -53,7 +53,7 @@ class GameState{
     GameState.onGoing[this.id] = this;
 
     this.remainingAction = this.gameParams.numActions;
-    this.turnNb = 0
+    this.turnNb = 1
 
     this.Board = [];
     for(let y=0;y<this.gameParams.boardHeight;y++){
@@ -70,8 +70,6 @@ class GameState{
       this.topTiles.push(this.Board[this.gameParams.boardHeight-1][i]);
       this.bottomTiles.push(this.Board[0][i])
     }
-    console.log(this.topTiles)
-    console.log(this.bottomTiles)
   }
 
   /**
@@ -114,6 +112,10 @@ class GameState{
     firstPlayer = new PlayerGameInstance(new PlayerAccount(firstPlayer,"pswT"),this.topTiles,this.bottomTiles,1,this.gameParams.nbWallsPerPlayer,this.id);
     secondPlayer = new PlayerGameInstance(new PlayerAccount(secondPlayer,"pswB"),this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
     this.gameParams.playerList = []
+    firstPlayer.image = "../Game-Page/PouletJ1.png"
+    secondPlayer.image = "../Game-Page/FermierJ2.png"
+    firstPlayer.color = Color.red;
+    secondPlayer.color = Color.blue;
     this.gameParams.playerList.push(firstPlayer);
     this.gameParams.playerList.push(secondPlayer);
   }
@@ -194,7 +196,6 @@ class GameState{
             continue;
         }
     }
-    console.log(me)
     this.getTile(co.X,co.Y).occupiedBy(me)
   }
   GameWinner(){
@@ -204,12 +205,14 @@ class GameState{
     for (let i=0;i<players.length;i++){
       let player = players[i]
       if(player.end.length == 0 || player.getTile()==null)continue;
-      let currentCoords = player.getTile().getCoords();
-      if(player.end.find((e)=>e.X===currentCoords.X && e.Y===currentCoords.Y)!=undefined) winners.push(player);
+      for(let coords of player.end){
+        let currentCoords = player.getTile().getCoords();
+        if(currentCoords.X == coords.X && currentCoords.Y == coords.Y)winners.push(player.getid());
+      }
     }
     // si c'est le dernier joueur
     // et si il y a des gagnants
-    if((this.turnNb-1)%players.length==players.length-1 && winners.length!=0 ) {
+    if((this.turnNb%players.length==players.length-1) && (winners.length!=0) ) {
       return winners
     }
     
@@ -243,6 +246,7 @@ class GameState{
       board[y] = []
       for(let x=0;x<this.gameParams.boardLength;x++) board[y].push(this.Board[y][x].toFront(player));
     }
+
     return {Board:board,Positions:resultPos};
   }
   
@@ -429,11 +433,12 @@ class Color{
       }
 }
 
-class PlayerAccount {
-  static Bot(){
-    return new PlayerAccount("bot","GAGAGOOGOO")
-  }
+export class PlayerAccount {
 
+  static Bot(){
+    let bot = new PlayerAccount("bot","GAGAGOOGOO")
+    return bot;
+  }
   constructor(email,password){
     if(email==null || password==null) return null;
     this.id = email;
@@ -457,6 +462,7 @@ class PlayerAccount {
   }
 }
 class PlayerGameInstance {
+
   /**
    *
    * @param {PlayerAccount} account
@@ -578,10 +584,13 @@ class Tile {
    */
   toFront(player) {
     let visi;
+    let game = findGame(this.gameStateId)
     if(this.occupied!=null && this.occupied.getid()==player.getid()) {
         visi = this.occupied;
 
-    } else if(!findGame(this.gameStateId).gameParams.fog||this.visibility*player.modifier>=0) {
+    } else if (player.OnTile!=null && this.occupied!=null && distTo(this,game.getTile(player.OnTile.X,player.OnTile.Y))==1){
+      visi = this.occupied;
+    }else if(!game.gameParams.fog||this.visibility*player.modifier>=0) {
       if(this.occupied!=null) visi = this.occupied;
       else visi = true;
     } else visi = false;
@@ -850,10 +859,8 @@ const Direction = {
     
     execute(){
       if(!this.canExecute(this.game.id)) return false;
-      console.log("can Execute")
       let tile = this.game.getTile(this.X,this.Y);
       if(tile==null)return false;
-      console.log("tile found")
       tile.occupiedBy(this.player);
       this.game.actionDone();
       return true;
@@ -889,7 +896,6 @@ const Direction = {
   function execMove(gameId, player, x, y){
     let move = new Move(gameId, player, x, y);
     if(move==undefined) return false;
-    console.log(move)
     return move.execute();
 
   }
