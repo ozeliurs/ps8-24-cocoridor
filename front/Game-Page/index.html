@@ -101,14 +101,35 @@
           socket = io("/api/Localgame");
           break;
         case "newAi":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté, la partie ne sera pas enregistrée");
+            }
+          });
           socket = io("/api/AIgame");
           socket.emit("newGame", user);
           break;
         case "getAi":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté");
+              window.location.href = "../index.html";
+            }
+          });
           socket = io("/api/AIgame");
           socket.emit("retrieveGame", user, gameId);
           break;
         case "1vs1":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté");
+              window.location.href = "../index.html";
+              return;
+            }
+          });
           socket = io("/api/1vs1");
           document.getElementById("waiting").style.display = "block";
           document.getElementById("notwaiting").style.display = "none";
@@ -117,6 +138,7 @@
           break;
         default:
           console.log("Mode inconnu");
+          window.location.href = "../index.html";
           break;
       }
       socket.on("launch", (board, turnNb, idGame) => {
