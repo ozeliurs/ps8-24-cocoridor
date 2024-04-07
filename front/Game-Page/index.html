@@ -59,13 +59,28 @@
             <button>gagner2</button>
         </a>
     </div>
+    <h1 class="attente">En attente d'un joueur</h1>
 
+    <img class ="attente" src="../Game-Page/polos.gif" alt="Loading">
+    <button id="btnStart" >test</button>
+
+    <a href="../index.html"><button >Annuler</button></a>
+
+    <button id="btnChat" >message</button>
+    <div id="messageButtons" style="display: none;">
+        <button onclick="sendMessage('Bonjour')">Bonjour</button>
+        <button onclick="sendMessage('Bonne chance!')">Bonne chance!</button>
+        <button onclick="sendMessage('Bien joué!')">Bien joué!</button>
+    </div>
+    </br>
+    <div id="messageBox"></div>
     <br>
 
     <button id="retour" onclick="window.location.href = '../index.html'">Retour</button>
 
     <script src="../Game-Page/gamePage.js"> </script>
     <script src="../js/socket.io.js"> </script>
+
     <script>
         function openChat() {
             document.getElementById("chatPopup").style.display = "block";
@@ -86,6 +101,7 @@
         const mode = urlParams.get('mode');
         const user = urlParams.get('playerid');
         let gameId = urlParams.get('gameid');
+        let waiting = document.getElementsByClassName("attente");
         var socket;
         switch (mode) {
             case "local":
@@ -100,21 +116,57 @@
                 socket.emit('retrieveGame',user,gameId);
                 break;
             case "1vs1":
-             
-            
+                socket=io('/api/1vs1');
+
+                for(let i=0;i<waiting.length;i++){
+                    waiting[i].style.display = "block";
+                }
+                socket.emit('sendInfo',user);
                 break;
             default:
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("launch",(board,turnNb,idGame)=>{gameId=idGame;init(board,mode,turnNb);DisplayBoard(board);})
+        socket.on("launch",(board,turnNb,idGame)=>{
+            gameId=idGame;
+            init(board,mode,turnNb);
+            DisplayBoard(board);
+            for(let i=0;i<waiting.length;i++){
+                waiting[i].style.display = "none";
+            }
+        })
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
         socket.on("choosePos",(boardPos)=>{DisplayBoard(boardPos.Board,boardPos.Positions)})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
             else window.location.href = "../EndPage/endPage.html?winner=0"
         })
+        socket.on("ready",(gameId)=>{
+            console.log("ready");
+            socket.emit('start',gameId);
+        })
+        socket.on("moved",(gameId)=>{
+            socket.emit('update',gameId);
+        })
 
+
+        document.getElementById("btnChat").addEventListener('click', function() {
+            var messageButtons = document.getElementById("messageButtons");
+            messageButtons.style.display = 'block'; // Affiche les boutons de messages
+        });
+
+        function sendMessage(message) {
+            console.log("Message envoyé: " + message);
+            socket.emit('sendMessage', message); // Envoyez le message à l'adversaire via socket.io
+        }
+
+        socket.on('receiveMessage', function(message) {
+            console.log("Message reçu: " + message);
+            let messageBox = document.getElementById("messageBox");
+            let messageElement = document.createElement("p");
+            messageElement.textContent = message;
+            messageBox.appendChild(messageElement);
+        });
 
     </script>
 </body>
