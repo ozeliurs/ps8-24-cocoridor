@@ -28,14 +28,36 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
             const chatButton = document.createElement("button");
-            chatButton.textContent = "Chat";
+            //chatButton.textContent = "Chat";
+
+            // const spanWithImage = document.createElement("span");
+            // spanWithImage.classList.add("material-symbols-rounded");
+
+            const img = document.createElement("img");
+            img.setAttribute("src", "../FriendList/chat2.png");
+            img.setAttribute("alt", "chat");
+            img.style.width = "3%";
+            img.style.height = "3%";
+
+            // spanWithImage.appendChild(img);
+
+
+            // const emptySpan = document.createElement("span");
+            // emptySpan.classList.add("material-symbols-outlined");
+
+            // chatButton.appendChild(spanWithImage);
+            // chatButton.appendChild(emptySpan);
+            chatButton.appendChild(img);
+
             chatButton.classList.add("chatbot-toggler");
             chatButton.onclick = function() {
                 // window.location.href = `../FriendChat/index.html?friendId=${friend}`;
                 document.body.classList.toggle("show-chatbot");
             };
 
+
             friendElement.appendChild(chatButton);
+
             
         }
     })
