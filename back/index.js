@@ -386,6 +386,16 @@ io.of("/api/1vs1").on('connection', async (socket) => {
     });
 });
 
+io.of("/api/friendChat").on('connection', async (socket) => {
+    socket.on('join', async (nameUser, friendName) => {
+        socket.join(nameUser + friendName);
+        socket.join(friendName + nameUser);
+    });
+    socket.on('newMessage', async (nameUser, friendName) => {
+        io.of("/api/friendChat").to(nameUser + friendName).emit('updateMessage');
+    });
+});
+
 
 
 
