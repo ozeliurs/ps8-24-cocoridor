@@ -4,11 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../Game-Page/gamePage.css">
-    <link rel="stylesheet" href="../global.css">
-
     <title>GamePage</title>
 </head>
 <body>
+    
+    <h1>Cocoridor</h1>
+    <h2 id="playerplaying"></h2>
+    <div>
+        <div id="msg">
+            <button class="msgButton">😛</button>
+            <button class="msgButton">😖</button>
+            <button class="msgButton">😡</button>
+            <button class="msgButton">😭</button>
+        </div>
+        <div id="playerTurn"></div>
+    </div>
+    <div id ="gameDiv">
+        <section id="game"></section>
+        <section id = "gameCover" onclick="hideCover()"> </section>
+    </div>
     <button class="chatbot-toggler">
         <span class="material-symbols-rounded">
             <img src="../Game-Page/chat.png" alt="chat" width="100%" height="100%">
@@ -30,55 +44,13 @@
         <div class="chat-input">
           <textarea placeholder="Enter a message..." spellcheck="false" required></textarea>
           <span id="send-btn" class="material-symbols-rounded">
-            
           </span>
         </div>
       </div>
-
-    <h1>Cocoridor</h1>
-    <h2 id="playerplaying"></h2>
-    <div id="playerTurn">
-    </div>
-    <div id ="gameDiv">
-        <section id="game"></section>
-        <section id = "gameCover" onclick="hideCover()"> </section>
-    </div>
-    <div>
-        <button onclick="openChat()">
-            chat
-        </button>
-    </div>
-    <div id="chatPopup" style="display: none;">
-        <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
-        <button onclick="sendMessage()">Envoyer</button>
-        <button onclick="closeChat()">Fermer</button>
-        <a href="../EndPage/endPage.html?winner=1">
-            <button>gagner1</button>
-        </a>
-        <a href="../EndPage/endPage.html?winner=2">
-            <button>gagner2</button>
-        </a>
-    </div>
-
-    <br>
-
-    <button id="retour" onclick="window.location.href = '../index.html'">Retour</button>
-
     <script src="../Game-Page/gamePage.js"> </script>
     <script src="../js/socket.io.js"> </script>
     <script>
-        function openChat() {
-            document.getElementById("chatPopup").style.display = "block";
-        }
 
-        function closeChat() {
-            document.getElementById("chatPopup").style.display = "none";
-        }
-
-        function sendMessage() {
-            var message = document.getElementById("chatInput").value;
-            console.log("Message envoyÃ© : " + message);
-        }
         function hideCover() {
             document.getElementById("gameCover").style.display = "none";
         }

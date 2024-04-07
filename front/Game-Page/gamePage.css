@@ -370,3 +370,13 @@ header h2 {
     display: block;
   }
 }
+
+#msg{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: left;
+  padding: 10px 0; 
+  
+}
