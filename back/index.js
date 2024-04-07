@@ -376,6 +376,13 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         let newBoard = back.BoardFor(playerList[myId]);
         socket.emit("launch", newBoard, back.getTurnNb(), gameId);
     });
+    socket.on('message', (message,playerName) => {
+        io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
+    });
+    socket.on("disconnect", () => {
+        console.log("disconnected")
+        //players = players.filter(player => player.socket !== socket);
+    });
 });
 
 
