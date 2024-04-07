@@ -289,29 +289,113 @@ io.of("/api/testgame").on('connection', (socket) => {
         if(winners !=null) socket.emit("endGame", winners);
     })
 });
-let clientNo = 0;
+let players = [];
 
-io.of("/api/1vs1").on('connection', (socket) => {
-    clientNo++;
-    const roomNo = Math.ceil(clientNo / 2);
-    console.log(roomNo)
-    socket.join(roomNo);
-    socket.emit('getRoom', roomNo);
-    socket.on('go', () => {
-        console.log(roomNo)
-        console.log("testeeeeeeee")
-        io.of("/api/1vs1").to(roomNo).emit('start');
-        io.of("/api/1vs1").to(roomNo).emit('test')
+io.of("/api/1vs1").on('connection', async (socket) => {
+    let myId = 0;
+    let playerList;
+    let board;
+    let turnNb;
+    let gameId;
+    socket.on('sendInfo', async (playerid) => {
+        console.log("playerid: "+playerid)
+        let alreadyIn = false;
+        for(let i = 0; i < players.length; i++){
+            if(players[i].id === playerid){
+                players[i].socket.disconnect();
+                players[i].socket = socket;
+                console.log("player updated")
+                alreadyIn = true;
+            }
+        }
+        if(!alreadyIn){
+            players.push({id: playerid, socket: socket});
+            console.log("player added")
+        }
+         console.log("players: "+players.length)
+         if (players.length === 2) {
+             myId = 1;
+             back.init();
+             for (let i = 0; i < players.length; i++) {
+                 back.placePlayer(i+1, {X: (i) * 8, Y: (i) * 8});
+             }
+             playerList = back.getPlayerList();
+             board = back.getBoard();
+             turnNb = back.getTurnNb();
+             gameId = await saveGame(board, playerList[0], turnNb, playerList);
+             for(let i = 0; i < players.length; i++){
+                 players[i].socket.join('room'+gameId);
+             }
+             io.of("/api/1vs1").to('room'+gameId).emit("ready", gameId);
+             console.log("game created")
+             players = [];
+         }
     });
-
-    socket.on('sendMessage', (message) => {
-        console.log("testus a testé ici.");
-        io.of("/api/1vs1").to(roomNo).emit('receiveMessage', message);
+    socket.on('move', async (move, gameId, playerId) => {
+        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+        if(myId === turnNb % playerList.length) {
+            let actionDone = back.execMove(move.playerID, move.x, move.y);
+            if (actionDone) {
+                board = back.getBoard();
+                turnNb = back.getTurnNb();
+                await saveGame(board, playerId, turnNb, playerList, gameId);
+                io.of("/api/1vs1").to('room' + gameId).emit("moved", gameId);
+            }
+        }else{
+            console.log("not your turn");
+        }
     });
-
-
-  
+    socket.on('wall', async (wall, gameId, playerId) => {
+        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        if(myId === turnNb % playerList.length) {
+            let actionDone = back.execWall(wall.playerID, wall.x, wall.y, wall.vertical)
+            if (actionDone) {
+                board = back.getBoard();
+                turnNb = back.getTurnNb();
+                await saveGame(board, playerId, turnNb, playerList, gameId);
+                io.of("/api/1vs1").to('room' + gameId).emit("moved", gameId);
+            }
+        }else{
+            console.log("not your turn");
+        }
+    });
+    socket.on('update', async (gameId) => {
+        turnNb = back.getTurnNb();
+        let newBoard = back.BoardFor(playerList[myId]);
+        socket.emit("updateBoard", newBoard);
+        let winners = back.GameWinner();
+        if (winners != null) {
+            socket.emit("endGame", winners);
+        }
+    });
+    socket.on('start', async (idGame) => {
+        playerList= back.getPlayerList();
+        turnNb= back.getTurnNb();
+        board= back.getBoard();
+        gameId = idGame;
+        console.log("id: "+myId);
+        let newBoard = back.BoardFor(playerList[myId]);
+        socket.emit("launch", newBoard, back.getTurnNb(), gameId);
+    });
+    socket.on('message', (message,playerName) => {
+        io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
+    });
+    socket.on("disconnect", () => {
+        console.log("disconnected")
+        //players = players.filter(player => player.socket !== socket);
+    });
 });
+
+io.of("/api/friendChat").on('connection', async (socket) => {
+    socket.on('join', async (nameUser, friendName) => {
+        socket.join(nameUser + friendName);
+        socket.join(friendName + nameUser);
+    });
+    socket.on('newMessage', async (nameUser, friendName) => {
+        io.of("/api/friendChat").to(nameUser + friendName).emit('updateMessage');
+    });
+});
+
 
 
 

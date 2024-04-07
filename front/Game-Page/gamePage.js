@@ -428,6 +428,12 @@ function DisplayBoard(board,positions=null){
   }
 }
 
+const chatButtons= document.querySelectorAll(".msgButton");
+for(let button of chatButtons){
+  button.addEventListener("click",()=>{
+    socket.emit('message',button.textContent,user);
+  });
+}
 
 const chatbotToggler = document.querySelector(".chatbot-toggler");
 const closeBtn = document.querySelector(".close-btn");
@@ -437,8 +443,6 @@ const chatInput = document.querySelector(".chat-input textarea");
 const sendChatBtn = document.querySelector(".chat-input span");
 
 let userMessage = null; // Variable to store user's message
-console.log(chatInput)
-console.log(chatInput.scrollHeight)
 const inputInitHeight = chatInput.scrollHeight;
 
 const createChatLi = (message, className) => {
@@ -451,20 +455,17 @@ const createChatLi = (message, className) => {
 }
 
 
-const handleChat = () => {
+const handleChat = (sender) => {
     userMessage = chatInput.value.trim();
     if(!userMessage) return;
-
     chatInput.value = "";
     chatInput.style.height = `${inputInitHeight}px`;
-
-    // Append the user's message to the chatbox
-    chatbox.appendChild(createChatLi(userMessage, "outgoing"));
+    if(sender !== user) chatbox.appendChild(createChatLi(userMessage, "incoming"));
+    else chatbox.appendChild(createChatLi(userMessage, "outgoing"));
     chatbox.scrollTo(0, chatbox.scrollHeight);
 }
 
 chatInput.addEventListener("input", () => {
-    // Adjust the height of the input textarea based on its content
     chatInput.style.height = `${inputInitHeight}px`;
     chatInput.style.height = `${chatInput.scrollHeight}px`;
 });

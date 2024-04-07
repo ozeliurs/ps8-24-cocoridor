@@ -41,7 +41,6 @@
 html, body {
     /* background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00); */
     margin: 0;
-    padding-top: 25px; /* Augmentez cette valeur selon vos besoins */
     font-family: "Inter", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;

@@ -107,6 +107,19 @@ h1, h2 {
 
 }
 
+#waiting{
+    display: none;
+}
+
+#attente{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+    height: 50%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
 body{
     background-color:white
 }
@@ -369,4 +382,14 @@ header h2 {
   .chatbot header span {
     display: block;
   }
+}
+
+#msg{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: left;
+  padding: 10px 0; 
+  
 }
