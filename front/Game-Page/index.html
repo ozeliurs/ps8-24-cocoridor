@@ -4,30 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../Game-Page/gamePage.css">
+    <link rel="stylesheet" href="../global.css">
+
     <title>GamePage</title>
-    <script src="../Game-Page/gamePage.js"> </script>
-    <script src="../js/socket.io.js"> </script>
 </head>
 <body>
+    <button class="chatbot-toggler">
+        <span class="material-symbols-rounded">
+            <img src="../Game-Page/chat.png" alt="chat" width="100%" height="100%">
+        </span>
+        <span class="material-symbols-outlined"></span>
+      </button>
+      <div class="chatbot">
+        <header>
+          <h2>Chatbot</h2>
+          <span class="close-btn material-symbols-outlined"></span>
+        </header>
+        <ul class="chatbox">
+          <li class="chat incoming">
+            <span s="material-symbols-outlined">
+                <img src="../Game-Page/PouletJ1.png" alt="PouletJ1" width="100%" height="100%">
+            </span>
+          </li>
+        </ul>
+        <div class="chat-input">
+          <textarea placeholder="Enter a message..." spellcheck="false" required></textarea>
+          <span id="send-btn" class="material-symbols-rounded">
+            
+          </span>
+        </div>
+      </div>
+
     <h1>Cocoridor</h1>
     <h2 id="playerplaying"></h2>
+    <div id="playerTurn">
+    </div>
     <div id ="gameDiv">
-        <section id="game">
-        </section>
-        <section id = "gameCover" onclick="hideCover()">   
-        </section>
-
+        <section id="game"></section>
+        <section id = "gameCover" onclick="hideCover()"> </section>
     </div>
     <div>
         <button onclick="openChat()">
             chat
         </button>
-
     </div>
-
-    
-
- 
     <div id="chatPopup" style="display: none;">
         <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
         <button onclick="sendMessage()">Envoyer</button>
@@ -39,7 +59,6 @@
             <button>gagner2</button>
         </a>
     </div>
-
     <h1 class="attente">En attente d'un joueur</h1>
 
     <img class ="attente" src="../Game-Page/polos.gif" alt="Loading">
@@ -55,6 +74,12 @@
     </div>
     </br>
     <div id="messageBox"></div>
+    <br>
+
+    <button id="retour" onclick="window.location.href = '../index.html'">Retour</button>
+
+    <script src="../Game-Page/gamePage.js"> </script>
+    <script src="../js/socket.io.js"> </script>
 
     <script>
         function openChat() {
@@ -72,8 +97,6 @@
         function hideCover() {
             document.getElementById("gameCover").style.display = "none";
         }
-    </script>
-    <script>
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
         const user = urlParams.get('playerid');
@@ -153,8 +176,5 @@
         
 
     </script>
-    <br>
-
-    <button id="retour" onclick="window.location.href = '../index.html'">Retour</button>
 </body>
 </html>

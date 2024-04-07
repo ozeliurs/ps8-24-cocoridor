@@ -147,11 +147,9 @@ class TileFront {
     else if (this.occupied === true) {}
     else {
       let img = document.createElement("img");
-      console.log(this.occupied.image)
       img.src = this.occupied.image; 
       img.style.width = "100%"; 
       img.style.height = "100%";
-      console.log(img)
       this.element.appendChild(img)
     } 
 
@@ -407,20 +405,82 @@ function DisplayBoard(board,positions=null){
       gameDiv.appendChild(tile.groupElement);
     }
   }
+  let playerTurn = document.getElementById("playerTurn");
+  playerTurn.innerHTML="";
+  let img = document.createElement("img");
+  img.style.width = "100%"; 
+  img.style.height = "100%";
+
+
+  if (turnNb % 2 === 0) {
+    img.src="../Game-Page/FermierJ2.png"
+    playerTurn.appendChild(img) 
+    if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 1 puis jouez"));}
+    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 1 de jouer"))};
+  }
+  else {
+    img.src = "../Game-Page/PouletJ1.png"
+    playerTurn.appendChild(img) 
+    if(turnNb==1){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 2 puis jouez"));}
+    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 2 de jouer"));}
+  }
   if(mode === "local") {
-    let gameCover = document.getElementById("gameCover");
-    gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
-
-    if (turnNb % 2 === 0) {
-      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:blue; padding-top: 50px; padding-bottom: 50px;";
-      gameCover.innerHTML = "<img src=\"PouletJ1.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    }
-
-    else {
-      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:red; padding-top: 50px; padding-bottom: 50px;";
-
-      gameCover.innerHTML = "<img src=\"FermierJ2.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    }
+  
+    let gC = document.getElementById("gameCover");
+    gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 200px;padding-bottom: 400px;";
+    gC.innerHTML = "Cliquez pour continuer ...";
   }
 }
+
+
+const chatbotToggler = document.querySelector(".chatbot-toggler");
+const closeBtn = document.querySelector(".close-btn");
+const chatbox = document.querySelector(".chatbox");
+
+const chatInput = document.querySelector(".chat-input textarea");
+const sendChatBtn = document.querySelector(".chat-input span");
+
+let userMessage = null; // Variable to store user's message
+console.log(chatInput)
+console.log(chatInput.scrollHeight)
+const inputInitHeight = chatInput.scrollHeight;
+
+const createChatLi = (message, className) => {
+    const chatLi = document.createElement("li");
+    chatLi.classList.add("chat", `${className}`);
+    let chatContent = className === "outgoing" ? `<p></p>` : `<span class="material-symbols-outlined">smart_toy</span><p></p>`;
+    chatLi.innerHTML = chatContent;
+    chatLi.querySelector("p").textContent = message;
+    return chatLi; 
+}
+
+
+const handleChat = () => {
+    userMessage = chatInput.value.trim();
+    if(!userMessage) return;
+
+    chatInput.value = "";
+    chatInput.style.height = `${inputInitHeight}px`;
+
+    // Append the user's message to the chatbox
+    chatbox.appendChild(createChatLi(userMessage, "outgoing"));
+    chatbox.scrollTo(0, chatbox.scrollHeight);
+}
+
+chatInput.addEventListener("input", () => {
+    // Adjust the height of the input textarea based on its content
+    chatInput.style.height = `${inputInitHeight}px`;
+    chatInput.style.height = `${chatInput.scrollHeight}px`;
+});
+
+chatInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+        e.preventDefault();
+        handleChat();
+    }
+});
+
+sendChatBtn.addEventListener("click", handleChat);
+closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
 
