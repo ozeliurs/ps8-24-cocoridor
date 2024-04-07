@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             const img = document.createElement("img");
             img.setAttribute("src", "../FriendList/chat2.png");
             img.setAttribute("alt", "chat");
-            img.style.width = "3%";
-            img.style.height = "3%";
+            img.style.width = "5%";
+            img.style.height = "5%";
 
             // spanWithImage.appendChild(img);
 
@@ -52,6 +52,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             chatButton.classList.add("chatbot-toggler");
             chatButton.onclick = function() {
                 // window.location.href = `../FriendChat/index.html?friendId=${friend}`;
+                const chatHeader = document.querySelector(".chatbot header h2");
+                chatHeader.textContent = "Chat avec " + friend;
                 document.body.classList.toggle("show-chatbot");
             };
 
