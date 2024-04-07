@@ -431,8 +431,7 @@ function DisplayBoard(board,positions=null){
 const chatButtons= document.querySelectorAll(".msgButton");
 for(let button of chatButtons){
   button.addEventListener("click",()=>{
-    chatInput.value = button.textContent;
-    handleChat();
+    socket.emit('message',button.textContent,user);
   });
 }
 
@@ -456,13 +455,13 @@ const createChatLi = (message, className) => {
 }
 
 
-const handleChat = () => {
+const handleChat = (sender) => {
     userMessage = chatInput.value.trim();
     if(!userMessage) return;
-
     chatInput.value = "";
     chatInput.style.height = `${inputInitHeight}px`;
-    chatbox.appendChild(createChatLi(userMessage, "outgoing"));
+    if(sender !== user) chatbox.appendChild(createChatLi(userMessage, "incoming"));
+    else chatbox.appendChild(createChatLi(userMessage, "outgoing"));
     chatbox.scrollTo(0, chatbox.scrollHeight);
 }
 

@@ -368,10 +368,11 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             socket.emit("endGame", winners);
         }
     });
-    socket.on('start', async (gameId) => {
+    socket.on('start', async (idGame) => {
         playerList= back.getPlayerList();
         turnNb= back.getTurnNb();
         board= back.getBoard();
+        gameId = idGame;
         console.log("id: "+myId);
         let newBoard = back.BoardFor(playerList[myId]);
         socket.emit("launch", newBoard, back.getTurnNb(), gameId);
