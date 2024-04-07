@@ -12,9 +12,6 @@ function init(board,mode, turn) {
     else if(mode === "local"){
         playerList = [1,2];
     }
-    else if(mode === "1vs1"){
-        playerList = [1,2];
-    }
     boardHeight = board.length;
     boardLength = board[0].length;
     turnNb = turn;
