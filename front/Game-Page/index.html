@@ -80,6 +80,7 @@
         let gameId = urlParams.get('gameid');
         let waiting = document.getElementsByClassName("attente");
         var socket;
+        let gameSetUp = false;
         switch (mode) {
             case "local":
                 socket=io('/api/Localgame');
@@ -104,8 +105,8 @@
                 console.log("Mode inconnu");
                 break;
         }
-        socket.on("launch",(board,turnNb,idGame)=>{
-            gameId=idGame;
+        socket.on("launch",(board,turnNb)=>{
+            gameSetUp=false;
             init(board,mode,turnNb);
             DisplayBoard(board);
             for(let i=0;i<waiting.length;i++){
@@ -113,17 +114,21 @@
             }
         })
         socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
-        socket.on("choosePos",(boardPos)=>{DisplayBoard(boardPos.Board,boardPos.Positions)})
+        socket.on("choosePos",(boardPos)=>{gameSetUp=true;DisplayBoard(boardPos.Board,boardPos.Positions)})
         socket.on("endGame",(winners)=>{
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
             else window.location.href = "../EndPage/endPage.html?winner=0"
         })
-        socket.on("ready",(gameId)=>{
-            console.log("ready");
-            socket.emit('start',gameId);
+        socket.on("initChoosePos",(gameId)=>{
+            console.log("initChoosePos");
+            socket.emit('askForInitPos',gameId);
         })
-        socket.on("moved",(gameId)=>{
-            socket.emit('update',gameId);
+        socket.on("moved",()=>{
+            socket.emit('update');
+        })
+        socket.on("playersReady",()=>{
+            console.log("playersReady");
+            socket.emit('start');
         })
 
 
@@ -144,6 +149,8 @@
             messageElement.textContent = message;
             messageBox.appendChild(messageElement);
         });
+
+        
 
     </script>
     <br>

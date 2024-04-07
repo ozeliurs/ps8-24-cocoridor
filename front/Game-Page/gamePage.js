@@ -112,9 +112,10 @@ class TileFront {
   onClick() {
     let move = new Move(currentPlayerID(),this.X,this.Y);
     if(move == undefined)return;
-    if(mode =="newAi" && gameId==null) socket.emit("gameSetup",move,user)
-    else socket.emit("move",move,gameId,user);
-
+    console.log(gameSetUp)
+    console.log(move)
+    if(gameSetUp) socket.emit("gameSetup",move)
+    else socket.emit("move",move);
   }
 
   generateElement(){
@@ -276,7 +277,7 @@ class BorderFront{
    */
   onClick(vertical) {
     let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
-    socket.emit("wall",wall,gameId,user);
+    socket.emit("wall",wall);
 
   }
 
