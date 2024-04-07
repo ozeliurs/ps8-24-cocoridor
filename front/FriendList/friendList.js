@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
             friendElement.appendChild(chatButton);
+            adjustZoom();
 
             
         }
@@ -67,6 +68,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         console.error('Error:', error);
     });
 });
+
+function adjustZoom() {
+    const friendList = document.getElementById("friendList");
+    const friends = friendList.children;
+    let fontSize = 16; // Taille de police de base en pixels
+    let itemSpacing = 10; // Espacement de base entre les éléments en pixels
+
+    // Ajuster la taille de la police et l'espacement en fonction du nombre d'amis
+    if (friends.length > 5) {
+        fontSize += (friends.length - 5); // Augmenter la taille de la police
+        itemSpacing += (friends.length - 5); // Augmenter l'espacement
+    }
+
+    // Appliquer la taille de la police et l'espacement à chaque élément de la liste d'amis
+    for (const friend of friends) {
+        friend.style.fontSize = `${fontSize}px`;
+        friend.style.marginBottom = `${itemSpacing}px`;
+    }
+}
+
 
 const chatbotToggler = document.querySelector(".chatbot-toggler");
 const closeBtn = document.querySelector(".close-btn");
