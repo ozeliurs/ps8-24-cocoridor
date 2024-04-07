@@ -107,12 +107,11 @@ h1, h2 {
 
 }
 
-
-#attente{
+#waiting{
     display: none;
 }
 
-img{
+#attente{
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -383,4 +382,14 @@ header h2 {
   .chatbot header span {
     display: block;
   }
+}
+
+#msg{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: left;
+  padding: 10px 0; 
+  
 }
