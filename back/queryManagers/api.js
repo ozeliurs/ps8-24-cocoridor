@@ -46,9 +46,6 @@ async function manageRequest(request, response) {
         case 'clear':
             await db.clearDatabase();
             break;
-        case 'clearChat':
-            await db.clearChat();
-            break;
         case 'signup':
             await signup(request, response);
             break;
@@ -428,6 +425,7 @@ async function addMessage(request, response){
             response.end(JSON.stringify({ error: 'Données manquantes' }));  
             return;
         }
+        console.log("addMessage : ",body.username,body.friendName,body.message)
         await db.addMessage(body.username,body.friendName,body.message);
     })
 }

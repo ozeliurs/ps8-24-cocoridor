@@ -1,73 +1,4 @@
-document.addEventListener('DOMContentLoaded', async function() {
-    const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-    if (!usernameCookie) {
-        alert("Vous n'êtes pas connecté");
-        window.location.href = "../index.html";
-        return;
-    }
 
-    const nameUser = usernameCookie.split('=')[1];
-    console.log("nameUser : ", nameUser);
-
-    await fetch('http://localhost:8000/api/getFriends', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username: nameUser })
-    })
-    .then(response => response.json())
-    .then(data => {
-        const friends = data.friends;
-        const friendRequest = document.getElementById("friendList");
-        for (const friend of friends) {
-            const friendElement = document.createElement("div");
-            friendElement.textContent = friend;
-
-            friendRequest.appendChild(friendElement);
-
-
-            const chatButton = document.createElement("button");
-            //chatButton.textContent = "Chat";
-
-            // const spanWithImage = document.createElement("span");
-            // spanWithImage.classList.add("material-symbols-rounded");
-
-            const img = document.createElement("img");
-            img.setAttribute("src", "../FriendList/chat2.png");
-            img.setAttribute("alt", "chat");
-            img.style.width = "5%";
-            img.style.height = "5%";
-
-            // spanWithImage.appendChild(img);
-
-
-            // const emptySpan = document.createElement("span");
-            // emptySpan.classList.add("material-symbols-outlined");
-
-            // chatButton.appendChild(spanWithImage);
-            // chatButton.appendChild(emptySpan);
-            chatButton.appendChild(img);
-
-            chatButton.classList.add("chatbot-toggler");
-            chatButton.onclick = function() {
-                // window.location.href = `../FriendChat/index.html?friendId=${friend}`;
-                const chatHeader = document.querySelector(".chatbot header h2");
-                chatHeader.textContent = "Chat avec " + friend;
-                document.body.classList.toggle("show-chatbot");
-            };
-
-
-            friendElement.appendChild(chatButton);
-            adjustZoom();
-
-            
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-});
 
 function adjustZoom() {
     const friendList = document.getElementById("friendList");
@@ -97,30 +28,65 @@ const chatInput = document.querySelector(".chat-input textarea");
 const sendChatBtn = document.querySelector(".chat-input span");
 
 let userMessage = null; // Variable to store user's message
-console.log(chatInput)
-console.log(chatInput.scrollHeight)
 const inputInitHeight = chatInput.scrollHeight;
 
 const createChatLi = (message, className) => {
     const chatLi = document.createElement("li");
     chatLi.classList.add("chat", `${className}`);
-    let chatContent = className === "outgoing" ? `<p></p>` : `<span class="material-symbols-outlined">smart_toy</span><p></p>`;
+    let chatContent = className === "outgoing" ? 
+    `<span s="material-symbols-outlined">
+        <img
+            src="../Game-Page/FermierJ2.png"
+            alt="FermierJ2"
+            width="100%"
+            height="100%"
+        />
+    </span><p></p>` : 
+    `<span s="material-symbols-outlined">
+        <img
+            src="../Game-Page/PouletJ1.png"
+            alt="PouletJ1"
+            width="100%"
+            height="100%"
+        />
+    </span><p></p>`;    
     chatLi.innerHTML = chatContent;
     chatLi.querySelector("p").textContent = message;
     return chatLi; 
 }
 
 
-const handleChat = () => {
-    userMessage = chatInput.value.trim();
+const handleChat = async () => {
+    const userMessage = chatInput.value.trim();
     if(!userMessage) return;
-
     chatInput.value = "";
     chatInput.style.height = `${inputInitHeight}px`;
+    console.log("test")
+    console.log(nameUser+"/"+friendName+"/"+userMessage)
+    fetch("http://localhost:8000/api/addMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: nameUser,
+          friendName: friendName,
+          message: userMessage,
+        }),
+      })
+          .then((response) => {
+            if (response.ok) {
+              alert("Demande envoyée");
+            } else {
+              throw new Error("La requête a échoué");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      socket.emit('newMessage', nameUser, friendName);
+      await updateConv(nameUser, friendName);
 
-    // Append the user's message to the chatbox
-    chatbox.appendChild(createChatLi(userMessage, "outgoing"));
-    chatbox.scrollTo(0, chatbox.scrollHeight);
 }
 
 chatInput.addEventListener("input", () => {
@@ -136,6 +102,35 @@ chatInput.addEventListener("keydown", (e) => {
     }
 });
 
-sendChatBtn.addEventListener("click", handleChat);
+
+async function updateConv(nameUser, friendName) {
+    console.log("updateConv")
+    await fetch("http://localhost:8000/api/getConv", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username: nameUser, friendName: friendName }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        chatbox.innerHTML = "";
+        const conv = data.conv;
+        for (const message of conv) {
+          if (message.split("/")[0] === nameUser) {
+            chatbox.appendChild(createChatLi(message.split("/")[1], "outgoing"));
+          } else {
+            chatbox.appendChild(createChatLi(message.split("/")[1], "incoming"));
+          }
+          chatbox.scrollTo(0, chatbox.scrollHeight);
+
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
+  
+sendChatBtn.addEventListener("click", handleChat());
 closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
 chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
