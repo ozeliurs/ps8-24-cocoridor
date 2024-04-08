@@ -87,87 +87,93 @@
     <script src="../js/socket.io.js"></script>
 
     <script>
-      function hideCover() {
-        document.getElementById("gameCover").style.display = "none";
-      }
-      const urlParams = new URLSearchParams(window.location.search);
-      const mode = urlParams.get("mode");
-      const user = urlParams.get("playerid");
-      let gameId = urlParams.get("gameid");
-      let waiting = document.getElementsByClassName("attente");
-      var socket;
-      switch (mode) {
-        case "local":
-          socket = io("/api/Localgame");
-          break;
-        case "newAi":
-          document.addEventListener('DOMContentLoaded', async function() {
-            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-            if (!usernameCookie) {
-              alert("Vous n'êtes pas connecté, la partie ne sera pas enregistrée");
-            }
-          });
-          socket = io("/api/AIgame");
-          socket.emit("newGame", user);
-          break;
-        case "getAi":
-          document.addEventListener('DOMContentLoaded', async function() {
-            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-            if (!usernameCookie) {
-              alert("Vous n'êtes pas connecté");
-              window.location.href = "../index.html";
-            }
-          });
-          socket = io("/api/AIgame");
-          socket.emit("retrieveGame", user, gameId);
-          break;
-        case "1vs1":
-          document.addEventListener('DOMContentLoaded', async function() {
-            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-            if (!usernameCookie) {
-              alert("Vous n'êtes pas connecté");
-              window.location.href = "../index.html";
-              return;
-            }
-          });
-          socket = io("/api/1vs1");
-          document.getElementById("waiting").style.display = "block";
-          document.getElementById("notwaiting").style.display = "none";
+        function openChat() {
+            document.getElementById("chatPopup").style.display = "block";
+        }
 
-          socket.emit("sendInfo", user);
-          break;
-        default:
-          console.log("Mode inconnu");
-          window.location.href = "../index.html";
-          break;
-      }
-      socket.on("launch", (board, turnNb, idGame) => {
-        gameId = idGame;
-        init(board, mode, turnNb);
-        DisplayBoard(board);
-        document.getElementById("waiting").style.display = "none";
-        document.getElementById("notwaiting").style.display = "block";
-      });
-      socket.on("updateBoard", (board) => {
-        turnNb++;
-        DisplayBoard(board);
-      });
-      socket.on("choosePos", (boardPos) => {
-        DisplayBoard(boardPos.Board, boardPos.Positions);
-      });
-      socket.on("endGame", (winners) => {
-        if (winners.length == 1)
-          window.location.href =
-            "../EndPage/endPage.html?winner=" + winners[0].id;
-        else window.location.href = "../EndPage/endPage.html?winner=0";
-      });
-      socket.on("ready", (gameId) => {
-        console.log("ready");
-        socket.emit("start", gameId);
-      });
-      socket.on("moved", (gameId) => {
-        socket.emit("update", gameId);
-      });
+        function closeChat() {
+            document.getElementById("chatPopup").style.display = "none";
+        }
+
+        function sendMessage() {
+            var message = document.getElementById("chatInput").value;
+            console.log("Message envoyÃ© : " + message);
+        }
+        function hideCover() {
+            document.getElementById("gameCover").style.display = "none";
+        }
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const user = urlParams.get('playerid');
+        let gameId = urlParams.get('gameid');
+        let waiting = document.getElementsByClassName("attente");
+        var socket;
+        let gameSetUp = false;
+        switch (mode) {
+            case "local":
+                socket=io('/api/Localgame');
+                break;
+            case "newAi":
+                socket=io('/api/AIgame');
+                socket.emit('newGame',user);
+                break;
+            case "getAi":
+                socket=io('/api/AIgame');
+                socket.emit('retrieveGame',user,gameId);
+                break;
+            case "1vs1":
+                socket=io('/api/1vs1');
+
+                for(let i=0;i<waiting.length;i++){
+                    waiting[i].style.display = "block";
+                }
+                socket.emit('sendInfo',user);
+                break;
+            default:
+                console.log("Mode inconnu");
+                break;
+        }
+        socket.on("launch",(board,turnNb)=>{
+            gameSetUp=false;
+            init(board,mode,turnNb);
+            DisplayBoard(board);
+            for(let i=0;i<waiting.length;i++){
+                waiting[i].style.display = "none";
+            }
+        })
+        socket.on("initChoosePos",(gameId)=>{
+            console.log("initChoosePos");
+            socket.emit('askForInitPos',gameId);
+        })
+        socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
+            turnNb = turnNumber
+            gameSetUp=true;
+            console.log(playerList)
+            playerList = playerL;
+            DisplayBoard(boardPos.Board,boardPos.Positions);
+        })
+        socket.on("playersReady",()=>{
+            console.log("playersReady");
+            socket.emit('start');
+        })
+        socket.on("moved",()=>{
+            socket.emit('update');
+        })
+        socket.on("updateBoard",(board,turnNumber)=>{
+            turnNb=turnNumber;
+            DisplayBoard(board);
+        })
+        socket.on("endGame",(winners)=>{
+            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
+            else window.location.href = "../EndPage/endPage.html?winner=0"
+        })
+
+
+        document.getElementById("btnChat").addEventListener('click', function() {
+            var messageButtons = document.getElementById("messageButtons");
+            messageButtons.style.display = 'block'; // Affiche les boutons de messages
+        });
+
       socket.on("message", (msg,user) => {
         chatInput.value = msg;
         handleChat(user);
