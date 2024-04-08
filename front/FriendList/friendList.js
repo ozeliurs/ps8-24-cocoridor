@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             const img = document.createElement("img");
             img.setAttribute("src", "../FriendList/chat2.png");
             img.setAttribute("alt", "chat");
-            img.style.width = "5%";
-            img.style.height = "5%";
+            img.style.width = "50%";
+            img.style.height = "50%";
 
             // spanWithImage.appendChild(img);
 
