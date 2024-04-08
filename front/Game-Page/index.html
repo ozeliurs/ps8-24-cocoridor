@@ -1,90 +1,181 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../Game-Page/gamePage.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../Game-Page/gamePage.css" />
     <title>GamePage</title>
-    <script src="../Game-Page/gamePage.js"> </script>
-    <script src="../js/socket.io.js"> </script>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Cocoridor</h1>
-    <h2 id="playerplaying"></h2>
-    <div id ="gameDiv">
-        <section id="game">
-        </section>
-        <section id = "gameCover" onclick="hideCover()">   
-        </section>
+    <section id="notwaiting">
+      <h2 id="playerplaying"></h2>
+      <div>
+        <div id="msg">
+          <button class="msgButton">😛</button>
+          <button class="msgButton">😖</button>
+          <button class="msgButton">😡</button>
+          <button class="msgButton">😭</button>
+        </div>
+        <div id="playerTurn"></div>
+      </div>
+      <div id="gameDiv">
+        <section id="game"></section>
+        <section id="gameCover" onclick="hideCover()"></section>
+      </div>
+      <button class="chatbot-toggler">
+        <span class="material-symbols-rounded">
+          <img
+            src="../Game-Page/chat.png"
+            alt="chat"
+            width="100%"
+            height="100%"
+          />
+        </span>
+        <span class="material-symbols-outlined"></span>
+      </button>
+      <div class="chatbot">
+        <header>
+          <h2>Chatbot</h2>
+          <span class="close-btn material-symbols-outlined"></span>
+        </header>
+        <ul class="chatbox">
+          <li class="chat incoming">
+            <span s="material-symbols-outlined">
+              <img
+                src="../Game-Page/PouletJ1.png"
+                alt="PouletJ1"
+                width="100%"
+                height="100%"
+              />
+            </span>
+          </li>
+        </ul>
+        <div class="chat-input">
+          <textarea
+            placeholder="Enter a message..."
+            spellcheck="false"
+            required
+          ></textarea>
+          <span id="send-btn" class="material-symbols-rounded"> </span>
+        </div>
+      </div>
+
+    </section>
+    <div id="waiting">
+      <h1 class="attente">En attente d'un joueur</h1>
+      <img id="attente" src="../Game-Page/polos.gif" alt="Loading" />
+      <a href="../index.html"><button>Annuler</button></a>
     </div>
-    
-    <button onclick="openChat()">
-        chat
-    </button>
- 
-    <div id="chatPopup" style="display: none;">
-        <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
-        <button onclick="sendMessage()">Envoyer</button>
-        <button onclick="closeChat()">Fermer</button>
-        <a href="../EndPage/endPage.html?winner=1">
-            <button>gagner1</button>
-        </a>
-        <a href="../EndPage/endPage.html?winner=2">
-            <button>gagner2</button>
-        </a>
-    </div>
+
+    <script src="../Game-Page/gamePage.js"></script>
+    <script src="../js/socket.io.js"></script>
 
     <script>
-        function openChat() {
-            document.getElementById("chatPopup").style.display = "block";
-        }
+      function hideCover() {
+        document.getElementById("gameCover").style.display = "none";
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const mode = urlParams.get("mode");
+      const user = urlParams.get("playerid");
+      let gameId = urlParams.get("gameid");
+      let waiting = document.getElementsByClassName("attente");
+      var socket;
+      let gameSetUp = false;
+      switch (mode) {
+        case "local":
+          socket = io("/api/Localgame");
+          break;
+        case "newAi":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté, la partie ne sera pas enregistrée");
+            }
+          });
+          socket = io("/api/AIgame");
+          socket.emit("newGame", user);
+          break;
+        case "getAi":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté");
+              window.location.href = "../index.html";
+            }
+          });
+          socket = io("/api/AIgame");
+          socket.emit("retrieveGame", user, gameId);
+          
+          break;
+        case "1vs1":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté");
+              window.location.href = "../index.html";
+              return;
+            }
+            
+          });
+          document.getElementById("msg").style.display = "block";
+          document.getElementsByClassName("chatbot-toggler")[0].style.display="flex";
 
-        function closeChat() {
-            document.getElementById("chatPopup").style.display = "none";
-        }
+          socket = io("/api/1vs1");
 
-        function sendMessage() {
-            var message = document.getElementById("chatInput").value;
-            console.log("Message envoyÃ© : " + message);
+          document.getElementById("waiting").style.display = "block";
+          document.getElementById("notwaiting").style.display = "none";
+          socket.emit('sendInfo',user);
+          break;
+        default:
+          console.log("Mode inconnu");
+          break;
         }
-        function hideCover() {
-            document.getElementById("gameCover").style.display = "none";
-        }
-    </script>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode');
-        const user = urlParams.get('playerid');
-        let gameId = urlParams.get('gameid');
-        var socket;
-        switch (mode) {
-            case "local":
-                socket=io('/api/Localgame');
-                break;
-            case "newAi":
-                socket=io('/api/AIgame');
-                socket.emit('newGame',user);
-                break;
-            case "getAi":
-                socket=io('/api/AIgame');
-                socket.emit('retrieveGame',user,gameId);
-                break;
-            default:
-                console.log("Mode inconnu");
-                break;
-        }
-        socket.on("launch",(board,turnNb,idGame)=>{gameId=idGame;init(board,mode,turnNb);DisplayBoard(board);})
-        socket.on("updateBoard",(board)=>{turnNb++;DisplayBoard(board);})
-        socket.on("choosePos",(boardPos)=>{DisplayBoard(boardPos.Board,boardPos.Positions)})
+        
+        socket.on("initChoosePos",(gameId)=>{
+            console.log("initChoosePos");
+            socket.emit('askForInitPos',gameId);
+          document.getElementById("waiting").style.display = "none";
+          document.getElementById("notwaiting").style.display = "block";
+        })
+        socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
+            turnNb = turnNumber
+            gameSetUp=true;
+            playerList = playerL;
+            DisplayBoard(boardPos.Board,boardPos.Positions);
+        })
+        socket.on("launch",(board,turnNb)=>{
+            gameSetUp=false;
+            init(board,mode,turnNb);
+            DisplayBoard(board);
+            for(let i=0;i<waiting.length;i++){
+                waiting[i].style.display = "none";
+            }
+        })
+        socket.on("playersReady",()=>{
+            console.log("playersReady");
+            socket.emit('start');
+        })
+        socket.on("moved",()=>{
+            socket.emit('update');
+        })
+        socket.on("updateBoard",(board,turnNumber)=>{
+            turnNb=turnNumber;
+            DisplayBoard(board);
+        })
         socket.on("endGame",(winners)=>{
-            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0].id;
+            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
             else window.location.href = "../EndPage/endPage.html?winner=0"
         })
+        socket.on("message", (msg,user) => {
+          chatInput.value = msg;
+          handleChat(user);
+        });
 
-
+      document.getElementById("btnChat").addEventListener("click", function () {
+        var messageButtons = document.getElementById("messageButtons");
+        messageButtons.style.display = "block"; // Affiche les boutons de messages
+      });
     </script>
-    <br>
-
-    <button id="retour" onclick="window.location.href = '../index.html'">Retour</button>
-</body>
+  </body>
 </html>

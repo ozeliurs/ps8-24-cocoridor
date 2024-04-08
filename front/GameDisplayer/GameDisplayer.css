@@ -1,10 +1,13 @@
 body {
-    background-color: #e8662f; /* Couleur de fond */
-    font-family: Arial, sans-serif; /* Police de caractère */
-    margin: 0; /* Marge de 0 */
-    padding: 0; /* Espacement de 0 */
-
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    background: linear-gradient(to bottom right, #f7e9b3, #f5a56f, #fff2be);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
 }
+
 
 /* Style pour le titre */
 h1 {

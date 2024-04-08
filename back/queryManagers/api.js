@@ -2,6 +2,8 @@
 
 const db = require("../database/database")
 
+
+
 async function manageRequest(request, response) {
     // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
     let url = new URL(
@@ -11,6 +13,44 @@ async function manageRequest(request, response) {
     let endpoint = url.pathname.split('/')[2]; // Supposant que l'URL est sous la forme /api/endpoint
 
     switch (endpoint) {
+        case 'print':
+            user = await db.getUsers();
+            result = await user.find().toArray();
+            console.log(result);
+            break;
+        case 'printConv':
+            user = await db.getUsers();
+            result = await user.find().toArray();
+            for (const user of result) {
+                for(const conv of user.conv){
+                    console.log(conv)
+                }
+            }
+            break;
+        case 'addMessage':
+            await addMessage(request, response);
+            break;
+        case 'getConv':
+            await getConv(request, response);
+            break;
+        case 'addFriend':
+            await addFriend(request, response);
+            break;
+        case 'getFriends':
+            await getFriends(request, response);
+            break;
+        case 'getFriendsRequest':
+            await sendFriendRequest(request, response);
+            break;
+        case 'getFriends':
+            await getFriends(request, response);
+            break;
+        case 'getElo':
+            await getElo(request, response);
+            break;
+        case 'friendRequest':
+            await friendRequest(request, response);
+            break;
         case 'clear':
             await db.clearDatabase();
             break;
@@ -29,7 +69,6 @@ async function manageRequest(request, response) {
         case 'retrieveUserGames':
             await retrieveUserGames(request, response);
             break;
-
         default:
             response.writeHead(404, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Endpoint non trouvé' }));
@@ -49,13 +88,17 @@ function parsejson(request) {
     });
 }
 
-async function createOrUpdateUser(email, username, password, response, isNewUser) {
+async function createOrUpdateUser(email, username, password,response, isNewUser) {
 
     if (isNewUser) {
         const newUser = {
             email: email,
             username: username,
-            password: password
+            password: password,
+            friends: [],
+            friendRequests: [],
+            conv:[],
+            elo: 1000
         };
         let userCreated = await db.createUser(newUser);
         if (userCreated) {
@@ -70,7 +113,11 @@ async function createOrUpdateUser(email, username, password, response, isNewUser
         const updatedUser = {
             email: email,
             username: username,
-            password: password
+            password: password,
+            friends: [],
+            friendRequests: [],
+            conv:[],
+            elo: 1000
         };
         let userUpdated = await db.updateUser(updatedUser);
         if (userUpdated) {
@@ -81,6 +128,41 @@ async function createOrUpdateUser(email, username, password, response, isNewUser
             response.end(JSON.stringify({error: 'Erreur lors de la mise à jour de l\'utilisateur'}));
         }
     }
+}
+
+async function getElo(request, response) {
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if (!body.username) {
+            response.writeHead(400, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Données manquantes'}));
+            return;
+        }
+        console.log(body);
+        let elo = await getUserElo(body.username);
+        console.log(elo);
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify({elo: elo}));
+    });
+}
+
+async function getUserElo(username) {
+    let user = await db.getUser(username);
+    if (!user) {
+        return null;
+    }
+    return user.elo;
+}
+
+async function updateElo(username, elo) {
+    let user = await db.getUser(username);
+    user.elo = elo;
+    await db.updateUser(user);
+    return user.elo;
 }
 
 async function createGame(idUser, board, turnNb,playerList, response = null) {
@@ -144,17 +226,12 @@ async function signup(request, response) {
             return;
         }
         console.log('username : '+ body.username);
-        const users = await db.getUsers();
-        const user = await users.findOne({ username: body.username });
+        const user = await db.getUser(body.username);
 
         if(user){
-            await createOrUpdateUser(
-                body.email,
-                body.username,
-                body.password,
-                response,
-                false
-            );
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Nom d\'utilisateur déjà utilisé' }));
+            return;
         }else{
             await createOrUpdateUser(
                 body.email,
@@ -295,9 +372,128 @@ function addCors(response) {
     response.setHeader('Access-Control-Allow-Credentials', true);
 }
 
+async function friendRequest(request, response){
+    console.log("friendRequest")
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+       console.log("body : ",body)
+       if (!body.username || !body.friendName) {
+        response.writeHead(400, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Données manquantes' }));
+        return;
+    }
+    console.log(await db.addFriendRequest(body.username,body.friendName));
+    });
+}
+
+
+async function sendFriendRequest(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        console.log("sendFriendRequest : ",body.username)
+        let friends=await db.getFriendRequests(body.username);
+        console.log("friends : ",friends)
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ friends: friends }));
+    });
+        
+}
+
+
+async function addFriend(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        await db.addFriend(body.username,body.friendName);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ message: 'connexion succés' }));
+    });
+        
+}
+
+
+async function getFriends(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let friends=await db.getFriends(body.username);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ friends: friends }));
+    });
+        
+}
+
+async function addMessage(request, response){
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username || !body.friendName || !body.message){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));  
+            return;
+        }
+        console.log("addMessage : ",body.username,body.friendName,body.message)
+        await db.addMessage(body.username,body.friendName,body.message);
+    })
+}
+
+async function getConv(request, response){
+
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if(!body.username || !body.friendName){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        let conv=await db.getConv(body.username,body.friendName);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ conv: conv }));
+    });
+    
+
+}
 exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;
 exports.getGame = getGame;
+exports.getUserElo = getUserElo;
+exports.updateElo = updateElo;
 
 

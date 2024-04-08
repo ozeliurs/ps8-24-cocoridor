@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="../FriendChat/friendChat.css">
+
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+    <!-- <style>
+        #chatContent {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px; /* Pour l'espace entre le formulaire et la div */
+            min-height: 100px; /* Hauteur minimale de la div */
+            overflow-y: auto; /* Pour permettre le défilement si le contenu dépasse la hauteur */
+        }
+    </style> -->
+</head>
+<body>
+    <button class="chatbot-toggler">
+        <span class="material-symbols-rounded">mode_comment</span>
+        <span class="material-symbols-outlined">close</span>
+    </button>
+    <div class="container">
+        <h1 id="title">Chat avec </h1>
+        <span class="close-btn material-symbols-outlined">close</span>
+        <ul class="chatbox">
+            <li class="chat incoming">
+              <span class="material-symbols-outlined">smart_toy</span>
+              <p>Hi there 👋<br>How can I help you today?</p>
+            </li>
+          </ul>
+
+        <div class="chat-input">
+            <textarea placeholder="Enter a message..." spellcheck="false" required></textarea>
+            <span id="send-btn" class="material-symbols-rounded">send</span>
+          </div>
+        </div>
+
+
+        <script>
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const friendId = urlParams.get('friendId');
+    
+                if (friendId) {
+                    document.getElementById("title").textContent += friendId;
+                } else {
+                    document.getElementById("title").textContent += "";
+                }
+            });
+        </script>
+
+
+        <form id="addFriendForm">
+            <label for="friendName">Chat</label>
+            <input type="text" id="textContent" required>
+            <button type="submit">Envoyer</button>
+        </form>
+        
+        <!-- Ajouter la div rectangulaire blanche ici -->
+        <div id="chatContent">
+        </div>
+    </div>
+    <script src="../FriendChat/friendChat.js"></script>
+    <script src="../js/socket.io.js"> </script>
+    <script>
+        const socket = io("/api/friendChat");
+        const friendName = new URLSearchParams(window.location.search).get(
+            "friendId"
+        );
+        const usernameCookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("nomCookie="));
+
+        const nameUser = usernameCookie.split("=")[1];
+        socket.emit('join', nameUser, friendName);
+
+        socket.on('updateMessage', async () => {
+            await updateConv(nameUser, friendName);
+        });
+    </script>
+</body>
+</html>

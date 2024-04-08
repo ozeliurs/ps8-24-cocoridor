@@ -1,6 +1,6 @@
 let boardLength = 9;
 let boardHeight = 9;
-let playerList = [1,2];
+let playerList;
 let turnNb = 0;
 
 
@@ -62,7 +62,7 @@ class TileFront {
    * @param {BorderFront} bRight
    * @param {BorderFront} bDown
    * @param {BorderFront} edge
-   * @param {Player | Boolean} occupiedBy
+   * @param {PlayerGameInstance | Boolean} occupiedBy
    */
   constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
     this.X = Math.floor(x);
@@ -107,11 +107,10 @@ class TileFront {
   }
 
   onClick() {
-    let move = new Move(currentPlayerID(),this.X,this.Y);
+    let move = new Move(this.X,this.Y);
     if(move == undefined)return;
-    if(mode =="newAi" && gameId==null) socket.emit("gameSetup",move,user)
-    else socket.emit("move",move,gameId,user);
-
+    if(gameSetUp) socket.emit("gameSetup",move)
+    else socket.emit("move",move);
   }
 
   generateElement(){
@@ -122,26 +121,18 @@ class TileFront {
 
     this.element.addEventListener("click", this.onClick.bind(this));
 
-    // Debut highlight deplacement
-    /*this.element.addEventListener("mouseover", ()=>{
-      let tile = getTile(this.X,this.Y)
-
-      let dir = this.tileInDir();
-      while(this.occupied!=null){
-        tile = tile.getTileInDir(dir)
-      }
-      this.highlight = tile
-      this.highlight.element.style.backgroundColor = Color.highlight.toStyle()
-    });
-    this.element.addEventListener("mouseout", ()=>{
-      if(this.highlight==null)return
-      this.highlight.element.style.backgroundColor = ""
-    });*/
     this.element.classList.add("tile");
 
     if(this.occupied === false) this.element.style.backgroundColor = Color.darkGrey.toStyle();
     else if (this.occupied === true) {}
-    else this.element.style.backgroundColor = new Color(this.occupied.color.R,this.occupied.color.G,this.occupied.color.B).toStyle();
+    else {
+      let img = document.createElement("img");
+      console.log(this.occupied)
+      img.src = this.occupied.image; 
+      img.style.width = "100%"; 
+      img.style.height = "100%";
+      this.element.appendChild(img)
+    } 
 
     this.groupElement.appendChild(this.element);
 
@@ -264,50 +255,27 @@ class BorderFront{
    * @param {Boolean} vertical
    */
   onClick(vertical) {
-    let wall = new Wall(currentPlayerID(),this.X,this.Y,vertical);
-    socket.emit("wall",wall,gameId,user);
+    let wall = new Wall(this.X,this.Y,vertical);
+    socket.emit("wall",wall);
 
   }
 
 }
 
 class Action {
-  /**
-   *
-   * @param {Number} playerID
-   */
-  constructor(playerID){
-    this.playerID = playerID;
+  constructor(x,y){
+    this.x = x
+    this.y = y
   }
 }
 
 class Move extends Action{
   /**
-   *
-   * @param {Number} playerID
    * @param {Number} x
    * @param {Number} y
    */
-  constructor(playerID, x,y){
-    super(playerID);
-     this.x =x;
-     this.y =y;
-
-
-
-    // let start = currentPlayer().getTile();
-    // let end = getTile(x,y);
-    // let dirs = start.tileInDir(end);
-    // let path = aStar({start:start,end:end,maxCost:travelDist});
-    // if(path==null) return undefined;
-    // while(path.node.occupied!=null){
-    //   path = aStar({start,end,maxCost:dirs.length,jumpwall:jumpOverWall});
-    //   if(path==null) return undefined;
-    //   start = end;
-    //   end = path.node.getTileInDir(dirs);
-    // }
-    // this.X = path.node.X;
-    // this.Y = path.node.Y;
+  constructor(x,y){
+    super(x,y)
 
   }
 }
@@ -315,15 +283,12 @@ class Move extends Action{
 class Wall extends Action{
   /**
    *
-   * @param {Player} player
    * @param {Number} x
    * @param {Number} y
    * @param {Boolean} vertical
    */
-  constructor(playerID, x, y, vertical){
-    super(playerID);
-    this.x = x;
-    this.y = y;
+  constructor(x, y, vertical){
+    super(x,y)
     this.vertical = vertical;
   }
 
@@ -344,13 +309,6 @@ function getTile(x, y) {
   if(x==null || y==null)return null;
   if(x<0 || x>=boardLength || y<0 || y>=boardHeight) return null;
   return currentBoard[y][x];
-}
-/**
- *
- * @returns {Number} player that is playing
- */
-function currentPlayerID(){
-  return playerList[turnNb%playerList.length];
 }
 /**
  *
@@ -395,20 +353,99 @@ function DisplayBoard(board,positions=null){
       gameDiv.appendChild(tile.groupElement);
     }
   }
+  let playerTurn = document.getElementById("playerTurn");
+  playerTurn.innerHTML="";
+  let img = document.createElement("img");
+  img.style.width = "100%"; 
+  img.style.height = "100%";
+
+  console.log("Trun nb: "+turnNb)
+  if (turnNb % 2 === 1) {
+    img.src="../Game-Page/FermierJ2.png"
+    playerTurn.appendChild(img) 
+    if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 1 puis jouez"));}
+    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 1 de jouer"))};
+  }
+  else {
+    img.src = "../Game-Page/PouletJ1.png"
+    playerTurn.appendChild(img) 
+    if(turnNb==1){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 2 puis jouez"));}
+    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 2 de jouer"));}
+  }
   if(mode === "local") {
-    let gameCover = document.getElementById("gameCover");
-    gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 50px; padding-bottom: 50px;";
-
-    if (turnNb % 2 === 0) {
-      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:blue; padding-top: 50px; padding-bottom: 50px;";
-      gameCover.innerHTML = "<img src=\"PouletJ1.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    }
-
-    else {
-      gameCover.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; color:red; padding-top: 50px; padding-bottom: 50px;";
-
-      gameCover.innerHTML = "<img src=\"FermierJ2.png\" alt=\"Au tour de player" + (turnNb % 2 + 1) + " ...\" style=\"width: 500px; height: 500px; text-align:center; margin:auto; display:flex;\"> Cliquer pour continuer ...";
-    }
+  
+    let gC = document.getElementById("gameCover");
+    gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 200px;padding-bottom: 400px;";
+    gC.innerHTML = "Cliquez pour continuer ...";
   }
 }
+
+const chatButtons= document.querySelectorAll(".msgButton");
+for(let button of chatButtons){
+  button.addEventListener("click",()=>{
+    socket.emit('message',button.textContent,user);
+  });
+}
+
+const chatbotToggler = document.querySelector(".chatbot-toggler");
+const closeBtn = document.querySelector(".close-btn");
+const chatbox = document.querySelector(".chatbox");
+
+const chatInput = document.querySelector(".chat-input textarea");
+const sendChatBtn = document.querySelector(".chat-input span");
+
+let userMessage = null; // Variable to store user's message
+const inputInitHeight = chatInput.scrollHeight;
+
+const createChatLi = (message, className) => {
+  const chatLi = document.createElement("li");
+  chatLi.classList.add("chat", `${className}`);
+  let chatContent = className === "outgoing" ? 
+  `<span s="material-symbols-outlined">
+      <img
+          src="../Game-Page/FermierJ2.png"
+          alt="FermierJ2"
+          width="100%"
+          height="100%"
+      />
+  </span><p></p>` : 
+  `<span s="material-symbols-outlined">
+      <img
+          src="../Game-Page/PouletJ1.png"
+          alt="PouletJ1"
+          width="100%"
+          height="100%"
+      />
+  </span><p></p>`;    
+  chatLi.innerHTML = chatContent;
+  chatLi.querySelector("p").textContent = message;
+  return chatLi; 
+}
+
+
+const handleChat = (sender) => {
+    userMessage = chatInput.value.trim();
+    if(!userMessage) return;
+    chatInput.value = "";
+    chatInput.style.height = `${inputInitHeight}px`;
+    if(sender !== user) chatbox.appendChild(createChatLi(userMessage, "incoming"));
+    else chatbox.appendChild(createChatLi(userMessage, "outgoing"));
+    chatbox.scrollTo(0, chatbox.scrollHeight);
+}
+
+chatInput.addEventListener("input", () => {
+    chatInput.style.height = `${inputInitHeight}px`;
+    chatInput.style.height = `${chatInput.scrollHeight}px`;
+});
+
+chatInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+        e.preventDefault();
+        handleChat();
+    }
+});
+
+sendChatBtn.addEventListener("click", handleChat);
+closeBtn.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
+chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
 

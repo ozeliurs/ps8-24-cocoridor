@@ -3,66 +3,97 @@
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
-    height: 100%;
     gap:40px;
-    background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00);
+    width: 100vw;
 }
+
 
 .gameModeButton{
     margin: 0 10px;
 }
 
 .btn{
-    height: 150px;
+    height: 48px;
     width: 225px;
-    font-size: 1.5em;
-    border: 2px solid #ff6347;  
-    border-radius: 40px;
+    font-size: 20px;
+    border: none;  
+    background-color: #D9D9D9;
+    /* border-radius: 40px; */
     font-family: 'Arial', sans-serif;
-    cursor: url(logo.png),pointer ;
+    cursor: pointer ;
     transition: 0.2s ease-in-out;
 
 }
 
 .btn:hover {
     background-size: cover;
+    transform: scale(1.05);
+    box-shadow:  0 0 10px #00000028;
+}
+
+.iconContainer{
+    width: 225px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 html, body {
+    height: 100vh;
+    background: linear-gradient(to bottom right, #f7e9b3, #f5a56f, #fff2be); 
     margin: 0;
-    padding-top: 25px; /* Augmentez cette valeur selon vos besoins */
-    height: 100%;
-}
-
-#upperZone{
-    display: flex;
-    flex-direction: row;
-}
-#playerCard{
-    width: 100vw;
-    justify-content: flex-end;
-    display: flex;
-    flex-direction: row;
-    zoom: 60%;
-}
-#playerProfile {
-    display: flex;
-    justify-content:center;
-    background-color: #ffcc00;
-    border-radius: 8px;
-    padding: 30px;
-    margin-left: -50px;
-    margin-right:-50px;
-    height: fit-content;
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "slnt" 0;
     
 }
 
-#playerPicture {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    overflow: hidden;
+#upperZone{
+    flex-direction: row;
+    width: 90%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 20px;
+    align-items: center;
+}
 
+.upperBtns{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+#playerProfile {
+    display: flex;
+    justify-content:center;
+    background-color: #fff45c;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    gap: 10px;
+    width: 200px;
+    flex-direction: row;
+    justify-content: space-between ;
+    align-items: center;
+    /* margin-left: -50px;
+    margin-right:-50px; */
+}
+
+#playerInfo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+}
+
+#playerPicture {
+    width: 50px;
+    height: 60px;
+    overflow: hidden;
 }
 
 #playerPicture img {
@@ -72,17 +103,20 @@ html, body {
 }
 
 #playerName {
-    font-size: 3em;
-    color: #c00;
+    font-size: 20px;
+    color: white;
+    background-color: red;
+    text-align: center;
+    padding: 5px;
 }
 
-#playerInfo{
-    font-weight: bold;
-}
 
 #playerRank {
-    font-size: 1.5em;
+    font-size: 22px;
+    background-color: red;
     color: #fff;
+    padding: 5px;
+    width: fit-content;
 }
 
 .shell{
@@ -99,9 +133,9 @@ html, body {
     flex-direction: row;
     justify-content: space-evenly;
     flex-wrap: wrap;
-    width: 100vw;
+    width: 100%;
     gap:10px;
-    margin-bottom:70px;
+    /* margin-bottom:70px; */
 }
 
 
@@ -124,7 +158,8 @@ html, body {
 }
 
 #signUp:hover {
-    background-color: #45a049; /* Darker green on hover */
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #00000028;
 }
 
 /* Styling for the Sign In button */
@@ -146,5 +181,6 @@ html, body {
 }
 
 #signIn:hover {
-    background-color: #007ba7; /* Darker blue on hover */
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #00000028;
 }
