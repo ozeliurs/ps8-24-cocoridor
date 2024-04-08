@@ -97,17 +97,17 @@ class GameState{
    * 
    * @param {PlayerAccount[]} accountList 
    */
-  setPlayers(accountList){
+  setPlayers(accountList,randomise){
     let firstPlayer;
     let secondPlayer;
     //TODO Recup player Account thanks to ID
-    if(Math.round(Math.random())==0){
-      firstPlayer = accountList[0];
-      secondPlayer = accountList[1];
-    }
-    else {
+    if(!randomise || Math.round(Math.random())==0){
       firstPlayer = accountList[1];
       secondPlayer = accountList[0];
+    }
+    else {
+      firstPlayer = accountList[0];
+      secondPlayer = accountList[1];
     }
     firstPlayer = new PlayerGameInstance(firstPlayer,this.topTiles,this.bottomTiles,1,this.gameParams.nbWallsPerPlayer,this.id);
     secondPlayer = new PlayerGameInstance(secondPlayer,this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
@@ -1061,10 +1061,10 @@ function execRandomMove(gameId,playerId){
  * @param {PlayerAccount[]} playersAccountId 
  * @returns 
  */
-function setPlayers(gameId,playersAccountId){
+function setPlayers(gameId,playersAccountId,randomise = true){
   let game = findGame(gameId);
   if(game ==null) return null;
-  return game.setPlayers(playersAccountId);
+  return game.setPlayers(playersAccountId,randomise);
 }
 function execRandomMove(gameId,move){
   let game = findGame(gameId);

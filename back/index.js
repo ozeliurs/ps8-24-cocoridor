@@ -307,22 +307,22 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
 
     const gameId = back.init()
-    back.setPlayers(new back.PlayerAccount("J1",'Gngngngngnng'),new back.PlayerAccount("J2",'Gngngngngnng'))
-    const playerList = back.getPlayerList(gameId)
-    
-    //Placer les joueurs
+    back.setPlayers(gameId, [new back.PlayerAccount("J1",'Gngngngngnng'),new back.PlayerAccount("J2",'Gngngngngnng')],false)
 
+    let playerList = back.getPlayerList(gameId)
+    let playerArePlaced = false
+    //Placer les joueurs
+    console.log(playerList)
 
     turnNb = back.getTurnNb(gameId)
-    let newBoard = back.BoardFor(gameId,playerList[0])
-    socket.emit("launch",newBoard,turnNb);
+    socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]),turnNb);
 
     socket.on('move', (move) => {
         console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
-        let actionDone = back.execMove(gameId,move.playerID,move.x,move.y);
+        let actionDone = back.execMove(gameId,back.CurrentPlayer(gameId),move.x,move.y);
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId));
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
@@ -333,18 +333,37 @@ io.of("/api/Localgame").on('connection', (socket) => {
     });
 
     socket.on('wall', (wall) => {
-        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
-        let actionDone = back.execWall(gameId,wall.playerID,wall.x,wall.y,wall.vertical)
+        console.log('x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        if(!playerArePlaced)return;
+        let actionDone = back.execWall(gameId,back.CurrentPlayer(gameId),wall.x,wall.y,wall.vertical)
         
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId));
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
             socket.emit("endGame", winners);
         }
     });
+
+    socket.on("gameSetup",(move)=>{
+        for (let i=0;i<playerList.length;i++){
+            if(playerList[i].OnTile==null){
+                back.placePlayer(gameId,playerList[i].getid(),{X:move.x,Y:move.y})
+                
+                if(playerList[playerList.length-1].OnTile!=null){
+                    playerArePlaced = true;
+                    socket.emit("launch",back.BoardFor(gameId,playerList[turnNb%playerList.length]),turnNb)
+                    return;
+                }
+
+                let newBoard = back.setUpBoard(gameId,playerList[i+1])
+                socket.emit("choosePos",newBoard,turnNb);
+                return;
+            }
+        }
+    })
 
 });
 
