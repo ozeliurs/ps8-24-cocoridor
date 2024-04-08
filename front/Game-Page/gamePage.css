@@ -10,6 +10,9 @@ div {
 }
 
 
+body {
+  overflow-y: hidden;
+}
 
 
 #game {
@@ -115,11 +118,10 @@ h1, h2 {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 50%;
-    height: 50%;
-}
-body{
-    background-color:white
+    width: 38%;
+    height: 38%;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 button {
@@ -186,6 +188,7 @@ textarea#chatInput {
     padding: 10px;
     border-radius: 5px; 
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    background-color: var(--TILECOLOR)
 
 }
 
@@ -207,7 +210,7 @@ body {
   border: none;
   height: 50px;
   width: 50px;
-  display: flex;
+  display: none;
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -389,5 +392,6 @@ header h2 {
   width: 100%;
   text-align: left;
   padding: 10px 0; 
+  display: none;
   
 }
