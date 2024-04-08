@@ -39,12 +39,14 @@
 }
 
 html, body {
-    /* background: linear-gradient(to bottom right, #ffcc00, #ff6347, #ffcc00); */
+    height: 100vh;
+    background: linear-gradient(to bottom right, #f7e9b3, #f5a56f, #fff2be); 
     margin: 0;
     font-family: "Inter", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
     font-variation-settings: "slnt" 0;
+    
 }
 
 #upperZone{

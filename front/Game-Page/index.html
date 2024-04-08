@@ -61,89 +61,86 @@
         </div>
       </div>
 
-      <div id="chatPopup" style="display: none">
-        <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
-        <button onclick="sendMessage()">Envoyer</button>
-        <button onclick="closeChat()">Fermer</button>
-        <a href="../EndPage/endPage.html?winner=1">
-          <button>gagner1</button>
-        </a>
-        <a href="../EndPage/endPage.html?winner=2">
-          <button>gagner2</button>
-        </a>
-      </div>
     </section>
     <div id="waiting">
       <h1 class="attente">En attente d'un joueur</h1>
       <img id="attente" src="../Game-Page/polos.gif" alt="Loading" />
-      <button id="btnStart">test</button>
       <a href="../index.html"><button>Annuler</button></a>
-      <button id="retour" onclick="window.location.href = '../index.html'">
-        Retour
-      </button>
     </div>
 
     <script src="../Game-Page/gamePage.js"></script>
     <script src="../js/socket.io.js"></script>
 
     <script>
-        function openChat() {
-            document.getElementById("chatPopup").style.display = "block";
-        }
+      function hideCover() {
+        document.getElementById("gameCover").style.display = "none";
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const mode = urlParams.get("mode");
+      const user = urlParams.get("playerid");
+      let gameId = urlParams.get("gameid");
+      let waiting = document.getElementsByClassName("attente");
+      var socket;
+      let gameSetUp = false;
+      switch (mode) {
+        case "local":
+          socket = io("/api/Localgame");
+          break;
+        case "newAi":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté, la partie ne sera pas enregistrée");
+            }
+          });
+          socket = io("/api/AIgame");
+          socket.emit("newGame", user);
+          break;
+        case "getAi":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté");
+              window.location.href = "../index.html";
+            }
+          });
+          socket = io("/api/AIgame");
+          socket.emit("retrieveGame", user, gameId);
+          
+          break;
+        case "1vs1":
+          document.addEventListener('DOMContentLoaded', async function() {
+            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+            if (!usernameCookie) {
+              alert("Vous n'êtes pas connecté");
+              window.location.href = "../index.html";
+              return;
+            }
+            
+          });
+          document.getElementById("msg").style.display = "block";
+          document.getElementsByClassName("chatbot-toggler")[0].style.display="flex";
 
-        function closeChat() {
-            document.getElementById("chatPopup").style.display = "none";
-        }
+          socket = io("/api/1vs1");
 
-        function sendMessage() {
-            var message = document.getElementById("chatInput").value;
-            console.log("Message envoyÃ© : " + message);
-        }
-        function hideCover() {
-            document.getElementById("gameCover").style.display = "none";
-        }
-        const urlParams = new URLSearchParams(window.location.search);
-        const mode = urlParams.get('mode');
-        const user = urlParams.get('playerid');
-        let gameId = urlParams.get('gameid');
-        let waiting = document.getElementsByClassName("attente");
-        var socket;
-        let gameSetUp = false;
-        switch (mode) {
-            case "local":
-                socket=io('/api/Localgame');
-                break;
-            case "newAi":
-                socket=io('/api/AIgame');
-                socket.emit('newGame',user);
-                break;
-            case "getAi":
-                socket=io('/api/AIgame');
-                socket.emit('retrieveGame',user,gameId);
-                break;
-            case "1vs1":
-                socket=io('/api/1vs1');
-
-                for(let i=0;i<waiting.length;i++){
-                    waiting[i].style.display = "block";
-                }
-                socket.emit('sendInfo',user);
-                break;
-            default:
-                console.log("Mode inconnu");
-                break;
+          document.getElementById("waiting").style.display = "block";
+          document.getElementById("notwaiting").style.display = "none";
+          socket.emit('sendInfo',user);
+          break;
+        default:
+          console.log("Mode inconnu");
+          break;
         }
         socket.on("launch",(board,turnNb)=>{
-            gameSetUp=false;
-            init(board,mode,turnNb);
-            DisplayBoard(board);
-            for(let i=0;i<waiting.length;i++){
-                waiting[i].style.display = "none";
-            }
+          gameSetUp=false;
+          init(board,mode,turnNb);
+          DisplayBoard(board);
         })
         socket.on("initChoosePos",(gameId)=>{
             console.log("initChoosePos");
             socket.emit('askForInitPos',gameId);
+          document.getElementById("waiting").style.display = "none";
+          document.getElementById("notwaiting").style.display = "block";
         })
         socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
             turnNb = turnNumber
@@ -166,17 +163,10 @@
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
             else window.location.href = "../EndPage/endPage.html?winner=0"
         })
-
-
-        document.getElementById("btnChat").addEventListener('click', function() {
-            var messageButtons = document.getElementById("messageButtons");
-            messageButtons.style.display = 'block'; // Affiche les boutons de messages
+        socket.on("message", (msg,user) => {
+          chatInput.value = msg;
+          handleChat(user);
         });
-
-      socket.on("message", (msg,user) => {
-        chatInput.value = msg;
-        handleChat(user);
-      });
 
       document.getElementById("btnChat").addEventListener("click", function () {
         var messageButtons = document.getElementById("messageButtons");

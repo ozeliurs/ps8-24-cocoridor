@@ -54,9 +54,6 @@ async function manageRequest(request, response) {
         case 'clear':
             await db.clearDatabase();
             break;
-        case 'clearChat':
-            await db.clearChat();
-            break;
         case 'signup':
             await signup(request, response);
             break;
@@ -145,14 +142,19 @@ async function getElo(request, response) {
             response.end(JSON.stringify({error: 'Données manquantes'}));
             return;
         }
-        let elo = await getElo(body.username);
+        console.log(body);
+        let elo = await getUserElo(body.username);
+        console.log(elo);
         response.writeHead(200, {'Content-Type': 'application/json'});
         response.end(JSON.stringify({elo: elo}));
     });
 }
 
-async function getElo(username) {
+async function getUserElo(username) {
     let user = await db.getUser(username);
+    if (!user) {
+        return null;
+    }
     return user.elo;
 }
 
@@ -160,6 +162,7 @@ async function updateElo(username, elo) {
     let user = await db.getUser(username);
     user.elo = elo;
     await db.updateUser(user);
+    return user.elo;
 }
 
 async function createGame(idUser, board, turnNb,playerList, response = null) {
@@ -461,6 +464,7 @@ async function addMessage(request, response){
             response.end(JSON.stringify({ error: 'Données manquantes' }));  
             return;
         }
+        console.log("addMessage : ",body.username,body.friendName,body.message)
         await db.addMessage(body.username,body.friendName,body.message);
     })
 }
@@ -489,7 +493,7 @@ exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;
 exports.getGame = getGame;
-exports.getElo = getElo;
+exports.getUserElo = getUserElo;
 exports.updateElo = updateElo;
 
 

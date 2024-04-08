@@ -1,17 +1,133 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste d'amis</title>
-    <link rel="stylesheet" href="../FriendList/friendList.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liste d'amis</title>
+  <link rel="stylesheet" href="../FriendList/friendList.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1>Ma liste d'amis</h1>
-        <div id="friendList">
-        </div>
+
+
+
+
+
+  <div class="container">
+    <h1>Ma liste d'amis</h1>
+    <div id="friendList">
     </div>
+  </div>
+
+
+
+
+  <button class="chatbot-toggler">
+
+  </button>
+
+  <div class="chatbot">
+    <header>
+      <h2>Chat avec </h2>
+      <span class="close-btn material-symbols-outlined"></span>
+    </header>
+    <ul class="chatbox">
+      <li class="chat incoming">
+        <span s="material-symbols-outlined">
+
+        </span>
+      </li>
+    </ul>
+    <div class="chat-input">
+      <textarea placeholder="Enter a message..." spellcheck="false" required></textarea>
+      <span id="send-btn" class="material-symbols-rounded">
+      </span>
+    </div>
+
+
+
+    <script src="../js/socket.io.js"> </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', async function () {
+        socket = io("/api/friendChat");
+
+        const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+        if (!usernameCookie) {
+          alert("Vous n'êtes pas connecté");
+          window.location.href = "../index.html";
+          return;
+        }
+        nameUser = usernameCookie.split('=')[1];
+        await fetch('http://localhost:8000/api/getFriends', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username: nameUser })
+        })
+          .then(response => response.json())
+          .then(data => {
+            const friends = data.friends;
+            const friendRequest = document.getElementById("friendList");
+            for (const friend of friends) {
+
+              const friendElement = document.createElement("div");
+              friendElement.classList.add("friend-container");
+
+
+              const nameElement = document.createElement("span");
+              nameElement.textContent = friend;
+
+              const chatButton = document.createElement("button");
+              chatButton.setAttribute("id", friend);
+
+              const img = document.createElement("img");
+              img.setAttribute("src", "../FriendList/chat2.png");
+              img.setAttribute("alt", "chat");
+              img.style.width = "50%";
+              img.style.height = "50%";
+              chatButton.appendChild(img);
+
+              chatButton.classList.add("chatbot-toggler");
+              chatButton.onclick = function () {
+                const chatHeader = document.querySelector(".chatbot header h2");
+                chatHeader.textContent = "Chat avec " + friend;
+                document.body.classList.toggle("show-chatbot");
+                friendName = chatButton.getAttribute("id");
+                updateConv(nameUser, friendName);
+
+                socket.emit('join', nameUser, friendName);
+
+                socket.on('updateMessage', async () => {
+                  await updateConv(nameUser, friendName);
+                });
+
+              };
+
+              const pvpButton = document.createElement("button");
+              pvpButton.setAttribute("id", friend);
+              pvpButton.textContent = "Défier";
+              pvpButton.onclick = function () {
+                const friendName = pvpButton.getAttribute("id");
+                console.log("Défier " + friendName);
+                //window.location.href = "../Game-Page/index.html?mode=1vs1&playerid=" + nameUser + "&friend=" + friendName;
+              };
+
+              friendElement.appendChild(nameElement);
+              friendElement.appendChild(chatButton);
+              friendElement.appendChild(pvpButton);
+              friendRequest.appendChild(friendElement);
+              adjustZoom();
+            }
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+          });
+      });
+    </script>
     <script src="../FriendList/friendList.js"></script>
-</body>
+
+</body> 
+
 </html>
