@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
             addButton.addEventListener('click',async function() {
                 const hostname = window.location.hostname;
-                let api = "http://"+hostname+":8000/api/addFriend";
+                api = "http://"+hostname+":8000/api/addFriend";
                 await fetch(api, {
                     method: 'POST',
                     headers: {
