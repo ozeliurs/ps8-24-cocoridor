@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     const hostname = window.location.hostname;
-    let api = "http://"+hostname+":8000/api/getFriends";
+    let api = "http://"+hostname+":8000/api/getFriendRequest";
     await fetch(api, {
         method: 'POST',
         headers: {
