@@ -12,6 +12,3 @@ Array.from(btnTab).forEach(element => {
     },350);
   });
 });
-
-
-
