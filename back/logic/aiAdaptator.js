@@ -185,6 +185,12 @@ async function computeMove(board, playerID=2) {
     }
 }
 
+/**
+ * 
+ * @param {board} board 
+ * @param {String} playerID 
+ * @returns 
+ */
 async function updateBoard(board, playerID){
     let gameState = convertToGameState(board, playerID);
     return await ai.updateBoard(gameState);

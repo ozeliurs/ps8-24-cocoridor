@@ -157,31 +157,32 @@ io.of("/api/AIgame").on('connection', (socket) => {
             board = back.getBoard(gameId);
             saveGame(board, myId, turnNb, playerList, saveId);
             let newBoard = back.BoardFor(gameId, me);
-            socket.emit("updateBoard", newBoard);
+            turnNb = back.getTurnNb(gameId);
+            socket.emit("updateBoard", newBoard,turnNb);
             while(playerList[turnNb%playerList.length].getid()==botId){
-                let aiBoard = back.BoardFor(gameId, playerList[1]);
+                let aiBoard = back.BoardFor(gameId, playerList[turnNb%playerList.length]);
                 {
                     sleep(1000)
                     let moved
-                    let computemove = await adaptator.computeMove(aiBoard);
+                    let computemove = await adaptator.computeMove(aiBoard,playerList[turnNb%playerList.length].getid());
                     if(computemove.vertical===undefined) {
                         moved = back.execMove(gameId, me, computemove.x, computemove.y);
                     }else{
                         moved = back.execWall(gameId, me,computemove.x,computemove.y,computemove.vertical);
                     }
                     if (!moved) {
-                        let move = back.execRandomMove(gameId, playerList[1].id);
+                        let move = back.execRandomMove(gameId, botId);
                         await adaptator.correction(move);
                     }
                 }
                 aiBoard = back.BoardFor(gameId, playerList[1]);
-                await adaptator.updateBoard(gameId, aiBoard,playerList[1].id);
+                await adaptator.updateBoard(aiBoard,playerList[turnNb%playerList.length]);
                 board = back.getBoard(gameId);
                 turnNb = back.getTurnNb(gameId);
                 saveGame(board, myId, turnNb, playerList, saveId);
                 newBoard = back.BoardFor(gameId, me.getid());
 
-                socket.emit("updateBoard", newBoard);
+                socket.emit("updateBoard", newBoard, turnNb);
 
             }
             
@@ -204,7 +205,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
             turnNb = back.getTurnNb();
             saveGame(board, myId, turnNb, playerList, saveId);
             let newBoard = back.BoardFor(playerList[0]);
-            socket.emit("updateBoard", newBoard);
+            socket.emit("updateBoard", newBoard, turnNb);
             let aiBoard = back.BoardFor(playerList[1]);
 
             {
@@ -220,6 +221,9 @@ io.of("/api/AIgame").on('connection', (socket) => {
                     let move = back.execRandomMove(playerList[1].id);
                     await adaptator.correction(move);
                     console.log("correction : " + move);
+                }else{
+                    console.log("IA move")
+                    console.log(computemove)
                 }
             }
             aiBoard = back.BoardFor(playerList[1]);
@@ -228,7 +232,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
             turnNb = back.getTurnNb();
             saveGame(board, myId, turnNb, playerList, saveId);
             newBoard = back.BoardFor(playerList[0])
-            socket.emit("updateBoard", newBoard)
+            socket.emit("updateBoard", newBoard,turnNb)
         }
 
         let winners = back.GameWinner();
