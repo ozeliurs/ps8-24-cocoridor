@@ -165,9 +165,17 @@ h1 {
     margin: 20px 0;
     justify-content: flex-end;
   }
-  .chatbox .incoming span {
+
+  .chatbox .outgoing span {
+    justify-content: flex-end;
+  }
+
+
+  .chatbox .outgoing span , .chatbox .incoming span {
     width: 32px;
     height: 32px;
+  }
+  .chatbox .incoming span {
     color: #fff;
     cursor: default;
     text-align: center;
