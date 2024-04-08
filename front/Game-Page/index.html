@@ -131,11 +131,7 @@
           console.log("Mode inconnu");
           break;
         }
-        socket.on("launch",(board,turnNb)=>{
-          gameSetUp=false;
-          init(board,mode,turnNb);
-          DisplayBoard(board);
-        })
+        
         socket.on("initChoosePos",(gameId)=>{
             console.log("initChoosePos");
             socket.emit('askForInitPos',gameId);
@@ -147,6 +143,14 @@
             gameSetUp=true;
             playerList = playerL;
             DisplayBoard(boardPos.Board,boardPos.Positions);
+        })
+        socket.on("launch",(board,turnNb)=>{
+            gameSetUp=false;
+            init(board,mode,turnNb);
+            DisplayBoard(board);
+            for(let i=0;i<waiting.length;i++){
+                waiting[i].style.display = "none";
+            }
         })
         socket.on("playersReady",()=>{
             console.log("playersReady");

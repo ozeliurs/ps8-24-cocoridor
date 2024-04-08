@@ -109,8 +109,6 @@ class TileFront {
   onClick() {
     let move = new Move(this.X,this.Y);
     if(move == undefined)return;
-    console.log(gameSetUp)
-    console.log(move)
     if(gameSetUp) socket.emit("gameSetup",move)
     else socket.emit("move",move);
   }
