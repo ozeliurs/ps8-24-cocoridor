@@ -146,12 +146,12 @@
           gameSetUp=false;
           init(board,mode,turnNb);
           DisplayBoard(board);
-          document.getElementById("waiting").style.display = "none";
-          document.getElementById("notwaiting").style.display = "block";
         })
         socket.on("initChoosePos",(gameId)=>{
             console.log("initChoosePos");
             socket.emit('askForInitPos',gameId);
+          document.getElementById("waiting").style.display = "none";
+          document.getElementById("notwaiting").style.display = "block";
         })
         socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
             turnNb = turnNumber
