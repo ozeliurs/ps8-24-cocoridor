@@ -13,6 +13,10 @@ body {
     background-size: cover;
 }
 
+.friend-container {
+  display: flex;
+  align-items: center;
+}
 .container {
     min-height: 90%;
     max-width: 600px; 
