@@ -35,25 +35,19 @@
     <script src="../FriendChat/friendChat.js"></script>
     <script src="../js/socket.io.js"> </script>
     <script>
-        const socket = io();
-        socket.on('updateMessage', (data) => {
-            console.log(data)
-            if(data.friendName === nameUser && data.userName===friendName) {
-                updateConv(friendName,nameUser)        
-            }
-        });
-        
+        const socket = io("/api/friendChat");
+        const friendName = new URLSearchParams(window.location.search).get(
+            "friendId"
+        );
+        const usernameCookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("nomCookie="));
 
+        const nameUser = usernameCookie.split("=")[1];
+        socket.emit('join', nameUser, friendName);
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const friendId = urlParams.get('friendId');
-
-            if (friendId) {
-                document.getElementById("title").textContent += friendId;
-            } else {
-                document.getElementById("title").textContent += "";
-            }
+        socket.on('updateMessage', async () => {
+            await updateConv(nameUser, friendName);
         });
     </script>
 </body>

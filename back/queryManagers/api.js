@@ -2,6 +2,8 @@
 
 const db = require("../database/database")
 
+
+
 async function manageRequest(request, response) {
     // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
     let url = new URL(
@@ -40,6 +42,12 @@ async function manageRequest(request, response) {
         case 'getFriendsRequest':
             await sendFriendRequest(request, response);
             break;
+        case 'getFriends':
+            await getFriends(request, response);
+            break;
+        case 'getElo':
+            await getElo(request, response);
+            break;
         case 'friendRequest':
             await friendRequest(request, response);
             break;
@@ -64,7 +72,6 @@ async function manageRequest(request, response) {
         case 'retrieveUserGames':
             await retrieveUserGames(request, response);
             break;
-
         default:
             response.writeHead(404, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Endpoint non trouvé' }));
@@ -93,7 +100,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             password: password,
             friends: [],
             friendRequests: [],
-            conv:[]
+            conv:[],
+            elo: 1000
         };
         let userCreated = await db.createUser(newUser);
         if (userCreated) {
@@ -111,7 +119,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             password: password,
             friends: [],
             friendRequests: [],
-            conv:[]
+            conv:[],
+            elo: 1000
         };
         let userUpdated = await db.updateUser(updatedUser);
         if (userUpdated) {
@@ -122,6 +131,35 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             response.end(JSON.stringify({error: 'Erreur lors de la mise à jour de l\'utilisateur'}));
         }
     }
+}
+
+async function getElo(request, response) {
+    if (request.method !== 'POST') {
+        response.writeHead(405, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: 'Méthode non autorisée' }));
+        return;
+    }
+    parsejson(request).then(async (body) => {
+        if (!body.username) {
+            response.writeHead(400, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Données manquantes'}));
+            return;
+        }
+        let elo = await getElo(body.username);
+        response.writeHead(200, {'Content-Type': 'application/json'});
+        response.end(JSON.stringify({elo: elo}));
+    });
+}
+
+async function getElo(username) {
+    let user = await db.getUser(username);
+    return user.elo;
+}
+
+async function updateElo(username, elo) {
+    let user = await db.getUser(username);
+    user.elo = elo;
+    await db.updateUser(user);
 }
 
 async function createGame(idUser, board, turnNb,playerList, response = null) {
@@ -185,17 +223,12 @@ async function signup(request, response) {
             return;
         }
         console.log('username : '+ body.username);
-        const users = await db.getUsers();
-        const user = await users.findOne({ username: body.username });
+        const user = await db.getUser(body.username);
 
         if(user){
-            await createOrUpdateUser(
-                body.email,
-                body.username,
-                body.password,
-                response,
-                false
-            );
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Nom d\'utilisateur déjà utilisé' }));
+            return;
         }else{
             await createOrUpdateUser(
                 body.email,
@@ -456,5 +489,7 @@ exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;
 exports.getGame = getGame;
+exports.getElo = getElo;
+exports.updateElo = updateElo;
 
 

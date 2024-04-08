@@ -528,6 +528,23 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             back.deleteGame(gameId);
         }
     })
+    socket.on('message', (message,playerName) => {
+        io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
+    });
+    socket.on("disconnect", () => {
+        console.log("disconnected")
+        //players = players.filter(player => player.socket !== socket);
+    });
+});
+
+io.of("/api/friendChat").on('connection', async (socket) => {
+    socket.on('join', async (nameUser, friendName) => {
+        socket.join(nameUser + friendName);
+        socket.join(friendName + nameUser);
+    });
+    socket.on('newMessage', async (nameUser, friendName) => {
+        io.of("/api/friendChat").to(nameUser + friendName).emit('updateMessage');
+    });
 });
 
 
