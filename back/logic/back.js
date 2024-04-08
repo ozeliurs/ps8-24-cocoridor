@@ -233,8 +233,6 @@ class GameState{
    * @return {{Board:TileFront[],Positions:{X:Number,Y:Number}}}
    */
   setUpBoard(player){
-    console.log("setUpBoard")
-    console.log(player)
     let resultPos= [];
     if(player.end[0].X == player.end[player.end.length-1].X){
       if(player.end[0].X>this.gameParams.boardLength/2) for(let y=0;y<this.gameParams.boardHeight;y++)resultPos.push({X:0, Y:y})
@@ -255,7 +253,7 @@ class GameState{
   
   /**
    * 
-   * @param {Player} player 
+   * @param {PlayerGameInstance} player 
    */
   BoardFor(player){
     let result = []
@@ -391,8 +389,8 @@ class GameState{
     if(player.nbWalls>0 && Math.random()>0.5){
       let played
         do {
-          let x = Math.floor(Math.random()*boardLength);
-          let y = Math.floor(Math.random()*boardHeight);
+          let x = Math.floor(Math.random()*this.gameParams.boardLength);
+          let y = Math.floor(Math.random()*this.gameParams.boardHeight);
           let vertical = Math.random()>0.5;
           play = createWall(this,player,x,y,vertical);
           if(play==null) played = false;
@@ -402,16 +400,16 @@ class GameState{
         let played
         do {
             let possiblepos=[]
-            if(player.OnTile.X+1<boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
+            if(player.OnTile.X+1<this.gameParams.boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
             if(player.OnTile.X-1>=0) possiblepos.push([player.OnTile.X-1,player.OnTile.Y])
-            if(player.OnTile.Y+1<boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
+            if(player.OnTile.Y+1<this.gameParams.boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
             if(player.OnTile.Y-1>=0) possiblepos.push([player.OnTile.X,player.OnTile.Y-1])
             let move=possiblepos[Math.floor(Math.random()*possiblepos.length)]
 
             let x = Math.floor(move[0]);
             let y = Math.floor(move[1]);
 
-            play = new Move(player,x,y);
+            play = new Move(this.id,player,x,y);
             if(play==null) played = false;
             else played = play.execute();
         }while(!played)
@@ -1022,9 +1020,9 @@ function getPlayerList(gameId){
   if(game ==null) return null;
   return game.getPlayerList();
 }
-function BoardFor(gameId, playerId){let game = findGame(gameId)
+function BoardFor(gameId, player){let game = findGame(gameId)
   if(game ==null) return null;
-  return game.BoardFor(playerId);
+  return game.BoardFor(player);
 }
 function GameWinner(gameId){
   let game = findGame(gameId)

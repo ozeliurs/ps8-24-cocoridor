@@ -148,7 +148,6 @@
         socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
             turnNb = turnNumber
             gameSetUp=true;
-            console.log(playerList)
             playerList = playerL;
             DisplayBoard(boardPos.Board,boardPos.Positions);
         })

@@ -129,9 +129,9 @@ function convertToGameState(board, playerID){
                 newBoard[j][i] = -1;
             }else if(board[i][j].occupied === true){
                 newBoard[j][i] = 0;
-            }else if(board[i][j].occupied.id === playerID){
+            }else if(board[i][j].occupied.getid() === playerID){
                 newBoard[j][i] = 1;
-            }else if(board[i][j].occupied.id !== undefined) {
+            }else if(board[i][j].occupied.getid() !== undefined) {
                 newBoard[j][i] = 2;
             }else{
                 console.error("unknown value");
@@ -166,10 +166,8 @@ function convertToGameState(board, playerID){
 }
 
 async function computeMove(board, playerID) {
-    console.log("compute move - "+playerID)
     let gameState = convertToGameState(board, playerID);
-
-    let nextMove = await ai.nextMove(gameState, playerID);
+    let nextMove = await ai.nextMove(gameState);
 
     if(nextMove.action === "move"){
         let pos = parseInt(nextMove.value);
@@ -221,7 +219,6 @@ async function setup(AIplay){
     let pos = await ai.setup(AIplay);
     let newPos = { X: Math.floor(pos/10)-1, Y: pos%10-1};
     return newPos;
-
 }
 
 
