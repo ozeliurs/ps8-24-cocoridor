@@ -1,4 +1,52 @@
 
+document.addEventListener('DOMContentLoaded', async function() {
+    const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
+    if (!usernameCookie) {
+        alert("Vous n'êtes pas connecté");
+        window.location.href = "../index.html";
+        return;
+    }
+
+    const nameUser = usernameCookie.split('=')[1];
+    console.log("nameUser : ", nameUser);
+
+    await fetch('http://localhost:8000/api/getFriends', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username: nameUser })
+    })
+    .then(response => response.json())
+    .then(data => {
+        const friends = data.friends;
+        const friendRequest = document.getElementById("friendList");
+        for (const friend of friends) {
+            const friendElement = document.createElement("div");
+            friendElement.textContent = friend;
+
+            friendRequest.appendChild(friendElement);
+
+
+            const chatButton = document.createElement("button");
+            //chatButton.textContent = "Chat";
+
+            // const spanWithImage = document.createElement("span");
+            // spanWithImage.classList.add("material-symbols-rounded");
+
+            const img = document.createElement("img");
+            img.setAttribute("src", "../FriendList/chat2.png");
+            img.setAttribute("alt", "chat");
+            img.style.width = "50%";
+            img.style.height = "50%";
+
+            // spanWithImage.appendChild(img);
+
+
+            // const emptySpan = document.createElement("span");
+            // emptySpan.classList.add("material-symbols-outlined");
+
+
 
 function adjustZoom() {
     const friendList = document.getElementById("friendList");
