@@ -127,6 +127,13 @@
           document.getElementById("notwaiting").style.display = "none";
           socket.emit('sendInfo',user);
           break;
+        case "1vs1Friend":
+          socket = io("/api/1vs1Friend");
+          document.getElementById("waiting").style.display = "block";
+          document.getElementById("notwaiting").style.display = "none";
+          const friend = urlParams.get("friend");
+          socket.emit('sendRoomInfo',user,friend);
+          break;
         default:
           console.log("Mode inconnu");
           break;

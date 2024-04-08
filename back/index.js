@@ -640,7 +640,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         myId = playerid;
         //faire une clé unique pour chaque room ( quel que soit l'ordre des joueurs)
         let roomKey = myId>=friendid?myId+friendid:friendid+myId;
-        playersRooms[roomKey].push({id:playerid,socket:socket});
+        playersRooms[roomKey] = playersRooms[roomKey] || [];
         let alreadyIn = false;
         for( let player  in playersRooms[roomKey]){
             if(player.id === playerid){
@@ -649,13 +649,15 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
                 alreadyIn = true;
             }
         }
+        if(!alreadyIn){playersRooms[roomKey].push({id:playerid,socket:socket});}
         if(playersRooms[roomKey].length >= 2){
             let playersForGame = [];
             let gamePlayers = [];
-            for(let i = 0; i < playersRooms[roomKey.length]; i++){
-                playersForGame.push(playersRooms[roomKey].id);
-                gamePlayers.push(playersRooms[roomKey]);
+            for(let i = 0; i < playersRooms[roomKey].length; i++){
+                playersForGame.push(playersRooms[roomKey][i].id);
+                gamePlayers.push(playersRooms[roomKey][i]);
                 playersRooms[roomKey].splice(i,1);
+                i--;
             }
             console.log("playersForGame: "+playersForGame)
             gameId = back.init();
@@ -679,7 +681,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             board = back.getBoard(gameId);
             turnNb = back.getTurnNb(gameId);
             saveId = await saveGame(board, myId, turnNb, playerList);
-            io.of("/api/1vs1").to('room'+gameId).emit("initChoosePos",gameId)
+            io.of("/api/1vs1Friend").to('room'+gameId).emit("initChoosePos",gameId)
         }
     });
     socket.on('move', async (move) => {
@@ -698,7 +700,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             if (actionDone) {
                 board = back.getBoard(gameId);
                 await saveGame(board, myId, turnNb, playerList, saveId);
-                io.of("/api/1vs1").to('room' + gameId).emit("moved", gameId);
+                io.of("/api/1vs1Friend").to('room' + gameId).emit("moved", gameId);
             }
         }else{
             console.log("not your turn");
@@ -721,7 +723,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             if (actionDone) {
                 board = back.getBoard(gameId);
                 await saveGame(board, myId, turnNb, playerList, saveId);
-                io.of("/api/1vs1").to('room' + gameId).emit("moved", gameId);
+                io.of("/api/1vs1Friend").to('room' + gameId).emit("moved", gameId);
             }
         }else{
             console.log("not your turn");
@@ -766,7 +768,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         for(let player of playerList){
             if(player.OnTile==null) return;
         }
-        io.of("/api/1vs1").to('room' + gameId).emit("playersReady", gameId);
+        io.of("/api/1vs1Friend").to('room' + gameId).emit("playersReady", gameId);
 
 
     });
@@ -802,7 +804,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         socket.emit("choosePos", back.setUpBoard(gameId,me),playerListId,turnNb);
     });
     socket.on('message', (message,playerName) => {
-        io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
+        io.of("/api/1vs1Friend").to('room' + gameId).emit("message", message,playerName);
     });
     socket.on("disconnect",()=>{
 
