@@ -136,28 +136,31 @@
                 waiting[i].style.display = "none";
             }
         })
-        socket.on("updateBoard",(board,turnNumber)=>{
-            turnNb=turnNumber;
-            DisplayBoard(board);
-        })
-        socket.on("choosePos",(boardPos,turnNumber)=>{
-            turnNb = turnNumber
-            gameSetUp=true;DisplayBoard(boardPos.Board,boardPos.Positions)
-        })
-        socket.on("endGame",(winners)=>{
-            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
-            else window.location.href = "../EndPage/endPage.html?winner=0"
-        })
         socket.on("initChoosePos",(gameId)=>{
             console.log("initChoosePos");
             socket.emit('askForInitPos',gameId);
         })
-        socket.on("moved",()=>{
-            socket.emit('update');
+        socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
+            turnNb = turnNumber
+            gameSetUp=true;
+            console.log(playerList)
+            playerList = playerL;
+            DisplayBoard(boardPos.Board,boardPos.Positions);
         })
         socket.on("playersReady",()=>{
             console.log("playersReady");
             socket.emit('start');
+        })
+        socket.on("moved",()=>{
+            socket.emit('update');
+        })
+        socket.on("updateBoard",(board,turnNumber)=>{
+            turnNb=turnNumber;
+            DisplayBoard(board);
+        })
+        socket.on("endGame",(winners)=>{
+            if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
+            else window.location.href = "../EndPage/endPage.html?winner=0"
         })
 
 
