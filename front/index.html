@@ -25,13 +25,13 @@
         </div>
         <div id=playerCard>
             <div id=playerProfile>
-                <img src="Main-Page/chickenAsset.png" id="playerPicture" alt="Photo de profil">
+                <img src="Main-Page/chickenLogo.png" id="playerPicture" alt="Photo de profil">
                 <div id=playerInfo>
                     <div id=playerName>
                         Player
                     </div>
                     <div id=playerRank>
-                        Elo 1511
+                        Elo 1000
                     </div>
                 </div>
             </div> 
@@ -139,7 +139,28 @@
         for (let i = 0; i < needID.length; i++) {
             needID[i].href = needID[i].href.replace('user', playerName);
         }
+        let playerRank = 1000;
+        fetch('http://localhost:8000/api/getElo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({username: playerName})
+        })
+            .then(response => response.json())
+            .then(data => {
+                playerRank = data.elo;
+                console.log(playerRank)
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        if(playerRank == undefined || playerRank == '') {
+            playerRank = 1000;
+        }
+        document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
     }
+
 </script>
 </body>
 </html>
