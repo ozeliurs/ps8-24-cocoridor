@@ -109,8 +109,6 @@ class TileFront {
   onClick() {
     let move = new Move(this.X,this.Y);
     if(move == undefined)return;
-    console.log(gameSetUp)
-    console.log(move)
     if(gameSetUp) socket.emit("gameSetup",move)
     else socket.emit("move",move);
   }
@@ -400,12 +398,28 @@ let userMessage = null; // Variable to store user's message
 const inputInitHeight = chatInput.scrollHeight;
 
 const createChatLi = (message, className) => {
-    const chatLi = document.createElement("li");
-    chatLi.classList.add("chat", `${className}`);
-    let chatContent = className === "outgoing" ? `<p></p>` : `<span class="material-symbols-outlined">smart_toy</span><p></p>`;
-    chatLi.innerHTML = chatContent;
-    chatLi.querySelector("p").textContent = message;
-    return chatLi; 
+  const chatLi = document.createElement("li");
+  chatLi.classList.add("chat", `${className}`);
+  let chatContent = className === "outgoing" ? 
+  `<span s="material-symbols-outlined">
+      <img
+          src="../Game-Page/FermierJ2.png"
+          alt="FermierJ2"
+          width="100%"
+          height="100%"
+      />
+  </span><p></p>` : 
+  `<span s="material-symbols-outlined">
+      <img
+          src="../Game-Page/PouletJ1.png"
+          alt="PouletJ1"
+          width="100%"
+          height="100%"
+      />
+  </span><p></p>`;    
+  chatLi.innerHTML = chatContent;
+  chatLi.querySelector("p").textContent = message;
+  return chatLi; 
 }
 
 

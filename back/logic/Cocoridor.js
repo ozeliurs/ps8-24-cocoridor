@@ -19,7 +19,7 @@ exports.setup = async function setup(AIplay) {
     ennemyEndPos = []
     worstEnnemyPos = null
     playerturn = AIplay;
-    if (AIplay === 2) {
+    if (AIplay === 1) {
         let random = Math.floor(Math.random() * 2);
         if (random === 0){
             startPos = 29;
@@ -37,15 +37,14 @@ exports.setup = async function setup(AIplay) {
         } else {
             startPos = 81;
         }
-
         for(let i=0;i<9;i++){
             endPos.push({x:i,y:8})
             ennemyEndPos.push({x:i,y:0})
         }
+
     }
     return Promise.resolve(startPos.toString());
 };
-
 exports.nextMove = async function nextMove(gamestate) {
     let forceWall = false;
     let currentPosition;
@@ -116,11 +115,7 @@ exports.nextMove = async function nextMove(gamestate) {
             before = {x:path.node.x,y:path.node.y};
             path = path.previous;
         }
-        console.log(before)
-        console.log(path.node)
-        console.log(EnnemyPos)
         if (EnnemyPos!=null && path.node.x == EnnemyPos.x && path.node.y == EnnemyPos.y) {
-            console.log("OMG")
             let nextPosition = (before.x+1)*10+before.y+1;
             return Promise.resolve({ action: "move", value: nextPosition.toString() });
         }
@@ -167,8 +162,6 @@ exports.nextMove = async function nextMove(gamestate) {
         forceWall = true;
     }
     if (bestWall!=null && (currentPaths.Score-1>bestWall.Score)) forceWall = true;
-    console.log("forceWall : ",forceWall)
-    console.log("bestWall : ",bestWall)
     //on compare un move avec le meilleur mur
     if(forceWall && bestWall!=null){
         //on place un mur
@@ -178,11 +171,7 @@ exports.nextMove = async function nextMove(gamestate) {
         //on se deplace
         return followPath(currentPaths.Me)
     }
-
-    
-    
 }
-
 
 exports.correction = async function correction(rightMove) {
     return Promise.resolve(true);

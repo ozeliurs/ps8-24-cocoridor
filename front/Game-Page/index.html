@@ -61,17 +61,6 @@
         </div>
       </div>
 
-      <div id="chatPopup" style="display: none">
-        <textarea id="chatInput" placeholder="Entrez votre message"></textarea>
-        <button onclick="sendMessage()">Envoyer</button>
-        <button onclick="closeChat()">Fermer</button>
-        <a href="../EndPage/endPage.html?winner=1">
-          <button>gagner1</button>
-        </a>
-        <a href="../EndPage/endPage.html?winner=2">
-          <button>gagner2</button>
-        </a>
-      </div>
     </section>
     <div id="waiting">
       <h1 class="attente">En attente d'un joueur</h1>
@@ -142,11 +131,7 @@
           console.log("Mode inconnu");
           break;
         }
-        socket.on("launch",(board,turnNb)=>{
-          gameSetUp=false;
-          init(board,mode,turnNb);
-          DisplayBoard(board);
-        })
+        
         socket.on("initChoosePos",(gameId)=>{
             console.log("initChoosePos");
             socket.emit('askForInitPos',gameId);
@@ -156,9 +141,16 @@
         socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
             turnNb = turnNumber
             gameSetUp=true;
-            console.log(playerList)
             playerList = playerL;
             DisplayBoard(boardPos.Board,boardPos.Positions);
+        })
+        socket.on("launch",(board,turnNb)=>{
+            gameSetUp=false;
+            init(board,mode,turnNb);
+            DisplayBoard(board);
+            for(let i=0;i<waiting.length;i++){
+                waiting[i].style.display = "none";
+            }
         })
         socket.on("playersReady",()=>{
             console.log("playersReady");

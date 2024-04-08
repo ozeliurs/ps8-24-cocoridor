@@ -97,17 +97,17 @@ class GameState{
    * 
    * @param {PlayerAccount[]} accountList 
    */
-  setPlayers(accountList){
+  setPlayers(accountList,randomise){
     let firstPlayer;
     let secondPlayer;
     //TODO Recup player Account thanks to ID
-    if(Math.round(Math.random())==0){
-      firstPlayer = accountList[0];
-      secondPlayer = accountList[1];
-    }
-    else {
+    if(!randomise || Math.round(Math.random())==0){
       firstPlayer = accountList[1];
       secondPlayer = accountList[0];
+    }
+    else {
+      firstPlayer = accountList[0];
+      secondPlayer = accountList[1];
     }
     firstPlayer = new PlayerGameInstance(firstPlayer,this.topTiles,this.bottomTiles,1,this.gameParams.nbWallsPerPlayer,this.id);
     secondPlayer = new PlayerGameInstance(secondPlayer,this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
@@ -253,7 +253,7 @@ class GameState{
   
   /**
    * 
-   * @param {Player} player 
+   * @param {PlayerGameInstance} player 
    */
   BoardFor(player){
     let result = []
@@ -389,8 +389,8 @@ class GameState{
     if(player.nbWalls>0 && Math.random()>0.5){
       let played
         do {
-          let x = Math.floor(Math.random()*boardLength);
-          let y = Math.floor(Math.random()*boardHeight);
+          let x = Math.floor(Math.random()*this.gameParams.boardLength);
+          let y = Math.floor(Math.random()*this.gameParams.boardHeight);
           let vertical = Math.random()>0.5;
           play = createWall(this,player,x,y,vertical);
           if(play==null) played = false;
@@ -400,16 +400,16 @@ class GameState{
         let played
         do {
             let possiblepos=[]
-            if(player.OnTile.X+1<boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
+            if(player.OnTile.X+1<this.gameParams.boardLength) possiblepos.push([player.OnTile.X+1,player.OnTile.Y])
             if(player.OnTile.X-1>=0) possiblepos.push([player.OnTile.X-1,player.OnTile.Y])
-            if(player.OnTile.Y+1<boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
+            if(player.OnTile.Y+1<this.gameParams.boardHeight) possiblepos.push([player.OnTile.X,player.OnTile.Y+1])
             if(player.OnTile.Y-1>=0) possiblepos.push([player.OnTile.X,player.OnTile.Y-1])
             let move=possiblepos[Math.floor(Math.random()*possiblepos.length)]
 
             let x = Math.floor(move[0]);
             let y = Math.floor(move[1]);
 
-            play = new Move(player,x,y);
+            play = new Move(this.id,player,x,y);
             if(play==null) played = false;
             else played = play.execute();
         }while(!played)
@@ -484,8 +484,9 @@ class Color{
 
 class PlayerAccount {
 
-  static Bot(){
-    let bot = new PlayerAccount("bot","GAGAGOOGOO")
+  static Bot(difficulty = 1){
+    let bot = new PlayerAccount("bot"+Date.now(),"GAGAGOOGOO")
+    bot.difficulty = difficulty
     return bot;
   }
   constructor(email,password){
@@ -1019,9 +1020,9 @@ function getPlayerList(gameId){
   if(game ==null) return null;
   return game.getPlayerList();
 }
-function BoardFor(gameId, playerId){let game = findGame(gameId)
+function BoardFor(gameId, player){let game = findGame(gameId)
   if(game ==null) return null;
-  return game.BoardFor(playerId);
+  return game.BoardFor(player);
 }
 function GameWinner(gameId){
   let game = findGame(gameId)
@@ -1060,10 +1061,10 @@ function execRandomMove(gameId,playerId){
  * @param {PlayerAccount[]} playersAccountId 
  * @returns 
  */
-function setPlayers(gameId,playersAccountId){
+function setPlayers(gameId,playersAccountId,randomise = true){
   let game = findGame(gameId);
   if(game ==null) return null;
-  return game.setPlayers(playersAccountId);
+  return game.setPlayers(playersAccountId,randomise);
 }
 function execRandomMove(gameId,move){
   let game = findGame(gameId);

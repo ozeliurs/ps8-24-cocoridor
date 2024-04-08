@@ -42,7 +42,6 @@
     <div class="chat-input">
       <textarea placeholder="Enter a message..." spellcheck="false" required></textarea>
       <span id="send-btn" class="material-symbols-rounded">
-
       </span>
     </div>
 
@@ -72,11 +71,13 @@
             const friends = data.friends;
             const friendRequest = document.getElementById("friendList");
             for (const friend of friends) {
+
               const friendElement = document.createElement("div");
-              friendElement.textContent = friend;
+              friendElement.classList.add("friend-container");
 
-              friendRequest.appendChild(friendElement);
 
+              const nameElement = document.createElement("span");
+              nameElement.textContent = friend;
 
               const chatButton = document.createElement("button");
               chatButton.setAttribute("id", friend);
@@ -103,7 +104,20 @@
                 });
 
               };
+
+              const pvpButton = document.createElement("button");
+              pvpButton.setAttribute("id", friend);
+              pvpButton.textContent = "Défier";
+              pvpButton.onclick = function () {
+                const friendName = pvpButton.getAttribute("id");
+                console.log("Défier " + friendName);
+                //window.location.href = "../Game-Page/index.html?mode=1vs1&playerid=" + nameUser + "&friend=" + friendName;
+              };
+
+              friendElement.appendChild(nameElement);
               friendElement.appendChild(chatButton);
+              friendElement.appendChild(pvpButton);
+              friendRequest.appendChild(friendElement);
               adjustZoom();
             }
           })
