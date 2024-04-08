@@ -10,8 +10,9 @@ signInBtn.onclick = async function(e){
     }
 
 
-
-    await fetch('http://localhost:8000/api/signIn', {
+    const hostname = window.location.hostname;
+    let api = "http://"+hostname+":8000/api/signIn";
+    await fetch(api, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

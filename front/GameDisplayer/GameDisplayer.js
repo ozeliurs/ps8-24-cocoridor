@@ -7,8 +7,9 @@ let req = {
     idUser: playerid
 }
 
-
-fetch('http://localhost:8000/api/retrieveUserGames', {
+const hostname = window.location.hostname;
+const api = "http://"+hostname+":8000/api/retrieveUserGames";
+fetch(api, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'

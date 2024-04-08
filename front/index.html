@@ -111,7 +111,9 @@
         }
         let playerRank = 1000;
         document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
-        fetch('http://localhost:8000/api/getElo', {
+        const hostname = window.location.hostname;
+        let api = "http://" + hostname + ":8000/api/getElo";
+        fetch(api, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
