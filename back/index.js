@@ -189,6 +189,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         let winners = back.GameWinner();
         if (winners != null && winners.length!=0) {
             socket.emit("endGame", winners);
+
         }
 
 
@@ -309,40 +310,6 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
 });
 
-
-io.of("/api/testgame").on('connection', (socket) => {
-
-    let playerList = back.init()
-
-    let newBoard = back.BoardFor(playerList[0])
-    socket.emit("launch",newBoard)
-    console.log('a user connected api');
-
-
-    socket.on("action",(action)=>{
-        let actionDone = false;
-        switch(action.vertical){
-            case null:
-                actionDone = back.execMove(move.playerID,move.x,move.y);
-                break;
-            case true :
-            case false :
-                actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
-                break;
-        }
-        if(actionDone){
-            let newBoard = back.BoardFor(back.CurrentPlayer());
-            socket.emit("updateBoard",newBoard);
-        }
-
-        // Save Game
-
-
-
-        let winners = back.GameWinner();
-        if(winners !=null) socket.emit("endGame", winners);
-    })
-});
 let players = [];
 let connectedPlayers = {}
 io.of("/api/1vs1").on('connection', async (socket) => {
@@ -351,7 +318,8 @@ io.of("/api/1vs1").on('connection', async (socket) => {
     let board;
     let turnNb;
     let gameId;
-    let saveId
+    let saveId;
+    let winners;
     socket.on('sendInfo', async (playerid) => {
         myId = playerid;
 
@@ -364,17 +332,38 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 alreadyIn = true;
             }
         }
+        let myElo = await apiQuery.getUserElo(myId);
+        let gamePlayers = [];
         if(!alreadyIn){
-            players.push({id: playerid, socket: socket});
+            let newPlayer = {id: playerid, socket: socket, elo: myElo};
+            players.push(newPlayer);
+            gamePlayers.push(newPlayer);
         }
-        if (players.length >= 2) {
-            gameId = back.init();
-            let playersForGame = []
-            for(let i = 0; i < players.length; i++){
-                players[i].socket.join('room'+gameId);
+        for(let player of players) {
+            if(player.id !== myId){
+                if(player.elo >=myElo-200 || player.elo <= myElo+200){
+                    gamePlayers.push(player);
+                    if(gamePlayers.length >= 2) break;
+                }
             }
-            playersForGame.push(players.shift().id);
-            playersForGame.push(players.shift().id);
+        }
+        console.log("gamePlayers: "+gamePlayers)
+
+        if (gamePlayers.length >= 2) {
+            let playersForGame = [];
+            for(let i = 0; i < gamePlayers.length; i++){
+                for(let j = 0; j < players.length; j++){
+                    if(players[j] === gamePlayers[i]){
+                        playersForGame.push(players[j].id);
+                        players.splice(j,1);
+                    }
+                }
+            }
+            console.log("playersForGame: "+playersForGame)
+            gameId = back.init();
+            for(let i = 0; i < gamePlayers.length; i++){
+                gamePlayers[i].socket.join('room'+gameId);
+            }
             //TODO recup les players account
             {
                 let res = []
@@ -385,7 +374,10 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             }
             playerList = back.setPlayers(gameId, playersForGame);
             playerList = back.getPlayerList(gameId);
-            connectedPlayers[gameId] = playerList;
+            connectedPlayers[gameId] = [];
+            for(let player of playerList){
+                connectedPlayers[gameId].push(player);
+            }
             board = back.getBoard(gameId);
             turnNb = back.getTurnNb(gameId);
             saveId = await saveGame(board, myId, turnNb, playerList);
@@ -451,7 +443,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         }
         let newBoard = back.BoardFor(gameId,me);
         socket.emit("updateBoard", newBoard,turnNb);
-        let winners = back.GameWinner(gameId);
+        winners = back.GameWinner(gameId);
         if (winners != null && winners.length!=0) {
             socket.emit("endGame", winners);
         }
@@ -511,7 +503,11 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         }
         socket.emit("choosePos", back.setUpBoard(gameId,me),playerListId,turnNb);
     });
+    socket.on('message', (message,playerName) => {
+        io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
+    });
     socket.on("disconnect",()=>{
+
         if(!connectedPlayers.hasOwnProperty(gameId))return;
         for (let i = 0; i < connectedPlayers[gameId].length; i++) {
             if (connectedPlayers[gameId][i].getid() === myId) {
@@ -519,18 +515,23 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 i--; 
             }
         }
+        console.log(playerList);
         connectedPlayers[gameId].filter((e)=>e.getid() != myId )
         if(connectedPlayers[gameId].length==0){
+            if (winners != null && winners.length!==0) {
+                console.log("here");
+                console.log(playerList);
+                for(let winner of winners){
+                    for(let player of playerList){
+                        if(player.getid()!==winner){
+                            updateElo(winner,player.getid());
+                        }
+                    }
+                }
+            }
             back.deleteGame(gameId);
         }
     })
-    socket.on('message', (message,playerName) => {
-        io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
-    });
-    socket.on("disconnect", () => {
-        console.log("disconnected")
-        //players = players.filter(player => player.socket !== socket);
-    });
 });
 
 io.of("/api/friendChat").on('connection', async (socket) => {
@@ -542,6 +543,22 @@ io.of("/api/friendChat").on('connection', async (socket) => {
         io.of("/api/friendChat").to(nameUser + friendName).emit('updateMessage');
     });
 });
+
+async function updateElo(winner, loser) {
+    let winnerElo = await apiQuery.getUserElo(winner);
+    let loserElo = await apiQuery.getUserElo(loser);
+    let k = 20;
+    let expected = loserElo / winnerElo;
+    let value = Math.floor(k*expected);
+    if (value <= 0) {
+        value = 1;
+    }
+    let newWinner = winnerElo+value;
+    let newLoser = loserElo-value;
+    console.log("newWinner : ", newWinner, " newLoser : ", newLoser)
+    await apiQuery.updateElo(winner, newWinner);
+    await apiQuery.updateElo(loser, newLoser);
+}
 
 
 

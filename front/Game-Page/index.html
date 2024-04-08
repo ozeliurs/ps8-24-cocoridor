@@ -167,17 +167,10 @@
             if(winners.length==1)window.location.href = "../EndPage/endPage.html?winner="+winners[0];
             else window.location.href = "../EndPage/endPage.html?winner=0"
         })
-
-
-        document.getElementById("btnChat").addEventListener('click', function() {
-            var messageButtons = document.getElementById("messageButtons");
-            messageButtons.style.display = 'block'; // Affiche les boutons de messages
+        socket.on("message", (msg,user) => {
+          chatInput.value = msg;
+          handleChat(user);
         });
-
-      socket.on("message", (msg,user) => {
-        chatInput.value = msg;
-        handleChat(user);
-      });
 
       document.getElementById("btnChat").addEventListener("click", function () {
         var messageButtons = document.getElementById("messageButtons");
