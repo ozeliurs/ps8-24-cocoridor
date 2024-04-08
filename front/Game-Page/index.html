@@ -120,6 +120,7 @@
           });
           socket = io("/api/AIgame");
           socket.emit("retrieveGame", user, gameId);
+          
           break;
         case "1vs1":
           document.addEventListener('DOMContentLoaded', async function() {
@@ -129,8 +130,13 @@
               window.location.href = "../index.html";
               return;
             }
+            
           });
+          document.getElementById("msg").style.display = "block";
+          document.getElementsByClassName("chatbot-toggler")[0].style.display="flex";
+
           socket = io("/api/1vs1");
+
           document.getElementById("waiting").style.display = "block";
           document.getElementById("notwaiting").style.display = "none";
 

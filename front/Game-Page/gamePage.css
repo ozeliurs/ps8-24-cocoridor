@@ -209,7 +209,7 @@ body {
   border: none;
   height: 50px;
   width: 50px;
-  display: flex;
+  display: none;
   cursor: pointer;
   align-items: center;
   justify-content: center;
@@ -391,5 +391,6 @@ header h2 {
   width: 100%;
   text-align: left;
   padding: 10px 0; 
+  display: none;
   
 }
