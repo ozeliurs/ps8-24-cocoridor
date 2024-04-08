@@ -25,7 +25,7 @@
         </div>
         <div id=playerCard>
             <div id=playerProfile>
-                <img src="Main-Page/chickenLogo.png" id="playerPicture" alt="Photo de profil">
+                <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
                 <div id=playerInfo>
                     <div id=playerName>
                         Player
@@ -87,39 +87,9 @@
         </a>
     </div>
 
+    </br>
+    </br>
     <script src="Main-Page/mainPage.js"></script>
-    <script src="
-    "></script>
-    <script>
-        // var socket = io();
-/*
-        function createGame() {
-            fetch('api/creategame', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    // Add any data you want to send to the server
-                })
-            })
-            .then(response => {
-                // Handle the response from the server
-                
-            })
-            .catch(error => {
-                // Handle any errors
-                console.log("erreur")
-            });
-        }*/
-    </script>
-</body>
-</html>
-    <script src="Main-Page/mainPage.js"></script>
-    <script src=""></script>
-    <script>
-      //  var socket = io();
-    </script>
 
 <script>
     let playerName;
@@ -140,6 +110,7 @@
             needID[i].href = needID[i].href.replace('user', playerName);
         }
         let playerRank = 1000;
+        document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
         fetch('http://localhost:8000/api/getElo', {
             method: 'POST',
             headers: {
@@ -150,15 +121,15 @@
             .then(response => response.json())
             .then(data => {
                 playerRank = data.elo;
-                console.log(playerRank)
+                console.log(playerRank);
+                if(playerRank == undefined || playerRank == '') {
+                    playerRank = 1000;
+                }
+                document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
             })
             .catch(error => {
                 console.error('Error:', error);
             });
-        if(playerRank == undefined || playerRank == '') {
-            playerRank = 1000;
-        }
-        document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
     }
 
 </script>

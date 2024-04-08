@@ -19,19 +19,7 @@ async function clearDatabase() {
 }
 
 
-async function clearChat() {
-    const users= await getUsers();
 
-    for (const user of users) {
-        for (const conversation of user.conv) {
-            conversation.messages = [];
-        }
-        await users.updateOne(
-            { _id: user._id },
-            { $set: { conv: user.conv } }
-        );
-    }
-}
 
 async function getUsers() {
     const db = await getMongoDatabase();
@@ -176,5 +164,4 @@ exports.getFriendRequests = getFriendRequests;
 exports.addFriend = addFriend;
 exports.getFriends = getFriends;
 exports. addMessage = addMessage;
-exports.clearChat = clearChat;
 exports.getConv = getConv;
