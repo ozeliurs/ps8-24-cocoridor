@@ -74,7 +74,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
     let gameId
     let saveId
     let myId
-    const botId = back.PlayerAccount.Bot().id
     
     socket.on('newGame',async (playerId) => {
         gameId = back.init();
@@ -84,22 +83,19 @@ io.of("/api/AIgame").on('connection', (socket) => {
         let me = null
         let playerListId = [];
         for(let i=0;i<playerList.length;i++){
-            if(playerList[i].getid()==myId){
-                me = playerList[i];
-            }else {
-                if(playerList[i].getid() == botId){
-                    let aiMove = await adaptator.setup(i, back.setUpBoard(gameId,playerList[1]).Positions);
-                    back.placePlayer(gameId,botId, aiMove);
-                }
+            if(playerList[i].getid()==myId) me = playerList[i];
+            else if(playerList[i].account.difficulty!=null){
+                let aiMove = await adaptator.setup(playerList[i].modifier, back.setUpBoard(gameId,playerList[i]).Positions);
+                console.log("PLACE BOT")
+                back.placePlayer(gameId, playerList[i].getid(), aiMove);
             }
             playerListId.push(playerList[i].getid())
-            
         }
-        
         socket.emit("choosePos",back.setUpBoard(gameId,me),playerListId,turnNb = back.getTurnNb(gameId))
 
     })
     socket.on("start",async ()=>{
+        console.log("start")
         playerList = back.getPlayerList(gameId);
         board = back.getBoard(gameId);
         turnNb = back.getTurnNb(gameId);
@@ -159,19 +155,20 @@ io.of("/api/AIgame").on('connection', (socket) => {
             let newBoard = back.BoardFor(gameId, me);
             turnNb = back.getTurnNb(gameId);
             socket.emit("updateBoard", newBoard,turnNb);
-            while(playerList[turnNb%playerList.length].getid()==botId){
-                let aiBoard = back.BoardFor(gameId, playerList[turnNb%playerList.length]);
+            while(playerList[turnNb%playerList.length].account.difficulty!=null){
+                let bot = playerList[turnNb%playerList.length]
+                let aiBoard = back.BoardFor(gameId, bot);
                 {
                     sleep(1000)
                     let moved
-                    let computemove = await adaptator.computeMove(aiBoard,playerList[turnNb%playerList.length].getid());
+                    let computemove = await adaptator.computeMove(aiBoard,bot.getid());
                     if(computemove.vertical===undefined) {
                         moved = back.execMove(gameId, me, computemove.x, computemove.y);
                     }else{
                         moved = back.execWall(gameId, me,computemove.x,computemove.y,computemove.vertical);
                     }
                     if (!moved) {
-                        let move = back.execRandomMove(gameId, botId);
+                        let move = back.execRandomMove(gameId, bot.getid());
                         await adaptator.correction(move);
                     }
                 }
@@ -313,40 +310,6 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
 });
 
-
-io.of("/api/testgame").on('connection', (socket) => {
-
-    let playerList = back.init()
-
-    let newBoard = back.BoardFor(playerList[0])
-    socket.emit("launch",newBoard)
-    console.log('a user connected api');
-
-
-    socket.on("action",(action)=>{
-        let actionDone = false;
-        switch(action.vertical){
-            case null:
-                actionDone = back.execMove(move.playerID,move.x,move.y);
-                break;
-            case true :
-            case false :
-                actionDone = back.execWall(wall.playerID,wall.x,wall.y,wall.vertical)
-                break;
-        }
-        if(actionDone){
-            let newBoard = back.BoardFor(back.CurrentPlayer());
-            socket.emit("updateBoard",newBoard);
-        }
-
-        // Save Game
-
-
-
-        let winners = back.GameWinner();
-        if(winners !=null) socket.emit("endGame", winners);
-    })
-});
 let players = [];
 let connectedPlayers = {}
 io.of("/api/1vs1").on('connection', async (socket) => {

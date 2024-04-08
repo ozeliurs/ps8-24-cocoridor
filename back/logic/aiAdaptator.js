@@ -165,10 +165,11 @@ function convertToGameState(board, playerID){
     return new gameState(newBoard, opponentWalls, ownWalls);
 }
 
-async function computeMove(board, playerID=2) {
+async function computeMove(board, playerID) {
+    console.log("compute move - "+playerID)
     let gameState = convertToGameState(board, playerID);
 
-    let nextMove = await ai.nextMove(gameState);
+    let nextMove = await ai.nextMove(gameState, playerID);
 
     if(nextMove.action === "move"){
         let pos = parseInt(nextMove.value);
@@ -211,7 +212,12 @@ async function correction(move){
     return await ai.correction(aiMove);
 }
 
-async function setup(AIplay, playerID){
+/**
+ * 
+ * @param {Number} AIplay 
+ * @returns 
+ */
+async function setup(AIplay){
     let pos = await ai.setup(AIplay);
     let newPos = { X: Math.floor(pos/10)-1, Y: pos%10-1};
     return newPos;

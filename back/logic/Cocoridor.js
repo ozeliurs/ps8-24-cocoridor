@@ -19,7 +19,7 @@ exports.setup = async function setup(AIplay) {
     ennemyEndPos = []
     worstEnnemyPos = null
     playerturn = AIplay;
-    if (AIplay === 2) {
+    if (AIplay === 1) {
         let random = Math.floor(Math.random() * 2);
         if (random === 0){
             startPos = 29;
@@ -45,13 +45,14 @@ exports.setup = async function setup(AIplay) {
     }
     return Promise.resolve(startPos.toString());
 };
-
-exports.nextMove = async function nextMove(gamestate) {
+exports.nextMove = async function nextMove(gamestate,playerId) {
     let forceWall = false;
     let currentPosition;
+    console.log("board: ")
+    console.log(gamestate.board)
     for(let i = 0; i < gamestate.board.length; i++)if(currentPosition==null){
         for(let j = 0; j < gamestate.board[i].length; j++){
-            if(gamestate.board[i][j] === 1){
+            if(gamestate.board[i][j] === playerId){
                 currentPosition = {y:j,x:i};
                 break;
             }
@@ -182,8 +183,6 @@ exports.nextMove = async function nextMove(gamestate) {
     
     
 }
-
-
 exports.correction = async function correction(rightMove) {
     return Promise.resolve(true);
 };

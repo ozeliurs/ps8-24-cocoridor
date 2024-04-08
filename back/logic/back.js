@@ -233,6 +233,8 @@ class GameState{
    * @return {{Board:TileFront[],Positions:{X:Number,Y:Number}}}
    */
   setUpBoard(player){
+    console.log("setUpBoard")
+    console.log(player)
     let resultPos= [];
     if(player.end[0].X == player.end[player.end.length-1].X){
       if(player.end[0].X>this.gameParams.boardLength/2) for(let y=0;y<this.gameParams.boardHeight;y++)resultPos.push({X:0, Y:y})
@@ -484,8 +486,9 @@ class Color{
 
 class PlayerAccount {
 
-  static Bot(){
-    let bot = new PlayerAccount("bot","GAGAGOOGOO")
+  static Bot(difficulty = 1){
+    let bot = new PlayerAccount("bot"+Date.now(),"GAGAGOOGOO")
+    bot.difficulty = difficulty
     return bot;
   }
   constructor(email,password){
