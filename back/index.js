@@ -51,12 +51,12 @@ function sleep(milliseconds) {
 
 //Fonction qui envoie une requête à la db pour enregistrer l'état d'une partie
 
-async function saveGame(gameState,idUser,gameId=null){
+async function saveGame(gameState,gameId=null){
     let res = null;
     if(gameId===null){
-        res = await apiQuery.createGame(idUser, gameState);
+        res = await apiQuery.createGame(gameState);
     }else{
-        res = await apiQuery.updateGame(idUser, gameState, gameId);
+        res = await apiQuery.updateGame(gameState, gameId);
     }
     return res;
 }
@@ -101,7 +101,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         playerList = back.getPlayerList(gameId);
         turnNb = back.getTurnNb(gameId);
         let gameState = back.getGameState(gameId);
-        saveId = await saveGame(gameState, myId);
+        saveId = await saveGame(gameState);
         let me = null
         for(let i=0;i<playerList.length;i++){
             if(playerList[i].getid()==myId){
@@ -133,7 +133,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
             await adaptator.updateBoard(aiBoard,bot.getid());
             gameState = back.getGameState(gameId);
             turnNb = back.getTurnNb(gameId);
-            saveGame(gameState, myId, saveId);
+            saveGame(gameState, saveId);
             newBoard = back.BoardFor(gameId, me);
 
             socket.emit("updateBoard", newBoard, turnNb);
@@ -141,8 +141,9 @@ io.of("/api/AIgame").on('connection', (socket) => {
 
     })
     socket.on('retrieveGame', async (playerId, gameId) => {
-        let game = await getGame(gameId);
-        back.retrieveGame(game.gameState);
+        saveId = gameId;
+        let game = await getGame(saveId);
+        gameState = back.retrieveGame(game.gameState);
         playerList = back.getPlayerList();
         turnNb = back.getTurnNb();
         if(turnNb%playerList.length!==0){
@@ -166,7 +167,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
             gameState = back.getGameState(gameId);
             turnNb = back.getTurnNb(gameId);
             gameState = back.getGameState(gameId);
-            saveGame(gameState,playerId,saveId);
+            saveGame(gameState,saveId);
         }
         let newBoard = back.BoardFor(playerList[turnNb%playerList.length]);
         socket.emit("launch", newBoard, turnNb, gameId);
@@ -180,7 +181,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         let actionDone = back.execMove(gameId, me, move.x, move.y);
         if (actionDone) {
             gameState = back.getGameState(gameId);
-            saveGame(gameState, myId, saveId);
+            saveGame(gameState, saveId);
             let newBoard = back.BoardFor(gameId, me);
             turnNb = back.getTurnNb(gameId);
             socket.emit("updateBoard", newBoard,turnNb);
@@ -208,7 +209,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 await adaptator.updateBoard(aiBoard,bot.getid());
                 turnNb = back.getTurnNb(gameId);
                 gameState = back.getGameState(gameId);
-                saveGame(gameState, myId, saveId);
+                saveGame(gameState, saveId);
                 newBoard = back.BoardFor(gameId, me);
 
                 socket.emit("updateBoard", newBoard, turnNb);
@@ -234,7 +235,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         if (actionDone) {
             turnNb = back.getTurnNb(gameId);
             gameState = back.getGameState(gameId);
-            saveGame(gameState, myId, saveId);
+            saveGame(gameState, saveId);
             let me = getPlayerInList(playerList, myId)
             bot = getPlayerInList(playerList, bot.getid())
             let newBoard = back.BoardFor(gameId,me);
@@ -267,7 +268,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
             await adaptator.updateBoard(aiBoard,bot.getid());
             gameState = back.getGameState(gameId);
             turnNb = back.getTurnNb(gameId);
-            saveGame(gameState, myId, saveId);
+            saveGame(gameState, saveId);
             newBoard = back.BoardFor(gameId,me)
             socket.emit("updateBoard", newBoard,turnNb)
         }
@@ -436,7 +437,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             }
             turnNb = back.getTurnNb(gameId);
             gameState = back.getGameState(gameId);
-            saveId = await saveGame(gameState, myId);
+            saveId = await saveGame(gameState);
             io.of("/api/1vs1").to('room'+gameId).emit("initChoosePos",gameId)
         }
     });
@@ -455,7 +456,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             let actionDone = back.execMove(gameId, me, move.x, move.y);
             if (actionDone) {
                 gameState = back.getGameState(gameId);
-                await saveGame(gameState, myId, saveId);
+                await saveGame(gameState, saveId);
                 io.of("/api/1vs1").to('room' + gameId).emit("moved", gameId);
             }
         }else{
@@ -478,7 +479,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             let actionDone = back.execWall(gameId, me, wall.x, wall.y, wall.vertical)
             if (actionDone) {
                 gameState = back.getGameState(gameId);
-                await saveGame(gameState, myId, saveId);
+                await saveGame(gameState, saveId);
                 io.of("/api/1vs1").to('room' + gameId).emit("moved", gameId);
             }
         }else{
@@ -677,7 +678,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             }
             turnNb = back.getTurnNb(gameId);
             gameState = back.getGameState(gameId);
-            saveId = await saveGame(gameState, myId, turnNb, playerList);
+            saveId = await saveGame(gameState);
             io.of("/api/1vs1Friend").to('room'+gameId).emit("initChoosePos",gameId)
         }
     });
@@ -696,7 +697,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             let actionDone = back.execMove(gameId, me, move.x, move.y);
             if (actionDone) {
                 gameState = back.getGameState(gameId);
-                await saveGame(gameState, myId, saveId);
+                await saveGame(gameState, saveId);
                 io.of("/api/1vs1Friend").to('room' + gameId).emit("moved", gameId);
             }
         }else{
@@ -719,7 +720,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             let actionDone = back.execWall(gameId, me, wall.x, wall.y, wall.vertical)
             if (actionDone) {
                 gameState = back.getGameState(gameId);
-                await saveGame(gameState, myId, saveId);
+                await saveGame(gameState, saveId);
                 io.of("/api/1vs1Friend").to('room' + gameId).emit("moved", gameId);
             }
         }else{
