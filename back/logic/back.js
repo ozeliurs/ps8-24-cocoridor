@@ -44,6 +44,16 @@ class GameState{
 
   /**
    * 
+   * @param {GameState} gameState 
+   * @returns 
+   */
+  static loadGame(gameState){
+      if(this.onGoing[gameState.id]==null)this.onGoing[gameState.id] = gameState
+      return this.onGoing[gameState.id]
+  }
+
+  /**
+   * 
    * @param {GameParams} GameParams 
    */
   constructor(gameParams){
@@ -794,8 +804,12 @@ class Border {
     return new GameState(gameParams).id;
   }
   
-  function retrieveGame(gameId){
-
+  /**
+   * 
+   * @param {GameState} game
+   */
+  function retrieveGame(game){
+    GameState.loadGame(game);
   }
   
   /**
