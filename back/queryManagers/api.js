@@ -165,12 +165,10 @@ async function updateElo(username, elo) {
     return user.elo;
 }
 
-async function createGame(idUser, board, turnNb,playerList, response = null) {
+async function createGame(idUser, gameState, response = null) {
     const NewGame = {
-        board: board,
         idUser: idUser,
-        turnNb: turnNb,
-        playerList: playerList
+        gameState: gameState,
     };
     let gameCreated = await db.createGame(NewGame);
     if(response !== null) {
@@ -186,13 +184,11 @@ async function createGame(idUser, board, turnNb,playerList, response = null) {
 }
 
 
-async function updateGame(idUser, board, turnNb,playerList, gameId, response = null) {
+async function updateGame(idUser, gameState, gameId, response = null) {
     console.log("updateGame")
     const updatedGame = {
-        board: board,
         idUser: idUser,
-        turnNb: turnNb,
-        playerList: playerList
+        gameState: gameState
     };
     let gameUpdated = await db.updateGame(updatedGame, gameId);
     if(response !== null) {

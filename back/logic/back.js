@@ -35,12 +35,6 @@ class GameParams{
 }
 class GameState{
   static onGoing = {}
-  
-  static async getGame(idGame){
-    let res = null;
-    res = await apiQuery.getGame(idGame);
-    return res;
-  }
 
   /**
    * 
@@ -1127,5 +1121,7 @@ function findGame(gameId){
   exports.setUpBoard = setUpBoard;
   exports.placePlayer = placePlayer;
   exports.execRandomMove = execRandomMove;
-  exports.deleteGame = deleteGame
-  exports.PlayerAccount = PlayerAccount
+  exports.deleteGame = deleteGame;
+  exports.PlayerAccount = PlayerAccount;
+  exports.retrieveGame = retrieveGame;
+  exports.getGameState = findGame;
