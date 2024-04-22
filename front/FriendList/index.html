@@ -59,7 +59,9 @@
           return;
         }
         nameUser = usernameCookie.split('=')[1];
-        await fetch('http://localhost:8000/api/getFriends', {
+        const hostname = window.location.hostname;
+        let api = "http://" + hostname + ":8000/api/getFriends";
+        await fetch(api, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

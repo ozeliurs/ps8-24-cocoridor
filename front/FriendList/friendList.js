@@ -61,9 +61,11 @@ const handleChat = async () => {
   if(!userMessage) return;
   chatInput.value = "";
   chatInput.style.height = `${inputInitHeight}px`;
-  console.log("test")
-  console.log(nameUser+"/"+friendName+"/"+userMessage)
-  fetch("http://localhost:8000/api/addMessage", {
+  console.log("test");
+  console.log(nameUser+"/"+friendName+"/"+userMessage);
+  const hostname = window.location.hostname;
+  let api = "http://"+hostname+":8000/api/addMessage";
+  fetch(api, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -96,7 +98,8 @@ chatInput.addEventListener("input", () => {
 });
 
 chatInput.addEventListener("keydown", (e) => {
-  if(e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
+  if(e.key === "Enter" && !e.shiftKey && window.innerWidth > 400) {
+      console.log("here")
       e.preventDefault();
       handleChat();
   }
@@ -104,8 +107,10 @@ chatInput.addEventListener("keydown", (e) => {
 
 
 async function updateConv(nameUser, friendName) {
-  console.log("updateConv")
-  await fetch("http://localhost:8000/api/getConv", {
+  console.log("updateConv");
+  const hostname = window.location.hostname;
+  let api="http://"+hostname+":8000/api/getConv";
+  await fetch(api, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
