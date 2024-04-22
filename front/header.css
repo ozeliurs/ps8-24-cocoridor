@@ -7,12 +7,11 @@ html,body{
 
 header {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     width: 100%;
     background-color: #fff45c;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 5%;
 }
 
 a{
