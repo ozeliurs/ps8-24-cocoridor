@@ -76,7 +76,7 @@ async function updateGame(game,gameID){
 
 async function verifMdp(username, mdp){
     const users = await getUsers();
-    return await users.findOne({ username: username, password: mdp });
+    return await users.findOne({ username: username, password: mdp })!=null;
     
 }
 
@@ -86,6 +86,7 @@ async function addFriendRequest(username, friend){
     if(user && !user.friendRequests.includes(username) && !user.friends.includes(username)){
         return await users.updateOne({ username: friend }, { $push: { friendRequests: username } });
     }
+    return null;
 }
 
 async function getFriendRequests(username){

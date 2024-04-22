@@ -5,6 +5,9 @@
     --BORDERCOLOR :#FFE0BB;
 }
 
+header{
+  margin-bottom: 0%;
+}
 div {
     color: cadetblue;
 }
@@ -57,12 +60,9 @@ body {
 #gameCover {
     display:none;
     position: absolute;
-    width: 100%;
+    width: 70%;
     height: 100%;
-    top: -110px;
-    left: 100px;
     background: 	#FAFAD2;
-    z-index: 10;
 }
 
 

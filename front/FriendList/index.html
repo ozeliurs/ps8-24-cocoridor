@@ -9,22 +9,44 @@
 </head>
 
 <body>
+  <div class="global">
+    <div class="upperBtns">
+        <a href="../signUp">
+            <button id=signUp>
+                S'inscrire
+            </button>
+        </a>
+        <a href="../signIn">
+            <button id=signIn>
+                Se connecter
+            </button>
+        </a>
+    </div>
 
+    <a href=".."><h1>CocoRidor</h1></a>
 
-
-
+    
+    <div id=playerCard>
+        <div id=playerProfile>
+            <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
+            <div id=playerInfo>
+                <div id=playerName>
+                    Player
+                </div>
+                <div id=playerRank>
+                    Elo 1000
+                </div>
+            </div>
+        </div> 
+    </div>
+  </div>
 
   <div class="container">
     <h1>Ma liste d'amis</h1>
     <div id="friendList">
     </div>
   </div>
-
-
-
-
   <button class="chatbot-toggler">
-
   </button>
 
   <div class="chatbot">
@@ -46,7 +68,7 @@
     </div>
 
 
-
+    <script src="../index.js"></script>
     <script src="../js/socket.io.js"> </script>
     <script>
       document.addEventListener('DOMContentLoaded', async function () {

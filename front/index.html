@@ -7,10 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link href="header.css" rel="stylesheet">
     <title>GamePage</title>
 </head>
-<body id=GamePlaySelection>
-    <div id=upperZone>
+<body>
+    <header>
         <div class="upperBtns">
             <a href="signUp">
                 <button id=signUp>
@@ -23,6 +24,10 @@
                 </button>
             </a>
         </div>
+
+        <a href=".."><h1>CocoRidor</h1></a>
+
+        
         <div id=playerCard>
             <div id=playerProfile>
                 <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
@@ -36,104 +41,60 @@
                 </div>
             </div> 
         </div>
-    </div>
+    </header>
 
-
-
-    <div class=buttonContainer>
-        <div class="iconContainer">
-            <img class="icon" src="Main-Page/gameIcon.png" alt="game">
+    <div id="GamePlaySelection">
+        <div class=buttonContainer>
+            <div class="iconContainer">
+                <img class="icon" src="Main-Page/gameIcon.png" alt="game">
+            </div>
+            <div class="iconContainer">
+                <img class="icon" src="Main-Page/settingsIcon.png" alt="settings">
+            </div>
         </div>
-        <div class="iconContainer">
-            <img class="icon" src="Main-Page/settingsIcon.png" alt="settings">
+
+        <div class=buttonContainer>
+            <a href="Game-Page?mode=local">
+                <button class=btn class=gameModeButton >
+                    Jouer en local
+                </button>
+            </a>
+            <a href="FriendPage/">
+                <button class=btn class=gameModeButton>
+                    Ajout d'Ami
+                </button>
+            </a>
+        </div>
+        <div class=buttonContainer>
+            <a href="Game-Page?mode=newAi&playerid=user" class="needID">
+                <button class=btn class=gameModeButton>
+                    Nouvelle partie IA
+                </button>
+            </a>
+            <a href="GameDisplayer?playerid=user" class="needID">
+                <button class=btn class=gameModeButton>
+                    Reprendre partie IA
+                </button>
+            </a>
+        </div>
+
+        <div class=buttonContainer>
+            <a href="Game-Page?mode=1vs1&playerid=user" class="needID">
+                <button class=btn class=gameModeButton>
+                    Jouer en ligne  
+                </button>
+            </a>
+            <a href="FriendList/">
+                <button class=btn class=gameModeButton>
+                    Liste d'Amis
+                </button>
+            </a>
         </div>
     </div>
 
-    <div class=buttonContainer>
-        <a href="Game-Page?mode=local">
-            <button class=btn class=gameModeButton >
-                Jouer en local
-            </button>
-        </a>
-        <a href="FriendPage/">
-            <button class=btn class=gameModeButton>
-                Ajout d'Ami
-            </button>
-        </a>
-    </div>
-    <div class=buttonContainer>
-        <a href="Game-Page?mode=newAi&playerid=user" class="needID">
-            <button class=btn class=gameModeButton>
-                Nouvelle partie IA
-            </button>
-        </a>
-        <a href="GameDisplayer?playerid=user" class="needID">
-            <button class=btn class=gameModeButton>
-                Reprendre partie IA
-            </button>
-         </a>
-    </div>
+    <br>
+    <br>
+    <script src="index.js"></script>
 
-    <div class=buttonContainer>
-        <a href="Game-Page?mode=1vs1&playerid=user" class="needID">
-            <button class=btn class=gameModeButton>
-                Jouer en ligne  
-            </button>
-        </a>
-        <a href="FriendList/">
-            <button class=btn class=gameModeButton>
-                Liste d'Amis
-            </button>
-        </a>
-    </div>
-
-    </br>
-    </br>
-    <script src="Main-Page/mainPage.js"></script>
-
-<script>
-    let playerName;
-    let cookies =document.cookie.split(';')
-    for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i].split('=');
-        if (cookie[0].trim() == 'nomCookie') {
-            playerName = cookie[1];
-        }
-    }
-
-    if(playerName == undefined || playerName == ''){
-        document.getElementById('playerName').textContent = 'Player';
-    }else{
-        document.getElementById('playerName').textContent = playerName;
-        let needID = document.getElementsByClassName('needID');
-        for (let i = 0; i < needID.length; i++) {
-            needID[i].href = needID[i].href.replace('user', playerName);
-        }
-        let playerRank = 1000;
-        document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
-        const hostname = window.location.hostname;
-        let api = "http://" + hostname + ":8000/api/getElo";
-        fetch(api, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({username: playerName})
-        })
-            .then(response => response.json())
-            .then(data => {
-                playerRank = data.elo;
-                console.log(playerRank);
-                if(playerRank == undefined || playerRank == '') {
-                    playerRank = 1000;
-                }
-                document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
-
-</script>
 </body>
 </html>

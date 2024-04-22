@@ -28,17 +28,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ username: nameUser, friendName: friendName })
-            }).then(response => {
-                if (response.ok) {
-                    alert("Demande envoyée");
-                } else {
-                    throw new Error('La requête a échoué'); 
-                }
-            }).catch(error => {
-                console.error(error);
-            });
-            friendNameInput.value = '';
+            }).then(response => response.json())
+            .then(data => {
+               console.log("data : ",data)
+               if(data.result!=null){
+                    alert("Demande envoyée à "+friendName);
+               }else{
+                    alert("Cet utilisateur n'existe pas ou vous lui avez déja envoyé une demande d'ami");
+               }
+            })
+            
         }
+        friendNameInput.value = '';
     });
 
     const hostname = window.location.hostname;
