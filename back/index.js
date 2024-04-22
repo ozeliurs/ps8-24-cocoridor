@@ -307,23 +307,24 @@ io.of("/api/AIgame").on('connection', (socket) => {
 io.of("/api/Localgame").on('connection', (socket) => {
 
 
-    const gameId = back.init()
-    back.setPlayers(new back.PlayerAccount("J1",'Gngngngngnng'),new back.PlayerAccount("J2",'Gngngngngnng'))
-    const playerList = back.getPlayerList(gameId)
-    
-    //Placer les joueurs
 
+    const gameId = back.init()
+    back.setPlayers(gameId, [new back.PlayerAccount("J1",'Gngngngngnng'),new back.PlayerAccount("J2",'Gngngngngnng')],false)
+
+    let playerList = back.getPlayerList(gameId)
+    let playerArePlaced = false
+    //Placer les joueurs
+    console.log(playerList)
 
     turnNb = back.getTurnNb(gameId)
-    let newBoard = back.BoardFor(gameId,playerList[0])
-    socket.emit("launch",newBoard,turnNb);
+    socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]),turnNb);
 
     socket.on('move', (move) => {
         console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
-        let actionDone = back.execMove(gameId,move.playerID,move.x,move.y);
+        let actionDone = back.execMove(gameId,back.CurrentPlayer(gameId),move.x,move.y);
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId));
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
@@ -334,18 +335,37 @@ io.of("/api/Localgame").on('connection', (socket) => {
     });
 
     socket.on('wall', (wall) => {
-        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
-        let actionDone = back.execWall(gameId,wall.playerID,wall.x,wall.y,wall.vertical)
+        console.log('x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        if(!playerArePlaced)return;
+        let actionDone = back.execWall(gameId,back.CurrentPlayer(gameId),wall.x,wall.y,wall.vertical)
         
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
-            socket.emit("updateBoard",newBoard);
+            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId));
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
             socket.emit("endGame", winners);
         }
     });
+
+    socket.on("gameSetup",(move)=>{
+        for (let i=0;i<playerList.length;i++){
+            if(playerList[i].OnTile==null){
+                back.placePlayer(gameId,playerList[i].getid(),{X:move.x,Y:move.y})
+                
+                if(playerList[playerList.length-1].OnTile!=null){
+                    playerArePlaced = true;
+                    socket.emit("launch",back.BoardFor(gameId,playerList[turnNb%playerList.length]),turnNb)
+                    return;
+                }
+
+                let newBoard = back.setUpBoard(gameId,playerList[i+1])
+                socket.emit("choosePos",newBoard,turnNb);
+                return;
+            }
+        }
+    })
 
 });
 
@@ -606,6 +626,202 @@ async function updateElo(winner, loser) {
     await apiQuery.updateElo(loser, newLoser);
 }
 
+let playersRooms = {}
+let friendMatch = {}
+io.of("/api/1vs1Friend").on('connection', async (socket) => {
+    let myId;
+    let playerList;
+    let board;
+    let turnNb;
+    let gameId;
+    let saveId;
+    let winners;
+    socket.on('sendRoomInfo', async (playerid,friendid) => {
+        myId = playerid;
+        //faire une clé unique pour chaque room ( quel que soit l'ordre des joueurs)
+        let roomKey = myId>=friendid?myId+friendid:friendid+myId;
+        playersRooms[roomKey] = playersRooms[roomKey] || [];
+        let alreadyIn = false;
+        for( let player  in playersRooms[roomKey]){
+            if(player.id === playerid){
+                players.socket.disconnect();
+                players.socket = socket;
+                alreadyIn = true;
+            }
+        }
+        if(!alreadyIn){playersRooms[roomKey].push({id:playerid,socket:socket});}
+        if(playersRooms[roomKey].length >= 2){
+            let playersForGame = [];
+            let gamePlayers = [];
+            for(let i = 0; i < playersRooms[roomKey].length; i++){
+                playersForGame.push(playersRooms[roomKey][i].id);
+                gamePlayers.push(playersRooms[roomKey][i]);
+                playersRooms[roomKey].splice(i,1);
+                i--;
+            }
+            console.log("playersForGame: "+playersForGame)
+            gameId = back.init();
+            for(let i = 0; i < gamePlayers.length; i++){
+                gamePlayers[i].socket.join('room'+gameId);
+            }
+            //TODO recup les players account
+            {
+                let res = []
+                for(let playerId of playersForGame){
+                    res.push(new back.PlayerAccount(playerId,"GNGNNGGNNGNGGNgngngnnggnnnnnngnnnn"));
+                }
+                playersForGame = res
+            }
+            playerList = back.setPlayers(gameId, playersForGame);
+            playerList = back.getPlayerList(gameId);
+            friendMatch[gameId] = [];
+            for(let player of playerList){
+                friendMatch[gameId].push(player);
+            }
+            board = back.getBoard(gameId);
+            turnNb = back.getTurnNb(gameId);
+            saveId = await saveGame(board, myId, turnNb, playerList);
+            io.of("/api/1vs1Friend").to('room'+gameId).emit("initChoosePos",gameId)
+        }
+    });
+    socket.on('move', async (move) => {
+        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+        playerList = back.getPlayerList(gameId);
+        if(myId ===  playerList[turnNb%playerList.length].getid()) {
+
+            let me = null;
+            for(let i=0;i<playerList.length;i++){
+                if(playerList[i].getid()==myId){
+                    me = playerList[i];
+                    continue;
+                }
+            }
+            let actionDone = back.execMove(gameId, me, move.x, move.y);
+            if (actionDone) {
+                board = back.getBoard(gameId);
+                await saveGame(board, myId, turnNb, playerList, saveId);
+                io.of("/api/1vs1Friend").to('room' + gameId).emit("moved", gameId);
+            }
+        }else{
+            console.log("not your turn");
+        }
+    });
+    socket.on('wall', async (wall) => {
+        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        playerList = back.getPlayerList(gameId);
+        if(myId === playerList[turnNb%playerList.length].getid()) {
+
+            let me = null;
+            playerList= back.getPlayerList(gameId);
+            for(let i=0;i<playerList.length;i++){
+                if(playerList[i].getid()==myId){
+                    me = playerList[i];
+                    continue;
+                }
+            }
+            let actionDone = back.execWall(gameId, me, wall.x, wall.y, wall.vertical)
+            if (actionDone) {
+                board = back.getBoard(gameId);
+                await saveGame(board, myId, turnNb, playerList, saveId);
+                io.of("/api/1vs1Friend").to('room' + gameId).emit("moved", gameId);
+            }
+        }else{
+            console.log("not your turn");
+        }
+    });
+    socket.on('update', async () => {
+
+        turnNb = back.getTurnNb(gameId);
+
+        let me = null;
+        playerList= back.getPlayerList(gameId);
+        for(let i=0;i<playerList.length;i++){
+            if(playerList[i].getid()==myId){
+                me = playerList[i];
+                continue;
+            }
+        }
+        let newBoard = back.BoardFor(gameId,me);
+        socket.emit("updateBoard", newBoard,turnNb);
+        winners = back.GameWinner(gameId);
+        if (winners != null && winners.length!=0) {
+            socket.emit("endGame", winners);
+        }
+    });
+
+    socket.on('gameSetup', async ( move) => {
+
+        let me = null;
+        for(let i=0;i<playerList.length;i++){
+            if(playerList[i].getid()==myId){
+                me = playerList[i];
+                continue;
+            }
+        }
+        if(me.OnTile!=null) return;
+        let coords = {X:move.x,Y:move.y}
+        if(me.start.find((e)=>e.X==coords.X&&e.Y==coords.Y) ==null )return;
+        playerList= back.getPlayerList(gameId);
+
+        back.placePlayer(gameId,myId,coords);
+
+        for(let player of playerList){
+            if(player.OnTile==null) return;
+        }
+        io.of("/api/1vs1Friend").to('room' + gameId).emit("playersReady", gameId);
+
+
+    });
+    socket.on('start',async ()=>{
+        back.getTurnNb(gameId)
+        back.getPlayerList(gameId);
+        back.getBoard(gameId);
+        let me = null;
+        playerList= back.getPlayerList(gameId);
+        for(let i=0;i<playerList.length;i++){
+            if(playerList[i].getid()==myId){
+                me = playerList[i];
+                continue;
+            }
+        }
+
+        let newBoard = back.BoardFor(gameId,me)
+
+        socket.emit("launch",newBoard, turnNb);
+    })
+    socket.on('askForInitPos', async (gameID) => {
+        gameId=gameID;
+        turnNb = back.getTurnNb(gameId);
+        let me = null;
+        playerList= back.getPlayerList(gameId);
+        let playerListId = []
+        for(let i=0;i<playerList.length;i++){
+            if(playerList[i].getid()==myId){
+                me = playerList[i];
+            }
+            playerListId.push(playerList[i].getid())
+        }
+        socket.emit("choosePos", back.setUpBoard(gameId,me),playerListId,turnNb);
+    });
+    socket.on('message', (message,playerName) => {
+        io.of("/api/1vs1Friend").to('room' + gameId).emit("message", message,playerName);
+    });
+    socket.on("disconnect",()=>{
+
+        if(!friendMatch.hasOwnProperty(gameId))return;
+        for (let i = 0; i < friendMatch[gameId].length; i++) {
+            if (friendMatch[gameId][i].getid() === myId) {
+                friendMatch[gameId].splice(i, 1);
+                i--;
+            }
+        }
+        console.log(playerList);
+        friendMatch[gameId].filter((e)=>e.getid() != myId )
+        if(friendMatch[gameId].length==0){
+            back.deleteGame(gameId);
+        }
+    })
+});
 
 
 
