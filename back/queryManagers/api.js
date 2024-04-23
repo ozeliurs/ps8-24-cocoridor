@@ -167,6 +167,11 @@ async function getElo(request, response) {
 
     let user = await db.getUser(body.username);
     let nbMessage=0;
+    if (!user) {
+      response.writeHead(404, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ error: "Utilisateur non trouvé" }));
+      return;
+    }
     for(const conv of user.convNew){
       nbMessage += conv.messages.length;
     }
