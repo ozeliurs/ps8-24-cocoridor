@@ -11,12 +11,6 @@ let turnNb = 0;
 
 
 function init(board,mode, turn) {
-    if(mode === "ai"){
-        playerList = [1,2];
-    }
-    else if(mode === "local"){
-        playerList = [1,2];
-    }
     boardHeight = board.length;
     boardLength = board[0].length;
     turnNb = turn;
@@ -67,7 +61,7 @@ class TileFront {
    * @param {BorderFront} bRight
    * @param {BorderFront} bDown
    * @param {BorderFront} edge
-   * @param {PlayerGameInstance | Boolean} occupiedBy
+   * @param {PlayerGameInstance} occupiedBy
    */
   constructor(x, y, bRight, bDown, edge, occupiedBy=false) {
     this.X = Math.floor(x);
@@ -132,8 +126,7 @@ class TileFront {
     else if (this.occupied === true) {}
     else {
       let img = document.createElement("img");
-      console.log(this.occupied)
-      img.src = this.occupied.image; 
+      img.src = this.occupied.playerSkin; 
       img.style.width = "100%"; 
       img.style.height = "100%";
       this.element.appendChild(img)
@@ -365,20 +358,12 @@ function DisplayBoard(board,positions=null){
   img.style.height = "100%";
 
   console.log("Trun nb: "+turnNb)
-  if (turnNb % 2 === 1) {
-    img.src="../Game-Page/FermierJ2.png"
-    playerTurn.appendChild(img) 
-    if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 1 puis jouez"));}
-    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 1 de jouer"))};
-  }
-  else {
-    img.src = "../Game-Page/PouletJ1.png"
-    playerTurn.appendChild(img) 
-    if(turnNb==1){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage joueur 2 puis jouez"));}
-    else{playerTurn.appendChild(document.createTextNode("Au tour du joueur 2 de jouer"));}
-  }
+  console.log(playerList[turnNb%playerList.length].playerSkin)
+  img.src = playerList[turnNb%playerList.length].playerSkin
+  playerTurn.appendChild(img)
+  if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage "+playerList[turnNb%playerList.length].username+" puis jouez"));}
+  else{playerTurn.appendChild(document.createTextNode("Au tour du "+playerList[turnNb%playerList.length].username+" de jouer"))};
   if(mode === "local") {
-  
     let gC = document.getElementById("gameCover");
     gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 200px;padding-bottom: 400px;";
     gC.innerHTML = "Cliquez pour continuer ...";

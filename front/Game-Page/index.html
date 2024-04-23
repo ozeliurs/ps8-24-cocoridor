@@ -119,19 +119,23 @@
       }
       const urlParams = new URLSearchParams(window.location.search);
       const mode = urlParams.get("mode");
-      const user = urlParams.get("playerid");
+      let usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='))
+      let user = null
+      if (usernameCookie)user = usernameCookie.split("=")[1]
+      
       let gameId = urlParams.get("gameid");
       let waiting = document.getElementsByClassName("attente");
       var socket;
       let gameSetUp = false;
       switch (mode) {
         case "local":
+          console.log(user)
           socket = io("/api/Localgame");
+          socket.emit("newGame",user)
           break;
         case "newAi":
           document.addEventListener('DOMContentLoaded', async function() {
-            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-            if (!usernameCookie) {
+            if (!user) {
               alert("Vous n'êtes pas connecté, la partie ne sera pas enregistrée");
             }
           });
@@ -140,8 +144,7 @@
           break;
         case "getAi":
           document.addEventListener('DOMContentLoaded', async function() {
-            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-            if (!usernameCookie) {
+            if (!user) {
               alert("Vous n'êtes pas connecté");
               window.location.href = "../index.html";
             }
@@ -152,8 +155,7 @@
           break;
         case "1vs1":
           document.addEventListener('DOMContentLoaded', async function() {
-            const usernameCookie = document.cookie.split('; ').find(row => row.startsWith('nomCookie='));
-            if (!usernameCookie) {
+            if (!user) {
               alert("Vous n'êtes pas connecté");
               window.location.href = "../index.html";
               return;

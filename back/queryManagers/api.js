@@ -1,6 +1,7 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
 
-const db = require("../database/database");
+const db = require("../database/database")
+const {PlayerAccount} = require("../logic/profile")
 
 async function manageRequest(request, response) {
   // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
@@ -94,36 +95,22 @@ function parsejson(request) {
   });
 }
 
+async function createOrUpdateUser(email, username, password,response, isNewUser) {
 
-async function createOrUpdateUser(
-  email,
-  username,
-  password,
-  response,
-  isNewUser
-) {
-  if (isNewUser) {
-    const newUser = {
-      email: email,
-      username: username,
-      password: password,
-      friends: [],
-      friendRequests: [],
-      conv: [],
-      convNew: [],
-      elo: 1000,
-    };
-    let userCreated = await db.createUser(newUser);
-    if (userCreated) {
-      response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ message: "Utilisateur créé avec succès" }));
-    } else {
-      response.writeHead(500, { "Content-Type": "application/json" });
-      response.end(
-        JSON.stringify({ error: "Erreur lors de la création de l'utilisateur" })
-      );
-
-    }
+    if (isNewUser) {
+        
+        const newUser = PlayerAccount.createUser(email,username,password);
+        let userCreated = await db.createUser(newUser);
+        console.log(userCreated)
+        if (userCreated) {
+            console.log("added")
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({message: 'Utilisateur créé avec succès'}));
+        } else {
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la création de l\'utilisateur'}));
+            console.log("cancel")
+        }
   } else {
     const updatedUser = {
       email: email,
@@ -177,7 +164,7 @@ async function getElo(request, response) {
     }
     console.log("nbMessage : ", nbMessage);
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ elo: user.elo , nbMessage: nbMessage}));
+    response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: nbMessage}));
   });
 
 }
@@ -187,14 +174,14 @@ async function getUserElo(username) {
   if (!user) {
     return null;
   }
-  return user.elo;
+  return user.stats.elo;
 }
 
 async function updateElo(username, elo) {
-  let user = await db.getUser(username);
-  user.elo = elo;
-  await db.updateUser(user);
-  return user.elo;
+    let user = await db.getUser(username);
+    user.stats.elo = elo;
+    await db.updateUser(user);
+    return user.stats.elo;
 }
 
 
@@ -521,13 +508,19 @@ async function getConv(request, response) {
     response.end(JSON.stringify({ conv: conv ,newConv:newConv}));
   });
 }
-
-
-
-
+/**
+ * 
+ * @param {String} userId 
+ * @returns 
+ */
+async function getUser(userId=null){
+    if(userId==null) return null;
+    return await db.getUser(userId)
+}
 exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;
 exports.getGame = getGame;
 exports.getUserElo = getUserElo;
 exports.updateElo = updateElo;
+exports.getUser = getUser
