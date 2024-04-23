@@ -152,7 +152,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 me = playerList[i];
                 continue;
             }
-            if(playerList[i].account.difficulty!=null){
+            if(playerList[i].difficulty!=null){
                 bot = playerList[i];
                 continue;
             }
@@ -684,11 +684,10 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             for(let i = 0; i < gamePlayers.length; i++){
                 gamePlayers[i].socket.join('room'+gameId);
             }
-            //TODO recup les players account
             {
                 let res = []
                 for(let playerId of playersForGame){
-                    res.push(new profile.PlayerAccount(playerId,"GNGNNGGNNGNGGNgngngnnggnnnnnngnnnn"));
+                    res.push(await apiQuery.getUser(playerId));
                 }
                 playersForGame = res
             }

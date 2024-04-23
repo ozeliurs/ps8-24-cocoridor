@@ -39,39 +39,41 @@ class GameState{
   static onGoing = {}
 
   /**
-   * 
-   * @param {GameState} gameState 
-   * @returns 
+   *
+   * @param {GameState} gameState
+   * @returns
    */
-  static loadGame(gameState){
-      if(GameState.onGoing[gameState.id]==null) {
-        let newGameState = new GameState(null,false);
-        newGameState.gameParams = new GameParams(gameState.gameParams);
-        newGameState.turnNb = gameState.turnNb;
-        newGameState.remainingAction = gameState.remainingAction;
-        newGameState.id = gameState.id;
-        newGameState.Board = [];
-        for(let y=0;y<gameState.gameParams.boardHeight;y++){
-            newGameState.Board.push([])
-            for(let x=0;x<gameState.gameParams.boardLength;x++){
-                newGameState.Board[y][x] = new Tile(newGameState,x,y,gameState.Board[y][x]);
-            }
+  static async loadGame(gameState) {
+    if (GameState.onGoing[gameState.id] == null) {
+      let newGameState = new GameState(null, false);
+      newGameState.gameParams = new GameParams(gameState.gameParams);
+      newGameState.turnNb = gameState.turnNb;
+      newGameState.remainingAction = gameState.remainingAction;
+      newGameState.id = gameState.id;
+      newGameState.Board = [];
+      for (let y = 0; y < gameState.gameParams.boardHeight; y++) {
+        newGameState.Board.push([])
+        for (let x = 0; x < gameState.gameParams.boardLength; x++) {
+          newGameState.Board[y][x] = new Tile(newGameState, x, y, gameState.Board[y][x]);
         }
-        newGameState.topTiles = gameState.topTiles;
-        newGameState.bottomTiles = gameState.bottomTiles;
-        let playerList= [];
-        for(let player of gameState.gameParams.playerList) {
-          let newPlayer = new PlayerGameInstance(player.account, player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
-          newPlayer.OnTile = player.OnTile;
-          newPlayer.nbWalls = player.nbWalls;
-          newPlayer.image = player.image;
-          newPlayer.color = new Color(player.color.R,player.color.G,player.color.B)
-          playerList.push(newPlayer);
-        }
-        newGameState.gameParams.playerList = playerList;
-        GameState.onGoing[gameState.id] = newGameState;
       }
-      return GameState.onGoing[gameState.id];
+      newGameState.topTiles = gameState.topTiles;
+      newGameState.bottomTiles = gameState.bottomTiles;
+      let playerList = [];
+      for (let player of gameState.gameParams.playerList) {
+        if(player.username!=profile.PlayerAccount.Guest().username && player.username!=profile.PlayerAccount.Bot().username){
+        let account = await apiQuery.getUser(player.username);
+        let newPlayer = new PlayerGameInstance(account, player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
+        newPlayer.OnTile = player.OnTile;
+        newPlayer.nbWalls = player.nbWalls;
+        newPlayer.image = player.image;
+        newPlayer.color = new profile.Color(player.color.R, player.color.G, player.color.B)
+        playerList.push(newPlayer);
+      }
+      newGameState.gameParams.playerList = playerList;
+      GameState.onGoing[gameState.id] = newGameState;
+    }
+    return GameState.onGoing[gameState.id];
   }
 
   /**
@@ -543,9 +545,9 @@ class Tile {
    * @param {Number} y
    * @param Tile
    */
-  constructor(gameState, x, y, Tile=null) {
+  constructor(gameState, x, y, Tile = null) {
     this.gameStateId = gameState.id;
-    if(Tile===null) {
+    if (Tile === null) {
       this.X = Math.floor(x);
       this.Y = Math.floor(y);
       this.occupied = null;
@@ -554,20 +556,23 @@ class Tile {
       else if (y + 1 == (gameParams.boardHeight / 2) + 0.5) this.visibility = 0;
       else this.visibility = 1;
 
-      this.BorderR = new Border(this.gameStateId,x, y, true, false);
-      this.BorderD = new Border(this.gameStateId,x, y, false, true);
-      this.Edge = new Border(this.gameStateId,x, y, true, true);
+      this.BorderR = new Border(this.gameStateId, x, y, true, false);
+      this.BorderD = new Border(this.gameStateId, x, y, false, true);
+      this.Edge = new Border(this.gameStateId, x, y, true, true);
     } else {
       this.X = Tile.X;
       this.Y = Tile.Y;
 
+      if (Tile.occupied != null) {
+        if (Tile.occupied.username)
+        apiQuery.getUser(Tile.occupied.username).then((account) => this.occupied = new PlayerGameInstance(account, Tile.occupied.start, Tile.occupied.end, Tile.occupied.modifier, Tile.occupied.nbWalls, Tile.occupied.gameId));
 
-      if(Tile.occupied!=null) this.occupied = new PlayerGameInstance(Tile.occupied.account,Tile.occupied.start,Tile.occupied.end,Tile.occupied.modifier,Tile.occupied.nbWalls,Tile.occupied.gameId);
+      }
       else this.occupied = null;
       this.visibility = Tile.visibility;
-      this.BorderR = new Border(this.gameStateId,null,null,null,null,Tile.BorderR);
-      this.BorderD = new Border(this.gameStateId,null,null,null,null,Tile.BorderD);
-      this.Edge = new Border(this.gameStateId,null,null,null,null,Tile.Edge);
+      this.BorderR = new Border(this.gameStateId, null, null, null, null, Tile.BorderR);
+      this.BorderD = new Border(this.gameStateId, null, null, null, null, Tile.BorderD);
+      this.Edge = new Border(this.gameStateId, null, null, null, null, Tile.Edge);
     }
 
   }
@@ -705,22 +710,22 @@ class Border {
      * @param {Boolean} lat
      * @param {Border} Border
      */
-    constructor(gameStateId, x, y, lng, lat, Border=null) {
+    constructor(gameStateId, x, y, lng, lat, Border = null) {
       this.gameStateId = gameStateId;
-        if(Border==null) {
-          this.X = Math.floor(x);
-          this.Y = Math.floor(y);
-          this.lng = lng;
-          this.lat = lat;
-          this.wallBy = null;
-        } else {
-            this.X = Border.X;
-            this.Y = Border.Y;
-            this.lng = Border.lng;
-            this.lat = Border.lat;
-            if(Border.wallBy!=null) this.wallBy = new PlayerGameInstance(Border.wallBy.account,Border.wallBy.start,Border.wallBy.end,Border.wallBy.modifier,Border.wallBy.nbWalls,Border.wallBy.gameId);
-            else this.wallBy = null;
-        }
+      if (Border == null) {
+        this.X = Math.floor(x);
+        this.Y = Math.floor(y);
+        this.lng = lng;
+        this.lat = lat;
+        this.wallBy = null;
+      } else {
+        this.X = Border.X;
+        this.Y = Border.Y;
+        this.lng = Border.lng;
+        this.lat = Border.lat;
+        if (Border.wallBy != null) apiQuery.getUser(Border.wallBy.username).then((account) => this.wallBy = new PlayerGameInstance(account, Border.wallBy.start, Border.wallBy.end, Border.wallBy.modifier, Border.wallBy.nbWalls, Border.wallBy.gameId));
+        else this.wallBy = null;
+      }
     }
 
   
@@ -1092,6 +1097,5 @@ function findGame(gameId){
   exports.placePlayer = placePlayer;
   exports.execRandomMove = execRandomMove;
   exports.deleteGame = deleteGame;
-  exports.PlayerAccount = PlayerAccount;
   exports.retrieveGame = retrieveGame;
   exports.getGameState = findGame;

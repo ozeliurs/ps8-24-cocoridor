@@ -159,6 +159,11 @@ async function getElo(request, response) {
       response.end(JSON.stringify({ error: "Utilisateur non trouvé" }));
       return;
     }
+    if(user.convNew==undefined){
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0}));
+        return;
+    }
     for(const conv of user.convNew){
       nbMessage += conv.messages.length;
     }
@@ -201,9 +206,9 @@ async function createGame(gameState, response = null) {
     }
     let playerList = gameState.getPlayerList();
     for(let i=0;i<playerList.length;i++){
-        console.log(playerList[i].account.id+" "+playerList[i].account.difficulty);
-        if(playerList[i].account.id === undefined || playerList[i].account.difficulty !== undefined) continue;
-        await db.addGame(playerList[i].account.id,NewGame._id);
+        console.log(playerList[i].username+" "+playerList[i].difficulty);
+        if(playerList[i].username === undefined || playerList[i].difficulty !== undefined) continue;
+        await db.addGame(playerList[i].username,NewGame._id);
     }
     return NewGame._id;
 }
