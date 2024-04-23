@@ -1,4 +1,4 @@
-let signUpBtn = document.getElementById('signUp');
+let signUpBtn = document.getElementById('Inscription');
 let username=document.getElementById('username');
 let email=document.getElementById('email');
 let mdp=document.getElementById('mdp');

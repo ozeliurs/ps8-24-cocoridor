@@ -3,11 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="header.css" rel="stylesheet">
     <link rel="stylesheet" href="../Game-Page/gamePage.css" />
+
     <title>GamePage</title>
   </head>
   <body>
-    <h1>Cocoridor</h1>
+    <header>
+      <div class="upperBtns">
+          <a href="signUp">
+              <button id=signUp>
+                  S'inscrire
+              </button>
+          </a>
+          <a href="signIn">
+              <button id=signIn>
+                  Se connecter
+              </button>
+          </a>
+      </div>
+
+     <h1 id="exit">CocoRidor</h1>
+
+      
+      <div id=playerCard>
+          <div id=playerProfile>
+              <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
+              <div id=playerInfo>
+                  <div id=playerName>
+                      Player
+                  </div>
+                  <div id=playerRank>
+                      Elo 1000
+                  </div>
+              </div>
+          </div> 
+      </div>
+  </header>
+
     <section id="notwaiting">
       <h2 id="playerplaying"></h2>
       <div>
@@ -34,6 +67,9 @@
         </span>
         <span class="material-symbols-outlined"></span>
       </button>
+
+
+
       <div class="chatbot">
         <header>
           <h2>Chatbot</h2>
@@ -61,12 +97,18 @@
         </div>
       </div>
 
+      <div id="wallsLeft">
+        <h2>Murs restants</h2>
+        <p id="wallCount">10</p>
+      </div>
     </section>
+
     <div id="waiting">
       <h1 class="attente">En attente d'un joueur</h1>
       <img id="attente" src="../Game-Page/polos.gif" alt="Loading" />
       <a href="../index.html"><button>Annuler</button></a>
     </div>
+    <script src="../index.js"></script>
 
     <script src="../Game-Page/gamePage.js"></script>
     <script src="../js/socket.io.js"></script>
@@ -184,5 +226,6 @@
         messageButtons.style.display = "block"; // Affiche les boutons de messages
       });
     </script>
+    <script src="../Game-Page/popup.js"></script>
   </body>
 </html>

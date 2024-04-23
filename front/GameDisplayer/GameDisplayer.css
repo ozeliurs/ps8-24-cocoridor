@@ -12,8 +12,7 @@ body {
 /* Style pour le titre */
 h1 {
     text-align: center; /* Centré */
-    margin: 20px 0; /* Marge en haut et en bas */
-    color: yellow; /* Couleur du texte */
+    color: rgb(255, 0, 0); /* Couleur du texte */
 }
 
 /* Style pour la liste des jeux */

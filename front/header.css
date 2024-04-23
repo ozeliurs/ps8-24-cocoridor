@@ -1,0 +1,140 @@
+html,body{
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-variation-settings: "slnt" 0; 
+}
+
+header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    background-color: #fff45c;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+a{
+    text-decoration: none; /* Suppression du soulignement */
+
+}
+header h1 {
+    margin: 0;
+    font-size: 60px;
+    color: red;
+
+}
+
+
+.upperBtns {
+    display: flex;
+    gap: 20px;
+    margin-left: 5%;
+}
+
+#playerProfile {
+    display: flex;
+    justify-content:center;
+    background-color: #fff45c;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    gap: 10px;
+    width: 200px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#playerInfo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+#playerPicture {
+    width: 50px;
+    height: 60px;
+    overflow: hidden;
+}
+
+#playerPicture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#playerName {
+    font-size: 20px;
+    color: white;
+    background-color: red;
+    text-align: center;
+    padding: 5px;
+}
+
+
+#playerRank {
+    font-size: 22px;
+    background-color: red;
+    color: #fff;
+    padding: 5px;
+    width: fit-content;
+}
+
+
+
+
+/* Styling for the Sign Up button */
+#signUp {
+    margin-top: 15px;
+    background-color: #baff1b; /* Green background */
+    border-color: #c00;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#signUp:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #00000028;
+}
+
+/* Styling for the Sign In button */
+#signIn {
+    margin-top: 15px;
+    background-color: #e1f05a; /* Blue background */
+    border-color: #c00;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#signIn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #00000028;
+}
+
+
+  
+#badge {
+    padding: 5px 10px;
+    border-radius: 50%;
+    background: red;
+    color: white;
+  }

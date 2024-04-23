@@ -9,22 +9,44 @@
 </head>
 
 <body>
+  <div class="global">
+    <div class="upperBtns">
+        <a href="../signUp">
+            <button id=signUp>
+                S'inscrire
+            </button>
+        </a>
+        <a href="../signIn">
+            <button id=signIn>
+                Se connecter
+            </button>
+        </a>
+    </div>
 
+    <a href=".."><h1>CocoRidor</h1></a>
 
-
-
+    
+    <div id=playerCard>
+        <div id=playerProfile>
+            <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
+            <div id=playerInfo>
+                <div id=playerName>
+                    Player
+                </div>
+                <div id=playerRank>
+                    Elo 1000
+                </div>
+            </div>
+        </div> 
+    </div>
+  </div>
 
   <div class="container">
     <h1>Ma liste d'amis</h1>
     <div id="friendList">
     </div>
   </div>
-
-
-
-
   <button class="chatbot-toggler">
-
   </button>
 
   <div class="chatbot">
@@ -46,7 +68,7 @@
     </div>
 
 
-
+    <script src="../index.js"></script>
     <script src="../js/socket.io.js"> </script>
     <script>
       document.addEventListener('DOMContentLoaded', async function () {
@@ -70,10 +92,12 @@
         })
           .then(response => response.json())
           .then(data => {
-            const friends = data.friends;
+            const friends = data.nbNewMessage;
+            console.log(friends)
             const friendRequest = document.getElementById("friendList");
-            for (const friend of friends) {
-
+            for (const result of friends) {
+              console.log(result);
+              let friend = result.friend;
               const friendElement = document.createElement("div");
               friendElement.classList.add("friend-container");
 
@@ -91,11 +115,18 @@
               img.style.height = "50%";
               chatButton.appendChild(img);
 
+              const nbMessage = document.createElement("span");
+              nbMessage.textContent = result.nbMessage; 
+
+
               chatButton.classList.add("chatbot-toggler");
               chatButton.onclick = function () {
                 const chatHeader = document.querySelector(".chatbot header h2");
                 chatHeader.textContent = "Chat avec " + friend;
                 document.body.classList.toggle("show-chatbot");
+                if (!document.body.classList.contains("show-chatbot")) {
+                  window.location.reload(); 
+                }
                 friendName = chatButton.getAttribute("id");
                 updateConv(nameUser, friendName);
 
@@ -120,6 +151,7 @@
               friendElement.appendChild(chatButton);
               friendElement.appendChild(pvpButton);
               friendRequest.appendChild(friendElement);
+              friendElement.appendChild(nbMessage);
               adjustZoom();
             }
           })
