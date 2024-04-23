@@ -232,7 +232,7 @@ async function updateGame(gameState, gameId, response = null) {
             response.end(JSON.stringify({error: 'Erreur lors de la mise à jour de la partie'}));
         }
     }
-  }
+  
   return updatedGame._id;
 }
 
