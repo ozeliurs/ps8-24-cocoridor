@@ -35,12 +35,6 @@ class GameParams{
 }
 class GameState{
   static onGoing = {}
-  
-  static async getGame(idGame){
-    let res = null;
-    res = await apiQuery.getGame(idGame);
-    return res;
-  }
 
   /**
    * 
@@ -48,15 +42,42 @@ class GameState{
    * @returns 
    */
   static loadGame(gameState){
-      if(this.onGoing[gameState.id]==null)this.onGoing[gameState.id] = gameState
-      return this.onGoing[gameState.id]
+      if(GameState.onGoing[gameState.id]==null) {
+        let newGameState = new GameState(null,false);
+        newGameState.gameParams = new GameParams(gameState.gameParams);
+        newGameState.turnNb = gameState.turnNb;
+        newGameState.remainingAction = gameState.remainingAction;
+        newGameState.id = gameState.id;
+        newGameState.Board = [];
+        for(let y=0;y<gameState.gameParams.boardHeight;y++){
+            newGameState.Board.push([])
+            for(let x=0;x<gameState.gameParams.boardLength;x++){
+                newGameState.Board[y][x] = new Tile(newGameState,x,y,gameState.Board[y][x]);
+            }
+        }
+        newGameState.topTiles = gameState.topTiles;
+        newGameState.bottomTiles = gameState.bottomTiles;
+        let playerList= [];
+        for(let player of gameState.gameParams.playerList) {
+          let newPlayer = new PlayerGameInstance(player.account, player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
+          newPlayer.OnTile = player.OnTile;
+          newPlayer.nbWalls = player.nbWalls;
+          newPlayer.image = player.image;
+          newPlayer.color = new Color(player.color.R,player.color.G,player.color.B)
+          playerList.push(newPlayer);
+        }
+        newGameState.gameParams.playerList = playerList;
+        GameState.onGoing[gameState.id] = newGameState;
+      }
+      return GameState.onGoing[gameState.id];
   }
 
   /**
    * 
    * @param {GameParams} GameParams 
    */
-  constructor(gameParams){
+  constructor(gameParams,newGame=true){
+    if(newGame===false)return;
     this.gameParams = new GameParams(gameParams);
 
     this.id=Date.now()
@@ -77,8 +98,8 @@ class GameState{
     this.topTiles = [];
     this.bottomTiles = [];
     for (var i = 0; i < this.gameParams.boardLength; i++) {
-      this.topTiles.push(this.Board[this.gameParams.boardHeight-1][i]);
-      this.bottomTiles.push(this.Board[0][i])
+      this.topTiles.push(this.Board[this.gameParams.boardHeight-1][i].getCoords());
+      this.bottomTiles.push(this.Board[0][i].getCoords());
     }
   }
 
@@ -121,6 +142,7 @@ class GameState{
     }
     firstPlayer = new PlayerGameInstance(firstPlayer,this.topTiles,this.bottomTiles,1,this.gameParams.nbWallsPerPlayer,this.id);
     secondPlayer = new PlayerGameInstance(secondPlayer,this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
+    console.log(firstPlayer,secondPlayer)
     this.gameParams.playerList = []
     firstPlayer.image = "../Game-Page/PouletJ1.png"
     secondPlayer.image = "../Game-Page/FermierJ2.png"
@@ -131,7 +153,7 @@ class GameState{
   }
   /**
    * 
-   * @returns {Player}
+   * @returns {PlayerGameInstance}
    */
   currentPlayer(){
     let PL = this.gameParams.playerList
@@ -436,7 +458,7 @@ class TileFront {
    * @param {Number} y
    * @param {Number} maxX
    * @param {Number} minY
-   * @param {Player | Boolean} occupiedBy
+   * @param {PlayerGameInstance | Boolean} occupiedBy
    */
   constructor(x, y, bRight, bDown, edge, occupiedBy=false, boardLength) {
     this.X = Math.floor(x);
@@ -526,28 +548,25 @@ class PlayerGameInstance {
   /**
    *
    * @param {PlayerAccount} account
-   * @param {Tile []} startPos
-   * @param {Tile []  | null} endPos
+   * @param {{X:Number,Y:Number} []} startPos
+   * @param {{X:Number,Y:Number} []  | null} endPos
    * @param {Number} modifier
    * @param {Number} nbWallsPerPlayer 
    * @param {Number} gameId
    */
-  constructor(account,startPos,endPos, modifier, nbWallsPerPlayer, gameId) {
-    
+  constructor(account,startPos,endPos, modifier, nbWallsPerPlayer, gameId){
     if(startPos==null || startPos.length==0) return null;
     this.gameId = gameId;
     this.account = account;
     this.modifier = modifier;
     
-    this.start=[]
-    for (let tile of startPos) this.start.push(tile.getCoords())
-    this.end = []
-    for (let tile of endPos) this.end.push(tile.getCoords())
+    this.start=startPos
+    this.end = endPos
     this.OnTile = null;
 
     this.nbWalls = nbWallsPerPlayer;
     this.image = this.account.image
-    this.color = this.account.color
+    this.color = new Color(this.account.color.R,this.account.color.G,this.account.color.B)
     if (endPos == null) console.info("ce joueur ne peux pas gagner")
   }
   /**
@@ -599,7 +618,7 @@ class Tile {
       this.Y = Tile.Y;
 
 
-      if(Tile.occupied!=null) this.occupied = new Player(null,null,null,null,Tile.occupied);
+      if(Tile.occupied!=null) this.occupied = new PlayerGameInstance(Tile.occupied.account,Tile.occupied.start,Tile.occupied.end,Tile.occupied.modifier,Tile.occupied.nbWalls,Tile.occupied.gameId);
       else this.occupied = null;
       this.visibility = Tile.visibility;
       this.BorderR = new Border(this.gameStateId,null,null,null,null,Tile.BorderR);
@@ -755,7 +774,7 @@ class Border {
             this.Y = Border.Y;
             this.lng = Border.lng;
             this.lat = Border.lat;
-            if(Border.wallBy!=null) this.wallBy = new Player(null,null,null,null,Border.wallBy);
+            if(Border.wallBy!=null) this.wallBy = new PlayerGameInstance(Border.wallBy.account,Border.wallBy.start,Border.wallBy.end,Border.wallBy.modifier,Border.wallBy.nbWalls,Border.wallBy.gameId);
             else this.wallBy = null;
         }
     }
@@ -766,7 +785,7 @@ class Border {
     }
     /**
      * 
-     * @param {Player} player 
+     * @param {PlayerGameInstance} player
      */
     buildWall(player) {
       let game = findGame(this.gameStateId)
@@ -809,7 +828,7 @@ class Border {
    * @param {GameState} game
    */
   function retrieveGame(game){
-    GameState.loadGame(game);
+    return GameState.loadGame(game);
   }
   
   /**
@@ -934,7 +953,7 @@ class Border {
   class Wall extends Action{
     /**
      * 
-     * @param {Player} player
+     * @param {PlayerGameInstance} player
      * @param {Border[]} borders 
      */
     constructor(gameId, player,borders){
@@ -1127,5 +1146,7 @@ function findGame(gameId){
   exports.setUpBoard = setUpBoard;
   exports.placePlayer = placePlayer;
   exports.execRandomMove = execRandomMove;
-  exports.deleteGame = deleteGame
-  exports.PlayerAccount = PlayerAccount
+  exports.deleteGame = deleteGame;
+  exports.PlayerAccount = PlayerAccount;
+  exports.retrieveGame = retrieveGame;
+  exports.getGameState = findGame;

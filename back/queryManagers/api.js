@@ -94,6 +94,7 @@ function parsejson(request) {
   });
 }
 
+
 async function createOrUpdateUser(
   email,
   username,
@@ -121,6 +122,7 @@ async function createOrUpdateUser(
       response.end(
         JSON.stringify({ error: "Erreur lors de la création de l'utilisateur" })
       );
+
     }
   } else {
     const updatedUser = {
@@ -162,6 +164,7 @@ async function getElo(request, response) {
       response.end(JSON.stringify({ error: "Données manquantes" }));
       return;
     }
+
     let user = await db.getUser(body.username);
     let nbMessage=0;
     for(const conv of user.convNew){
@@ -171,6 +174,7 @@ async function getElo(request, response) {
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ elo: user.elo , nbMessage: nbMessage}));
   });
+
 }
 
 async function getUserElo(username) {
@@ -188,55 +192,45 @@ async function updateElo(username, elo) {
   return user.elo;
 }
 
-async function createGame(idUser, board, turnNb, playerList, response = null) {
-  const NewGame = {
-    board: board,
-    idUser: idUser,
-    turnNb: turnNb,
-    playerList: playerList,
-  };
-  let gameCreated = await db.createGame(NewGame);
-  if (response !== null) {
-    if (gameCreated) {
-      response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify(gameCreated.insertedId));
-    } else {
-      response.writeHead(500, { "Content-Type": "application/json" });
-      response.end(
-        JSON.stringify({ error: "Erreur lors de la création de la partie" })
-      );
+
+async function createGame(gameState, response = null) {
+    const NewGame = {
+        gameState: gameState,
+    };
+    let gameCreated = await db.createGame(NewGame);
+    if(response !== null) {
+        if (gameCreated) {
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify(gameCreated.insertedId));
+        } else {
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la création de la partie'}));
+        }
     }
-  }
-  return NewGame._id;
+    let playerList = gameState.getPlayerList();
+    for(let i=0;i<playerList.length;i++){
+        console.log(playerList[i].account.id+" "+playerList[i].account.difficulty);
+        if(playerList[i].account.id === undefined || playerList[i].account.difficulty !== undefined) continue;
+        await db.addGame(playerList[i].account.id,NewGame._id);
+    }
+    return NewGame._id;
 }
 
-async function updateGame(
-  idUser,
-  board,
-  turnNb,
-  playerList,
-  gameId,
-  response = null
-) {
-  console.log("updateGame");
-  const updatedGame = {
-    board: board,
-    idUser: idUser,
-    turnNb: turnNb,
-    playerList: playerList,
-  };
-  let gameUpdated = await db.updateGame(updatedGame, gameId);
-  if (response !== null) {
-    if (gameUpdated) {
-      response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(
-        JSON.stringify({ message: "Partie mise à jour avec succès" })
-      );
-    } else {
-      response.writeHead(500, { "Content-Type": "application/json" });
-      response.end(
-        JSON.stringify({ error: "Erreur lors de la mise à jour de la partie" })
-      );
+
+async function updateGame(gameState, gameId, response = null) {
+    console.log("updateGame")
+    const updatedGame = {
+        gameState: gameState
+    };
+    let gameUpdated = await db.updateGame(updatedGame, gameId);
+    if(response !== null) {
+        if (gameUpdated) {
+            response.writeHead(200, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({message: 'Partie mise à jour avec succès'}));
+        } else {
+            response.writeHead(500, {'Content-Type': 'application/json'});
+            response.end(JSON.stringify({error: 'Erreur lors de la mise à jour de la partie'}));
+        }
     }
   }
   return updatedGame._id;
@@ -249,29 +243,29 @@ async function signup(request, response) {
     return;
   }
 
-  parsejson(request).then(async (body) => {
-    if (!body.email || !body.username || !body.password) {
-      response.writeHead(400, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "Données manquantes" }));
-      return;
-    }
-    console.log("username : " + body.username);
-    const user = await db.getUser(body.username);
 
-    if (user) {
-      response.writeHead(400, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "Nom d'utilisateur déjà utilisé" }));
-      return;
-    } else {
-      await createOrUpdateUser(
-        body.email,
-        body.username,
-        body.password,
-        response,
-        true
-      );
-    }
-  });
+    parsejson(request).then(async (body) => {
+        if (!body.email || !body.username || !body.password) {
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        const user = await db.getUser(body.username);
+
+        if(user){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Nom d\'utilisateur déjà utilisé' }));
+            return;
+        }else{
+            await createOrUpdateUser(
+                body.email,
+                body.username,
+                body.password,
+                response,
+                true
+            );
+        }
+    });
 }
 
 // Fonction pour gérer la connexion des utilisateurs
@@ -303,32 +297,31 @@ async function uploadGame(request, response) {
     return;
   }
 
-  parsejson(request).then(async (body) => {
-    if (!body.idUser || !body.board || !body.playerList) {
-      response.writeHead(400, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "Données manquantes" }));
 
-      return;
-    }
-    if (!body.gameId) {
-      await createGame(
-        body.idUser,
-        body.board,
-        body.turnNb,
-        body.playerList,
-        response
-      );
-    } else {
-      await updateGame(
-        body.idUser,
-        body.board,
-        body.turnNb,
-        body.playerList,
-        body.gameId,
-        response
-      );
-    }
-  });
+    parsejson(request).then(async (body) => {
+        if (!body.idUser || !body.gameState) {
+            
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+
+            return;
+        }
+        if(!body.gameId){
+
+            await createGame(
+                body.idUser,
+                body.gameSate,
+                response,
+            );
+        }else{
+            await updateGame(
+                body.idUser,
+                body.gameState,
+                body.gameId,
+                response,
+            );
+        }
+    });
 }
 
 //Fonction pour récupérer une partie de la db
@@ -361,16 +354,18 @@ async function retrieveUserGames(request, response) {
     response.end(JSON.stringify({ error: "Méthode non autorisée" }));
     return;
   }
-  parsejson(request).then(async (body) => {
-    if (!body.idUser) {
-      response.writeHead(400, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ error: "Données manquantes" }));
-      return;
-    }
-    let games = await db.getGames(body.idUser);
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify(games));
-  });
+
+    parsejson(request).then(async (body) => {
+        if(!body.idUser){
+            response.writeHead(400, { 'Content-Type': 'application/json' });
+            response.end(JSON.stringify({ error: 'Données manquantes' }));
+            return;
+        }
+        console.log("retrieveUserGames : ",body.idUser)
+        let games=await db.getGames(body.idUser);
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify(games));
+    });
 }
 
 /* This method is a helper in case you stumble upon CORS problems. It shouldn't be used as-is:
@@ -395,6 +390,7 @@ function addCors(response) {
   response.setHeader("Access-Control-Allow-Credentials", true);
 }
 
+
 async function friendRequest(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405, { "Content-Type": "application/json" });
@@ -407,6 +403,7 @@ async function friendRequest(request, response) {
       response.writeHead(400, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "Données manquantes" }));
       return;
+
     }
     res = await db.addFriendRequest(body.username, body.friendName);
     console.log("res : ", res);
