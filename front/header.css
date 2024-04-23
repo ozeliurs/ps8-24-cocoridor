@@ -129,3 +129,12 @@ header h1 {
     transform: scale(1.05);
     box-shadow: 0 0 10px #00000028;
 }
+
+
+  
+#badge {
+    padding: 5px 10px;
+    border-radius: 50%;
+    background: red;
+    color: white;
+  }

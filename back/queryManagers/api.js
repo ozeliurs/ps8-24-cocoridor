@@ -17,10 +17,21 @@ async function manageRequest(request, response) {
       user = await db.getUsers();
       result = await user.find().toArray();
       for (const user of result) {
-        for (const conv of user.conv) {
+        for (const conv of user.convNew) {
+          console.log("voici le userConvNew : ");
           console.log(conv);
         }
       }
+
+      for (const user of result) {
+        for (const conv of user.conv) {
+          console.log("voici le userConv : ");
+          console.log(conv);
+
+        }
+      }
+
+
       break;
     case "addMessage":
       await addMessage(request, response);
@@ -98,6 +109,7 @@ async function createOrUpdateUser(
       friends: [],
       friendRequests: [],
       conv: [],
+      convNew: [],
       elo: 1000,
     };
     let userCreated = await db.createUser(newUser);
@@ -118,6 +130,7 @@ async function createOrUpdateUser(
       friends: [],
       friendRequests: [],
       conv: [],
+      convNew: [],
       elo: 1000,
     };
     let userUpdated = await db.updateUser(updatedUser);
@@ -149,11 +162,14 @@ async function getElo(request, response) {
       response.end(JSON.stringify({ error: "Données manquantes" }));
       return;
     }
-    console.log(body);
-    let elo = await getUserElo(body.username);
-    console.log(elo);
+    let user = await db.getUser(body.username);
+    let nbMessage=0;
+    for(const conv of user.convNew){
+      nbMessage += conv.messages.length;
+    }
+    console.log("nbMessage : ", nbMessage);
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ elo: elo }));
+    response.end(JSON.stringify({ elo: user.elo , nbMessage: nbMessage}));
   });
 }
 
@@ -234,7 +250,6 @@ async function signup(request, response) {
   }
 
   parsejson(request).then(async (body) => {
-    console.log(body.email + " " + body.username + " " + body.password);
     if (!body.email || !body.username || !body.password) {
       response.writeHead(400, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "Données manquantes" }));
@@ -381,7 +396,6 @@ function addCors(response) {
 }
 
 async function friendRequest(request, response) {
-  console.log("friendRequest");
   if (request.method !== "POST") {
     response.writeHead(405, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ error: "Méthode non autorisée" }));
@@ -413,9 +427,7 @@ async function sendFriendRequest(request, response) {
       response.end(JSON.stringify({ error: "Données manquantes" }));
       return;
     }
-    console.log("sendFriendRequest : ", body.username);
     let friends = await db.getFriendRequests(body.username);
-    console.log("friends : ", friends);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ friends: friends }));
   });
@@ -452,8 +464,24 @@ async function getFriends(request, response) {
       return;
     }
     let friends = await db.getFriends(body.username);
+    let newConv= await db.getConvN(body.username);
+
+    let nbNewMessage=[];
+
+    for(const friend of friends){
+      console.log("newConv :");
+      console.log(newConv)
+  
+      let nbMessage= newConv.find(newConv => newConv.username === friend).messages
+      if(nbMessage==undefined){
+        nbNewMessage.push({ friend: friend, nbMessage: 0 });
+      }else{
+        nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
+      }
+    }
+
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ friends: friends }));
+    response.end(JSON.stringify({ nbNewMessage: nbNewMessage}));
   });
 }
 
@@ -469,7 +497,6 @@ async function addMessage(request, response) {
       response.end(JSON.stringify({ error: "Données manquantes" }));
       return;
     }
-    console.log("addMessage : ", body.username, body.friendName, body.message);
     await db.addMessage(body.username, body.friendName, body.message);
   });
 }
@@ -487,10 +514,15 @@ async function getConv(request, response) {
       return;
     }
     let conv = await db.getConv(body.username, body.friendName);
+    let newConv= await db.getNewConv(body.username, body.friendName);
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ conv: conv }));
+    response.end(JSON.stringify({ conv: conv ,newConv:newConv}));
   });
 }
+
+
+
+
 exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;

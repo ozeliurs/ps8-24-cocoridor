@@ -1,4 +1,5 @@
 var btnTab=document.getElementsByClassName('btn')
+var badge = document.getElementById('badge')
 
 Array.from(btnTab).forEach(element => {
   var initialElement=element.style;
@@ -48,8 +49,12 @@ let playerName;
                     playerRank = 1000;
                 }
                 document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
+                badge.textContent=data.nbMessage;
+
             })
             .catch(error => {
                 console.error('Error:', error);
             });
+            
+        
     }

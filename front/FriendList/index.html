@@ -92,10 +92,12 @@
         })
           .then(response => response.json())
           .then(data => {
-            const friends = data.friends;
+            const friends = data.nbNewMessage;
+            console.log(friends)
             const friendRequest = document.getElementById("friendList");
-            for (const friend of friends) {
-
+            for (const result of friends) {
+              console.log(result);
+              let friend = result.friend;
               const friendElement = document.createElement("div");
               friendElement.classList.add("friend-container");
 
@@ -113,11 +115,18 @@
               img.style.height = "50%";
               chatButton.appendChild(img);
 
+              const nbMessage = document.createElement("span");
+              nbMessage.textContent = result.nbMessage; 
+
+
               chatButton.classList.add("chatbot-toggler");
               chatButton.onclick = function () {
                 const chatHeader = document.querySelector(".chatbot header h2");
                 chatHeader.textContent = "Chat avec " + friend;
                 document.body.classList.toggle("show-chatbot");
+                if (!document.body.classList.contains("show-chatbot")) {
+                  window.location.reload(); 
+                }
                 friendName = chatButton.getAttribute("id");
                 updateConv(nameUser, friendName);
 
@@ -142,6 +151,7 @@
               friendElement.appendChild(chatButton);
               friendElement.appendChild(pvpButton);
               friendRequest.appendChild(friendElement);
+              friendElement.appendChild(nbMessage);
               adjustZoom();
             }
           })
