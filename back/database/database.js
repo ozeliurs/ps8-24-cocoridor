@@ -34,12 +34,13 @@ async function getUser(username) {
 
 async function createUser(user) {
     const users = await getUsers();
+    console.log("add user:")
+    console.log(user)
     return await users.insertOne(user);
 }
 
 async function updateUser(user){
     const users = await getUsers();
-
     return await users.updateOne({ username: user.username }, { $set: user });
 }
 
@@ -76,7 +77,6 @@ async function updateGame(game,gameID){
 async function verifMdp(username, mdp){
     const users = await getUsers();
     return await users.findOne({ username: username, password: mdp });
-    
 }
 
 async function addFriendRequest(username, friend){

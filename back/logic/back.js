@@ -1,4 +1,5 @@
-
+const apiQuery = require("../queryManagers/api")
+const profile = require("./profile")
 class GameParams{
   /**
    * 
@@ -108,7 +109,7 @@ class GameState{
    * 
    * @param {PlayerAccount[]} accountList 
    */
-  setPlayers(accountList,randomise){
+  async setPlayers(accountList,randomise){
     let firstPlayer;
     let secondPlayer;
     //TODO Recup player Account thanks to ID
@@ -123,8 +124,6 @@ class GameState{
     firstPlayer = new PlayerGameInstance(firstPlayer,this.topTiles,this.bottomTiles,1,this.gameParams.nbWallsPerPlayer,this.id);
     secondPlayer = new PlayerGameInstance(secondPlayer,this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
     this.gameParams.playerList = []
-    firstPlayer.image = "../Game-Page/PouletJ1.png"
-    secondPlayer.image = ""
     this.gameParams.playerList.push(firstPlayer);
     this.gameParams.playerList.push(secondPlayer);
   }
@@ -464,7 +463,7 @@ class PlayerGameInstance {
 
   /**
    *
-   * @param {PlayerAccount} account
+   * @param {profile.PlayerAccount} account
    * @param {Tile []} startPos
    * @param {Tile []  | null} endPos
    * @param {Number} modifier
@@ -472,12 +471,13 @@ class PlayerGameInstance {
    * @param {Number} gameId
    */
   constructor(account,startPos,endPos, modifier, nbWallsPerPlayer, gameId) {
-    
+    console.log("CONSTRUCTOR")
+    console.log(account)
     if(startPos==null || startPos.length==0) return null;
     this.gameId = gameId;
-    this.account = account;
     this.modifier = modifier;
-    
+    this.username = account.username
+    if(account.difficulty!=null)this.difficulty = account.difficulty
     this.start=[]
     for (let tile of startPos) this.start.push(tile.getCoords())
     this.end = []
@@ -485,8 +485,14 @@ class PlayerGameInstance {
     this.OnTile = null;
 
     this.nbWalls = nbWallsPerPlayer;
-    this.HumanSkin = this.account.skins.HumanSkin
-    this.color = this.account.skins.color
+    if(modifier==1) {
+      this.color = profile.Color.red
+      this.playerSkin = account.skins.humanSkin
+    }
+    else {
+      this.color = profile.Color.blue
+      this.playerSkin = account.skins.beastSkin
+    }
     if (endPos == null) console.info("ce joueur ne peux pas gagner")
   }
   /**
@@ -507,7 +513,7 @@ class PlayerGameInstance {
     return this.color;
   }
   getid(){
-    return this.account.id;
+    return this.username;
   }
 
 }
@@ -701,7 +707,7 @@ class Border {
 
   
     toFront(){
-      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(Color.black,0.9).toStyle(),this.wallBy==null?null:this.wallBy.id)
+      return new BorderFront(this.X,this.Y,this.lng,this.lat,this.wallBy==null?null:this.wallBy.color.moy(profile.Color.black,0.9).toStyle(),this.wallBy==null?null:this.wallBy.id)
     }
     /**
      * 
@@ -1011,13 +1017,14 @@ function execRandomMove(gameId,playerId){
 /**
  * 
  * @param {string} gameId 
- * @param {PlayerAccount[]} playersAccountId 
+ * @param {PlayerAccount[]} playersAccount 
  * @returns 
  */
-function setPlayers(gameId,playersAccountId,randomise = true){
+function setPlayers(gameId,playersAccount,randomise = true){
+  console.log(playersAccount)
   let game = findGame(gameId);
   if(game ==null) return null;
-  return game.setPlayers(playersAccountId,randomise);
+  return game.setPlayers(playersAccount,randomise);
 }
 function execRandomMove(gameId,move){
   let game = findGame(gameId);

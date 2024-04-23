@@ -78,22 +78,23 @@ io.of("/api/AIgame").on('connection', (socket) => {
     socket.on('newGame',async (playerId) => {
         gameId = back.init();
         myId = playerId
-        back.setPlayers(gameId,[new profile.PlayerAccount(playerId,"cc"), bot])
+        let me = await apiQuery.getUser(myId)
+        if(!me){
+            me = profile.PlayerAccount.Guest();
+            myId = me.username;
+        }
+        await back.setPlayers(gameId,[me , bot])
         playerList= back.getPlayerList(gameId);
-        bot = getPlayerInList(playerList,bot.id)
-        let me = null
-        let playerListId = [];
+        bot = getPlayerInList(playerList,bot.username)
         for(let i=0;i<playerList.length;i++){
             if(playerList[i].getid()==myId) me = playerList[i];
-            else if(playerList[i].account.difficulty!=null){
+            else if(playerList[i].difficulty!=null){
                 let aiMove = await adaptator.setup(bot.modifier, back.setUpBoard(gameId,bot).Positions);
                 
                 back.placePlayer(gameId, bot.getid(), aiMove);
             }
-            playerListId.push(playerList[i].getid())
         }
-        console.log(bot)
-        socket.emit("choosePos",back.setUpBoard(gameId,me),playerListId,turnNb = back.getTurnNb(gameId))
+        socket.emit("choosePos",back.setUpBoard(gameId,me),playerList,turnNb = back.getTurnNb(gameId))
 
     })
     socket.on("start",async ()=>{
@@ -191,7 +192,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
             if (winners != null && winners.length!=0) {
                 socket.emit("endGame", winners);
             }
-            //while(playerList[turnNb%playerList.length].account.difficulty!=null){
                 let aiBoard = back.BoardFor(gameId, bot);
                 {
                     sleep(1000)
@@ -216,7 +216,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
 
                 socket.emit("updateBoard", newBoard, turnNb);
 
-            //}
             
         }
         let winners = back.GameWinner(gameId);
@@ -306,18 +305,33 @@ io.of("/api/AIgame").on('connection', (socket) => {
 
 io.of("/api/Localgame").on('connection', (socket) => {
 
-
-
-    const gameId = back.init()
-    back.setPlayers(gameId, [new back.PlayerAccount("J1",'Gngngngngnng'),new back.PlayerAccount("J2",'Gngngngngnng')],false)
-
-    let playerList = back.getPlayerList(gameId)
     let playerArePlaced = false
+    let playerList;
+    let turnNb;
+    let gameId;
+    socket.on("newGame",async (myId)=>{
+        console.log("CONNEXION")
+        console.log(myId)
+        gameId = back.init()
+        let me = await apiQuery.getUser(myId)
+        console.log(me)
+        let me2 = profile.PlayerAccount.Guest()
+        if(!me)me = profile.PlayerAccount.Guest();
+        else me2.skins = me.skins
+        me2.username = me.username+"-2"
+        back.setPlayers(gameId, [me,me2],true)
+
+        playerList = back.getPlayerList(gameId)
+    //Placer les joueurs
     //Placer les joueurs
     console.log(playerList)
+        //Placer les joueurs
+    console.log(playerList)
 
-    turnNb = back.getTurnNb(gameId)
-    socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]),turnNb);
+        turnNb = back.getTurnNb(gameId)
+        socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]), playerList, turnNb);
+
+    })
 
     socket.on('move', (move) => {
         console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
@@ -361,7 +375,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
                 }
 
                 let newBoard = back.setUpBoard(gameId,playerList[i+1])
-                socket.emit("choosePos",newBoard,turnNb);
+                socket.emit("choosePos",newBoard,playerList,turnNb);
                 return;
             }
         }
@@ -423,11 +437,10 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             for(let i = 0; i < gamePlayers.length; i++){
                 gamePlayers[i].socket.join('room'+gameId);
             }
-            //TODO recup les players account
             {
                 let res = []
                 for(let playerId of playersForGame){
-                    res.push(new back.PlayerAccount(playerId,"GNGNNGGNNGNGGNgngngnnggnnnnnngnnnn"));
+                    res.push(await apiQuery.getUser(playerId));
                 }
                 playersForGame = res
             }
@@ -553,14 +566,12 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         turnNb = back.getTurnNb(gameId);
         let me = null;
         playerList= back.getPlayerList(gameId);
-        let playerListId = []
         for(let i=0;i<playerList.length;i++){
             if(playerList[i].getid()==myId){
                 me = playerList[i];
             }
-            playerListId.push(playerList[i].getid())
         }
-        socket.emit("choosePos", back.setUpBoard(gameId,me),playerListId,turnNb);
+        socket.emit("choosePos", back.setUpBoard(gameId,me),playerList,turnNb);
     });
     socket.on('message', (message,playerName) => {
         io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
@@ -659,7 +670,6 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
                 playersRooms[roomKey].splice(i,1);
                 i--;
             }
-            console.log("playersForGame: "+playersForGame)
             gameId = back.init();
             for(let i = 0; i < gamePlayers.length; i++){
                 gamePlayers[i].socket.join('room'+gameId);
@@ -668,7 +678,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             {
                 let res = []
                 for(let playerId of playersForGame){
-                    res.push(new back.PlayerAccount(playerId,"GNGNNGGNNGNGGNgngngnnggnnnnnngnnnn"));
+                    res.push(new profile.PlayerAccount(playerId,"GNGNNGGNNGNGGNgngngnnggnnnnnngnnnn"));
                 }
                 playersForGame = res
             }

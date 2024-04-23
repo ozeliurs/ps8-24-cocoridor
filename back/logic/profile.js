@@ -3,14 +3,40 @@ const db = require("../database/database.js")
 class PlayerAccount {
 
     static Bot(difficulty = 1){
-      let bot = new PlayerAccount("bot"+Date.now(),"GAGAGOOGOO")
+      let bot = new PlayerAccount()
+      bot.username = "Terminator"
+      bot.skins = {
+          color : null,
+          wallColor : null,
+          humanSkin : ImageRef.Fermier,
+          beastSkin : ImageRef.Poulet,
+          wallSkin : "",
+          humanSkins : [ImageRef.Fermier],
+          beastSkins : [ImageRef.Poulet],
+          wallSkins : []
+      }
       bot.difficulty = difficulty
       return bot;
     }
+
+    static Guest(){
+        let guest = new PlayerAccount()
+        guest.username = "Guest"
+        guest.skins = {
+            color : null,
+            wallColor : null,
+            humanSkin : ImageRef.Fermier2,
+            beastSkin : ImageRef.Poulet2,
+            wallSkin : "",
+            humanSkins : [ImageRef.Fermier2],
+            beastSkins : [ImageRef.Poulet2],
+            wallSkins : []
+        }
+        return guest;
+    }
     
-    static createUser(username,email,password) {
-        let newUser = {
-            id : username,
+    static createUser(email,username,password) {
+        let user = {
             email : email,
             password : password,
             username : username,
@@ -21,12 +47,13 @@ class PlayerAccount {
             achievements : [],
             savedGames : [],
             skins : {
+                color : null,
                 wallColor : null,
                 humanSkin : ImageRef.Fermier,
                 beastSkin : ImageRef.Poulet,
                 wallSkin : "",
                 humanSkins : [ImageRef.Fermier],
-                beastSkin : [ImageRef.Poulet],
+                beastSkins : [ImageRef.Poulet],
                 wallSkins : []
             },
             stats : {
@@ -36,7 +63,7 @@ class PlayerAccount {
                 rankedPlayNb : 0
             }
         }
-        return db.createUser(newUser);
+        return db.createUser(user);
     }
 
     static retrieveUser(accountId){
@@ -46,10 +73,12 @@ class PlayerAccount {
     }
 /**
  * 
- * @param {{id:Number, email:String, password:String, username:String, friends:{list:Number[],request:Number[]},achievements:Any[],savedGames:Number,skins:{wallColor:Any,HumanSkin:ImageRef,BeastSkin:ImageRef,wallSkin:ImageRef,HumanSkins:ImageRef[],BeastSkins:ImageRef[],wallSkins:ImageRef[]}}} datas 
+ * @param {{id:Number, email:String, password:String, username:String, friends:{list:Number[],request:Number[]},achievements:Any[],savedGames:Number,skins:{color:Color,wallColor:Any,humanSkin:ImageRef,beastSkin:ImageRef,wallSkin:ImageRef,humanSkins:ImageRef[],beastSkins:ImageRef[],wallSkins:ImageRef[]}}} datas 
  */
-    constructor(datas){
-        this.id = datas.id,
+    constructor(datas = null){
+        if(datas==null){
+            return;
+        }
         this.email = datas.email,
         this.password = datas.password,
         this.username = datas.username,
@@ -73,7 +102,6 @@ class PlayerAccount {
     }
     toJson(){
         return {
-            id : this.id,
             email : this.email,
             password : this.password,
             username : this.username,
@@ -121,6 +149,8 @@ class PlayerAccount {
 const ImageRef = {
     Fermier : "/assets/img/FermierJ2.png",
     Poulet : "/assets/img/PouletJ1.png",
+    Fermier2 : "/assets/img/Fermier2.webp",
+    Poulet2 : "/assets/img/Poulet2.png",
     MatchMakingGif : "/assets/img/polos.gif"
 }
 const Achievements = {
