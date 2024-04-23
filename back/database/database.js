@@ -1,3 +1,5 @@
+
+
 const { MongoClient } = require('mongodb');
 const {DB_MONGO} = require("../Env.js");
 const MONGO_URL = DB_MONGO;
@@ -52,21 +54,29 @@ async function getGames() {
 
 async function getGames(playerId){
     const db = await getMongoDatabase();
-    return db.collection('games').find({idUser: playerId}).toArray();
+    const user = await db.collection('users').findOne({ username: playerId });
+    console.log(user);
 
+    return db.collection('games').find({ _id: { $in: user.savedGames } }).toArray();
 }
 
 async function getGame(gameId) {
     const db = await getMongoDatabase();
-    //transformer gameId en ObjectId
     let objId = new ObjectId(gameId);
-    return db.collection('games').find({ _id: objId }).toArray();
+    return await db.collection('games').findOne({ _id: objId });
 }
 
 async function createGame(game) {
     const db = await getMongoDatabase();
     return await db.collection('games').insertOne(game);
 }
+
+async function addGame(playerId, gameId) {
+    console.log("addGame")
+    const db = await getMongoDatabase();
+    return await db.collection('users').updateOne({username: playerId}, {$push: {savedGames: gameId}});
+}
+
 
 async function updateGame(game,gameID){
     const db = await getMongoDatabase();
@@ -165,3 +175,4 @@ exports.addFriend = addFriend;
 exports.getFriends = getFriends;
 exports. addMessage = addMessage;
 exports.getConv = getConv;
+exports.addGame = addGame;

@@ -98,7 +98,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             friends: [],
             friendRequests: [],
             conv:[],
-            elo: 1000
+            elo: 1000,
+            savedGames: [],
         };
         let userCreated = await db.createUser(newUser);
         if (userCreated) {
@@ -117,7 +118,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             friends: [],
             friendRequests: [],
             conv:[],
-            elo: 1000
+            elo: 1000,
+            savedGames: [],
         };
         let userUpdated = await db.updateUser(updatedUser);
         if (userUpdated) {
@@ -142,9 +144,7 @@ async function getElo(request, response) {
             response.end(JSON.stringify({error: 'Données manquantes'}));
             return;
         }
-        console.log(body);
         let elo = await getUserElo(body.username);
-        console.log(elo);
         response.writeHead(200, {'Content-Type': 'application/json'});
         response.end(JSON.stringify({elo: elo}));
     });
@@ -165,12 +165,9 @@ async function updateElo(username, elo) {
     return user.elo;
 }
 
-async function createGame(idUser, board, turnNb,playerList, response = null) {
+async function createGame(gameState, response = null) {
     const NewGame = {
-        board: board,
-        idUser: idUser,
-        turnNb: turnNb,
-        playerList: playerList
+        gameState: gameState,
     };
     let gameCreated = await db.createGame(NewGame);
     if(response !== null) {
@@ -182,17 +179,20 @@ async function createGame(idUser, board, turnNb,playerList, response = null) {
             response.end(JSON.stringify({error: 'Erreur lors de la création de la partie'}));
         }
     }
+    let playerList = gameState.getPlayerList();
+    for(let i=0;i<playerList.length;i++){
+        console.log(playerList[i].account.id+" "+playerList[i].account.difficulty);
+        if(playerList[i].account.id === undefined || playerList[i].account.difficulty !== undefined) continue;
+        await db.addGame(playerList[i].account.id,NewGame._id);
+    }
     return NewGame._id;
 }
 
 
-async function updateGame(idUser, board, turnNb,playerList, gameId, response = null) {
+async function updateGame(gameState, gameId, response = null) {
     console.log("updateGame")
     const updatedGame = {
-        board: board,
-        idUser: idUser,
-        turnNb: turnNb,
-        playerList: playerList
+        gameState: gameState
     };
     let gameUpdated = await db.updateGame(updatedGame, gameId);
     if(response !== null) {
@@ -219,13 +219,11 @@ async function signup(request, response) {
     }
 
     parsejson(request).then(async (body) => {
-        console.log(body.email+" "+body.username+" "+body.password);
         if (!body.email || !body.username || !body.password) {
             response.writeHead(400, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Données manquantes' }));
             return;
         }
-        console.log('username : '+ body.username);
         const user = await db.getUser(body.username);
 
         if(user){
@@ -282,7 +280,7 @@ async function uploadGame(request, response) {
     }
 
     parsejson(request).then(async (body) => {
-        if (!body.idUser || !body.board || !body.playerList) {
+        if (!body.idUser || !body.gameState) {
             
             response.writeHead(400, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify({ error: 'Données manquantes' }));
@@ -293,17 +291,13 @@ async function uploadGame(request, response) {
 
             await createGame(
                 body.idUser,
-                body.board,
-                body.turnNb,
-                body.playerList,
+                body.gameSate,
                 response,
             );
         }else{
             await updateGame(
                 body.idUser,
-                body.board,
-                body.turnNb,
-                body.playerList,
+                body.gameState,
                 body.gameId,
                 response,
             );
@@ -349,6 +343,7 @@ async function retrieveUserGames(request, response) {
             response.end(JSON.stringify({ error: 'Données manquantes' }));
             return;
         }
+        console.log("retrieveUserGames : ",body.idUser)
         let games=await db.getGames(body.idUser);
         response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(games));
@@ -380,7 +375,6 @@ async function friendRequest(request, response){
         return;
     }
     parsejson(request).then(async (body) => {
-       console.log("body : ",body)
        if (!body.username || !body.friendName) {
         response.writeHead(400, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify({ error: 'Données manquantes' }));
