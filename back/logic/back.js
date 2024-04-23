@@ -61,13 +61,7 @@ class GameState{
       newGameState.bottomTiles = gameState.bottomTiles;
       let playerList = [];
       for (let player of gameState.gameParams.playerList) {
-        if(player.username!=profile.PlayerAccount.Guest().username && player.username!=profile.PlayerAccount.Bot().username){
-        let account = await apiQuery.getUser(player.username);
-        let newPlayer = new PlayerGameInstance(account, player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
-        newPlayer.OnTile = player.OnTile;
-        newPlayer.nbWalls = player.nbWalls;
-        newPlayer.image = player.image;
-        newPlayer.color = new profile.Color(player.color.R, player.color.G, player.color.B)
+        let newPlayer = await copyPlayer(player, gameState.id);
         playerList.push(newPlayer);
       }
       newGameState.gameParams.playerList = playerList;
@@ -564,9 +558,7 @@ class Tile {
       this.Y = Tile.Y;
 
       if (Tile.occupied != null) {
-        if (Tile.occupied.username)
-        apiQuery.getUser(Tile.occupied.username).then((account) => this.occupied = new PlayerGameInstance(account, Tile.occupied.start, Tile.occupied.end, Tile.occupied.modifier, Tile.occupied.nbWalls, Tile.occupied.gameId));
-
+        this.occupied = copyPlayer(Tile.occupied, this.gameStateId);
       }
       else this.occupied = null;
       this.visibility = Tile.visibility;
@@ -723,7 +715,9 @@ class Border {
         this.Y = Border.Y;
         this.lng = Border.lng;
         this.lat = Border.lat;
-        if (Border.wallBy != null) apiQuery.getUser(Border.wallBy.username).then((account) => this.wallBy = new PlayerGameInstance(account, Border.wallBy.start, Border.wallBy.end, Border.wallBy.modifier, Border.wallBy.nbWalls, Border.wallBy.gameId));
+        if (Border.wallBy != null){
+          this.wallBy =copyPlayer(Border.wallBy, this.gameStateId);
+        }
         else this.wallBy = null;
       }
     }
@@ -1073,6 +1067,30 @@ function playersCanReachEnd(gameId, additionnalWalls = []){
  */
 function deleteGame(gameId){
   delete GameState.onGoing[gameId]
+}
+
+/**
+ *
+ * @param {PlayerGameInstance} player
+ * @param {Number} gameStateId
+ * @returns {PlayerGameInstance}
+ */
+async function copyPlayer(player, gameStateId) {
+  //create a PlayerGameInstance with the same attributes as player
+  let newPlayer;
+  if (player.username === profile.PlayerAccount.Guest().username) {
+    newPlayer = new PlayerGameInstance(profile.playerAccount.Guest(), player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
+  } else if (player.username === profile.PlayerAccount.Bot().username) {
+    newPlayer = new PlayerGameInstance(profile.PlayerAccount.Bot(), player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
+  } else {
+    let account = await apiQuery.getUser(player.username);
+    newPlayer = new PlayerGameInstance(account, player.start, player.end, player.modifier, player.nbWalls, gameStateId);
+  }
+  newPlayer.OnTile = player.OnTile;
+  newPlayer.nbWalls = player.nbWalls;
+  newPlayer.playerSkin = player.playerSkin;
+  newPlayer.color = new profile.Color(player.color.R, player.color.G, player.color.B)
+  return newPlayer;
 }
 
 /**
