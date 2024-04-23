@@ -20,26 +20,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         console.log("friendName : ", friendName)
         if (friendName !== '') {
-            fetch('http://localhost:8000/api/friendRequest', {
+            const hostname = window.location.hostname;
+            let api = "http://"+hostname+":8000/api/friendRequest";
+            fetch(api, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ username: nameUser, friendName: friendName })
-            }).then(response => {
-                if (response.ok) {
-                    alert("Demande envoyée");
-                } else {
-                    throw new Error('La requête a échoué'); 
-                }
-            }).catch(error => {
-                console.error(error);
-            });
-            friendNameInput.value = '';
+            }).then(response => response.json())
+            .then(data => {
+               console.log("data : ",data)
+               if(data.result!=null){
+                    alert("Demande envoyée à "+friendName);
+               }else{
+                    alert("Cet utilisateur n'existe pas ou vous lui avez déja envoyé une demande d'ami");
+               }
+            })
+            
         }
+        friendNameInput.value = '';
     });
 
-    await fetch('http://localhost:8000/api/getFriendsRequest', {
+    const hostname = window.location.hostname;
+    let api = "http://"+hostname+":8000/api/getFriendsRequest";
+    await fetch(api, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -60,7 +65,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             addButton.id = friend;
         
             addButton.addEventListener('click',async function() {
-                await fetch('http://localhost:8000/api/addFriend', {
+                const hostname = window.location.hostname;
+                api = "http://"+hostname+":8000/api/addFriend";
+                await fetch(api, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

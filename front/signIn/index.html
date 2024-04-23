@@ -4,9 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../signIn/signIn.css">
+    <link rel="stylesheet" href="../header.css">
     <title>GamePage</title>
 </head>
 <body id="signin">
+
+    <header>
+        <div class="upperBtns">
+            <a href="signUp">
+                <button id=signUp>
+                    S'inscrire
+                </button>
+            </a>
+            <a href="signIn">
+                <button id=signIn>
+                    Se connecter
+                </button>
+            </a>
+        </div>
+
+        <a href=".."><h1>CocoRidor</h1></a>
+
+        
+        <div id=playerCard>
+            <div id=playerProfile>
+                <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
+                <div id=playerInfo>
+                    <div id=playerName>
+                        Player
+                    </div>
+                    <div id=playerRank>
+                        Elo 1000
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </header>
+
     <div>
         <div class="form-box">
             <h1> Connexion </h1>
@@ -21,11 +55,12 @@
                         <input type="text" placeholder="Mot de passe" id="mdp">
                     </div>  
                     <div class="btn-field">
-                        <button type="submit" class="btn" id="signIn" >Se connecter</button>
+                        <button type="submit" class="btn" id="connexion" >Se connecter</button>
                     </div>
             </form>
         </div>
     </div>
+    <script src="../index.js"> </script>
     <script src="../signIn/signIn.js"> </script>
 </body>
 </html>

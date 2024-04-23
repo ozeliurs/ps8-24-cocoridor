@@ -1,4 +1,4 @@
-let signUpBtn = document.getElementById('signUp');
+let signUpBtn = document.getElementById('Inscription');
 let username=document.getElementById('username');
 let email=document.getElementById('email');
 let mdp=document.getElementById('mdp');
@@ -11,8 +11,9 @@ signUpBtn.onclick = async function (e) {
         email: email.value,
         password: mdp.value
     }
-
-    await fetch('http://localhost:8000/api/signup', {
+    let hostname = window.location.hostname;
+    let api = "http://"+hostname+":8000/api/signup";
+    await fetch(api, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

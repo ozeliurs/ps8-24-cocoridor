@@ -3,6 +3,7 @@ body {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
+    margin: 0;
 }
 
 .container {
@@ -12,9 +13,11 @@ body {
     background: #00f97861;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin-top: 15%;
+    margin-top: 10%;
     
 }
+
+
 
 h1 {
     text-align: center;

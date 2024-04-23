@@ -5,6 +5,9 @@
     --BORDERCOLOR :#FFE0BB;
 }
 
+header{
+  margin-bottom: 0%;
+}
 div {
     color: cadetblue;
 }
@@ -57,12 +60,9 @@ body {
 #gameCover {
     display:none;
     position: absolute;
-    width: 100%;
+    width: 70%;
     height: 100%;
-    top: -110px;
-    left: 100px;
     background: 	#FAFAD2;
-    z-index: 10;
 }
 
 
@@ -398,4 +398,64 @@ header h2 {
   padding: 10px 0; 
   display: none;
   
+}
+
+.popup {
+  position: fixed; 
+  z-index: 1; 
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; 
+  background-color: rgba(0,0,0,0.4); 
+}
+
+.popup-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  text-align: center;
+}
+
+#confirm, #cancel {
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+#confirm:hover, #cancel:hover {
+  background-color: #f1f1f1;
+}
+
+#wallsLeft {
+  position: absolute;
+  top: 50%;
+  left: 77%;
+  width: 15%;
+  height: 15%;
+  background-color: #fff;
+  padding: 10px;
+  margin-right: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: -1;
+}
+
+#wallsLeft h2 {
+  margin-top: 0;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+#wallCount {
+  margin: 0;
+  font-size: 24px;
+  text-align: center;
 }
