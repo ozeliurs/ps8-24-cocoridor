@@ -127,7 +127,6 @@ class TileFront {
     else if (this.occupied === true) {}
     else {
       let img = document.createElement("img");
-      console.log(this.occupied)
       img.src = this.occupied.image; 
       img.style.width = "100%"; 
       img.style.height = "100%";

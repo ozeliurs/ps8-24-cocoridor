@@ -98,7 +98,8 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
             friends: [],
             friendRequests: [],
             conv:[],
-            elo: 1000
+            elo: 1000,
+            achievements : []
         };
         let userCreated = await db.createUser(newUser);
         if (userCreated) {

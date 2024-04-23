@@ -29,7 +29,6 @@ async function getUsers() {
 
 async function getUser(username) {
     const users = await getUsers();
-
     return await users.findOne({ username: username });
 }
 

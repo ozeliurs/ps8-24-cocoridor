@@ -1,3 +1,4 @@
+
 class GameParams{
   /**
    * 
@@ -123,9 +124,7 @@ class GameState{
     secondPlayer = new PlayerGameInstance(secondPlayer,this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
     this.gameParams.playerList = []
     firstPlayer.image = "../Game-Page/PouletJ1.png"
-    secondPlayer.image = "../Game-Page/FermierJ2.png"
-    firstPlayer.color = Color.red;
-    secondPlayer.color = Color.blue;
+    secondPlayer.image = ""
     this.gameParams.playerList.push(firstPlayer);
     this.gameParams.playerList.push(secondPlayer);
   }
@@ -460,67 +459,7 @@ class BorderFront{
     this.playerId = playerId;
   }
 }
-class Color{
 
-    static black = new Color(0  ,0  ,0  );
-    static red   = new Color(255,0  ,0  );
-    static green = new Color(0  ,255,0  );
-    static blue  = new Color(0  ,0  ,255);
-    static white = new Color(255,255,255);
-    static darkGrey = new Color(50,50,50);
-    
-      constructor(r,g,b){
-        this.R = r;
-        this.G = g;
-        this.B = b;
-      }
-    
-      /**
-       * 
-       * @param {Color} c 
-       * @returns 
-       */
-      moy(c,per=0.5){
-        let r = this.R;
-        let g = this.G;
-        let b = this.B;
-        return new Color((c.R*(1-per)+r*per)/2,(c.G*(1-per)+g*per)/2,(c.B*(1-per)+b*per)/2)
-      }
-    
-      toStyle(){
-        return "rgb("+this.R+","+this.G+","+this.B+")"
-      }
-}
-
-class PlayerAccount {
-
-  static Bot(difficulty = 1){
-    let bot = new PlayerAccount("bot"+Date.now(),"GAGAGOOGOO")
-    bot.difficulty = difficulty
-    return bot;
-  }
-  constructor(email,password){
-    if(email==null || password==null) return null;
-    this.id = email;
-    this.email = email;
-    this.password = password;
-    this.friendList = []
-    this.boardSkins = []
-    this.wallSkins = []
-    this.achievements = []
-    this.image = "image0.png"
-    this.color = Color.green;
-  }
-  /**
-   * 
-   * @param {String} friendId 
-   * @returns 
-   */
-  addFriend(friendId){
-    if(this.friendList.includes((e)=>e==friendList)) return;
-    this.friendList.push(friendId)
-  }
-}
 class PlayerGameInstance {
 
   /**
@@ -546,8 +485,8 @@ class PlayerGameInstance {
     this.OnTile = null;
 
     this.nbWalls = nbWallsPerPlayer;
-    this.image = this.account.image
-    this.color = this.account.color
+    this.HumanSkin = this.account.skins.HumanSkin
+    this.color = this.account.skins.color
     if (endPos == null) console.info("ce joueur ne peux pas gagner")
   }
   /**
@@ -1128,4 +1067,3 @@ function findGame(gameId){
   exports.placePlayer = placePlayer;
   exports.execRandomMove = execRandomMove;
   exports.deleteGame = deleteGame
-  exports.PlayerAccount = PlayerAccount

@@ -1,6 +1,6 @@
 const back = require("./logic/back.js")
 const adaptator = require("./logic/aiAdaptator.js")
-
+const profile = require("./logic/profile.js")
 // The http module contains methods to handle http queries.
 const http = require('http')
 // Let's import our logic.
@@ -74,11 +74,11 @@ io.of("/api/AIgame").on('connection', (socket) => {
     let gameId
     let saveId
     let myId
-    let bot = back.PlayerAccount.Bot()
+    let bot = profile.PlayerAccount.Bot()
     socket.on('newGame',async (playerId) => {
         gameId = back.init();
         myId = playerId
-        back.setPlayers(gameId,[new back.PlayerAccount(playerId,"cc"), bot])
+        back.setPlayers(gameId,[new profile.PlayerAccount(playerId,"cc"), bot])
         playerList= back.getPlayerList(gameId);
         bot = getPlayerInList(playerList,bot.id)
         let me = null
