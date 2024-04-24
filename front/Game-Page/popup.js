@@ -1,7 +1,3 @@
-
-
-
-
 document.getElementById("exit").addEventListener("click", function() {
     swap('../index.html');
 } );

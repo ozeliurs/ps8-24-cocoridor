@@ -185,7 +185,6 @@
         }
         
         socket.on("initChoosePos",(gameId)=>{
-            console.log("initChoosePos");
             socket.emit('askForInitPos',gameId);
           document.getElementById("waiting").style.display = "none";
           document.getElementById("notwaiting").style.display = "block";
@@ -215,7 +214,6 @@
             }
         })
         socket.on("playersReady",()=>{
-            console.log("playersReady");
             socket.emit('start');
         })
         socket.on("moved",()=>{

@@ -5,7 +5,9 @@ const {DB_MONGO} = require("../Env.js");
 const MONGO_URL = DB_MONGO;
 const client = new MongoClient(MONGO_URL);
 const { ObjectId } = require('mongodb');
-
+const { GameState } = require("../logic/back.js");
+const profile = require('../logic/profile.js');
+const { addAchievement } = require('../queryManagers/api.js');
 
 async function getMongoDatabase() {
     if (!!client && !!client.topology && client.topology.isConnected()) {
@@ -22,13 +24,17 @@ async function clearDatabase() {
 
 
 
-
 async function getUsers() {
     const db = await getMongoDatabase();
 
     return db.collection('users');
 }
 
+/**
+ * 
+ * @param {String} username 
+ * @returns {Promise<profile.PlayerAccount>}
+ */
 async function getUser(username) {
     const users = await getUsers();
     return await users.findOne({ username: username });
@@ -36,14 +42,24 @@ async function getUser(username) {
 
 async function createUser(user) {
     const users = await getUsers();
-    console.log("add user:")
-    console.log(user)
     return await users.insertOne(user);
 }
 
+/**
+ * 
+ * @param {profile.PlayerAccount} user 
+ * @returns {Promise<PlayerAccount>}
+ */
 async function updateUser(user){
+    if(user.fakePlayer) return null;
     const users = await getUsers();
-    return await users.updateOne({ username: user.username }, { $set: user });
+    await profile.checkStatsAchievement(user.username)
+    let res = await users.updateOne({ username: user.username }, { $set: user });
+    
+    console.log("After")
+    console.log(res)
+
+    return res
 }
 
 async function getGames() {
@@ -59,6 +75,11 @@ async function getGames(playerId){
     return db.collection('games').find({ _id: { $in: user.savedGames } }).toArray();
 }
 
+/**
+ * 
+ * @param {*} gameId 
+ * @returns {Promise<GameState>}
+ */
 async function getGame(gameId) {
     const db = await getMongoDatabase();
     let objId = new ObjectId(gameId);
@@ -71,7 +92,6 @@ async function createGame(game) {
 }
 
 async function addGame(playerId, gameId) {
-    console.log("addGame")
     const db = await getMongoDatabase();
     return await db.collection('users').updateOne({username: playerId}, {$push: {savedGames: gameId}});
 }

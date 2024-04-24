@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             alert("Vous ne pouvez pas vous ajouter en ami");
             return;
         }
-        console.log("friendName : ", friendName)
         if (friendName !== '') {
             const hostname = window.location.hostname;
             let api = "http://"+hostname+":8000/api/friendRequest";
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 body: JSON.stringify({ username: nameUser, friendName: friendName })
             }).then(response => response.json())
             .then(data => {
-               console.log("data : ",data)
                if(data.result!=null){
                     alert("Demande envoyée à "+friendName);
                }else{
@@ -53,9 +51,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     })
     .then(response => response.json())
     .then(data => {
-        console.log("data : ", data)
         const friends = data.friends;
-        console.log("friends : ", friends);
         const friendRequest = document.getElementById("friendList");
         for (const friend of friends) {
             const friendElement = document.createElement("div");

@@ -1,7 +1,7 @@
 // Main method, exported at the end of the file. It's the one that will be called when a REST request is received.
 
 const db = require("../database/database")
-const {PlayerAccount} = require("../logic/profile")
+const {PlayerAccount, Achievements} = require("../logic/profile")
 
 async function manageRequest(request, response) {
   // Ici, nous extrayons la partie de l'URL qui indique l'endpoint
@@ -104,15 +104,12 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
         
         const newUser = PlayerAccount.createUser(email,username,password);
         let userCreated = await db.createUser(newUser);
-        console.log(userCreated)
         if (userCreated) {
-            console.log("added")
             response.writeHead(200, {'Content-Type': 'application/json'});
             response.end(JSON.stringify({message: 'Utilisateur créé avec succès'}));
         } else {
             response.writeHead(500, {'Content-Type': 'application/json'});
             response.end(JSON.stringify({error: 'Erreur lors de la création de l\'utilisateur'}));
-            console.log("cancel")
         }
   } else {
     const updatedUser = {
@@ -171,7 +168,6 @@ async function getInfo(request, response) {
     for(const conv of user.convs.new){
       nbMessage += conv.messages.length;
     }
-    console.log("nbMessage : ", nbMessage);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: nbMessage, name: user.username, email: user.email,beastSkins:user.skins.beastSkins,humanSkins:user.skins.humanSkins}));
   });
@@ -219,7 +215,6 @@ async function createGame(gameState, response = null) {
 
 
 async function updateGame(gameState, gameId, response = null) {
-    console.log("updateGame")
     const updatedGame = {
         gameState: gameState
     };
@@ -362,7 +357,6 @@ async function retrieveUserGames(request, response) {
             response.end(JSON.stringify({ error: 'Données manquantes' }));
             return;
         }
-        console.log("retrieveUserGames : ",body.idUser)
         let games=await db.getGames(body.idUser);
         response.writeHead(200, { 'Content-Type': 'application/json' });
         response.end(JSON.stringify(games));
@@ -399,7 +393,6 @@ async function friendRequest(request, response) {
     return;
   }
   parsejson(request).then(async (body) => {
-    console.log("body : ", body);
     if (!body.username || !body.friendName) {
       response.writeHead(400, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "Données manquantes" }));
@@ -407,7 +400,6 @@ async function friendRequest(request, response) {
 
     }
     res = await db.addFriendRequest(body.username, body.friendName);
-    console.log("res : ", res);
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ result: res }));
   });
@@ -549,16 +541,47 @@ async function changeSkin(request,response){
 /**
  * 
  * @param {String} userId 
- * @returns 
+ * @returns {Promise<PlayerAccount>}
  */
 async function getUser(userId=null){
     if(userId==null) return null;
     return await db.getUser(userId)
 }
+/**
+ * 
+ * @param {String} userId 
+ * @param {Achievements} achievement 
+ * @returns {Promise<Boolean>}
+ */
+async function addAchievement(userId,achievement){
+    if(Achievements[achievement]==null) return false;
+    let user = await db.getUser(userId)
+    if(!user) return false;
+    if(user.achievements.includes(achievement)) return false;
+    user.achievements.push(achievement);
+    db.updateUser(user);
+    return true;
+}
+
+async function deleteGameSave(saveId){
+    let game = await db.getGame(saveId)
+    if(game==null)return;
+    for(let player of game.gameParams.playerList){
+        let user = await getUser(player.username)
+        if(user==null) continue;
+        delete user.savedGames[saveId]
+        updateUser(user);
+    }
+
+    
+}
+
 exports.manage = manageRequest;
 exports.createGame = createGame;
 exports.updateGame = updateGame;
 exports.getGame = getGame;
 exports.getUserElo = getUserElo;
 exports.updateElo = updateElo;
-exports.getUser = getUser
+exports.getUser = getUser;
+exports.addAchievement = addAchievement;
+exports.deleteGameSave = deleteGameSave;

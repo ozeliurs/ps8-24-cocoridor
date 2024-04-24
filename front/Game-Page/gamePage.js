@@ -357,8 +357,6 @@ function DisplayBoard(board,positions=null){
   img.style.width = "100%"; 
   img.style.height = "100%";
 
-  console.log("Trun nb: "+turnNb)
-  console.log(playerList[turnNb%playerList.length].playerSkin)
   img.src = playerList[turnNb%playerList.length].playerSkin
   playerTurn.appendChild(img)
   if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage "+playerList[turnNb%playerList.length].username+" puis jouez"));}

@@ -57,27 +57,20 @@ exports.nextMove = async function nextMove(gamestate) {
         }
     }
 
-    if(EnnemyPos !== null) {
-        console.log("EnnemyPos : ", EnnemyPos.x + " " + EnnemyPos.y);
-    }
     if(!(PreviousGameState !== null && PreviousGameState.opponentWalls.length!== gamestate.opponentWalls.length) ){
         let ennemyPos = findEnnemy(gamestate, currentPosition);
         if(ennemyPos !== null) {
-            console.log("findEnnemy : ", ennemyPos.x + " " + ennemyPos.y);
         }
         if(ennemyPos==null && worstEnnemyPos!=null){
             let nextMove = aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos})
             while(nextMove.previous!=null) nextMove = nextMove.previous;
             if(gamestate.board[nextMove.node.x][nextMove.node.y]<0){
-                console.log("ennemy was in : ",worstEnnemyPos)
 
                 worstEnnemyPos = nextMove.node;
                 
-                console.log("ennemy may be in : ",worstEnnemyPos)
                 EnnemyPos = worstEnnemyPos;
                 if(aStar({gameState:gamestate,currentPosition : worstEnnemyPos, endPos : ennemyEndPos, maxCost:1})!=null){
                     //go placer un mur en supposant l'ennemie sur worstEnnemyPos
-                    console.log("MUST PLACE A WALL OR THE DIYING")
                     forceWall = true;
                 }
             }
