@@ -5,7 +5,9 @@ const {DB_MONGO} = require("../Env.js");
 const MONGO_URL = DB_MONGO;
 const client = new MongoClient(MONGO_URL);
 const { ObjectId } = require('mongodb');
-
+const { GameState } = require("../logic/back.js");
+const profile = require('../logic/profile.js');
+const { addAchievement } = require('../queryManagers/api.js');
 
 async function getMongoDatabase() {
     if (!!client && !!client.topology && client.topology.isConnected()) {
@@ -22,13 +24,17 @@ async function clearDatabase() {
 
 
 
-
 async function getUsers() {
     const db = await getMongoDatabase();
 
     return db.collection('users');
 }
 
+/**
+ * 
+ * @param {String} username 
+ * @returns {Promise<profile.PlayerAccount>}
+ */
 async function getUser(username) {
     const users = await getUsers();
     return await users.findOne({ username: username });
@@ -36,13 +42,17 @@ async function getUser(username) {
 
 async function createUser(user) {
     const users = await getUsers();
-    console.log("add user:")
-    console.log(user)
     return await users.insertOne(user);
 }
 
+/**
+ * 
+ * @param {profile.PlayerAccount} user 
+ * @returns 
+ */
 async function updateUser(user){
     const users = await getUsers();
+    await profile.checkStatsAchievement(user.username)
     return await users.updateOne({ username: user.username }, { $set: user });
 }
 
@@ -55,11 +65,15 @@ async function getGames() {
 async function getGames(playerId){
     const db = await getMongoDatabase();
     const user = await db.collection('users').findOne({ username: playerId });
-    console.log(user);
 
     return db.collection('games').find({ _id: { $in: user.savedGames } }).toArray();
 }
 
+/**
+ * 
+ * @param {*} gameId 
+ * @returns {Promise<GameState>}
+ */
 async function getGame(gameId) {
     const db = await getMongoDatabase();
     let objId = new ObjectId(gameId);
@@ -72,7 +86,6 @@ async function createGame(game) {
 }
 
 async function addGame(playerId, gameId) {
-    console.log("addGame")
     const db = await getMongoDatabase();
     return await db.collection('users').updateOne({username: playerId}, {$push: {savedGames: gameId}});
 }
@@ -145,8 +158,6 @@ async function getConvN(username){
 
 async function addMessage(username,friend,message){
     const users = await getUsers();
-    console.log("username : ", username, " friend : ", friend, " message : ", message);
-    console.log(await users.findOne())
     await users.updateOne(
         { username: username, "conv.username": friend },
         { 

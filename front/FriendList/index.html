@@ -93,10 +93,8 @@
           .then(response => response.json())
           .then(data => {
             const friends = data.nbNewMessage;
-            console.log(friends)
             const friendRequest = document.getElementById("friendList");
             for (const result of friends) {
-              console.log(result);
               let friend = result.friend;
               const friendElement = document.createElement("div");
               friendElement.classList.add("friend-container");
@@ -143,7 +141,6 @@
               pvpButton.textContent = "Défier";
               pvpButton.onclick = function () {
                 const friendName = pvpButton.getAttribute("id");
-                console.log("Défier " + friendName);
                 window.location.href = "../Game-Page/index.html?mode=1vs1Friend&playerid=" + nameUser + "&friend=" + friendName;
               };
 

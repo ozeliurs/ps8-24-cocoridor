@@ -24,7 +24,6 @@ fetch(api, {
 }).then(data => {
     
     games = data;
-    console.log(games);
     let gameList = document.getElementById("gameList");
     for (let i = 0; i < games.length; i++) {
         let game = games[i];

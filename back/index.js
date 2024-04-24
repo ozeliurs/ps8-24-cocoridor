@@ -6,6 +6,7 @@ const http = require('http')
 // Let's import our logic.
 const fileQuery = require('./queryManagers/front.js')
 const apiQuery = require('./queryManagers/api.js')
+const db = require("./database/database.js")
 
 
 /* The http module contains a createServer function, which takes one argument, which is the function that
@@ -98,7 +99,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
 
     })
     socket.on("start",async ()=>{
-        console.log("start")
         playerList = back.getPlayerList(gameId);
         turnNb = back.getTurnNb(gameId);
         let gameState = back.getGameState(gameId);
@@ -159,7 +159,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
         }
         socket.emit("launch", back.BoardFor(gameId,me), turnNb, gameId);
         if(playerList[turnNb%playerList.length].getid()==bot.getid()){
-            console.log("here")
             let aiBoard = back.BoardFor(gameId, bot);
             {
                 sleep(1000)
@@ -186,10 +185,9 @@ io.of("/api/AIgame").on('connection', (socket) => {
         }
     })
     socket.on('move', async (move) => {
-        console.log('x: ' + move.x, 'y: ' + move.y);
         playerList = back.getPlayerList(gameId)
         let me = playerList[turnNb%playerList.length]
-        if(me.getid()!=myId){console.log("CANCEL");return;};
+        if(me.getid()!=myId){return;};
         
         let actionDone = back.execMove(gameId, me, move.x, move.y);
         if (actionDone) {
@@ -238,7 +236,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
     });
 
     socket.on('wall', async (wall) => {
-        console.log('x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        //console.log('x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         let me = getPlayerInList(playerList, myId)
         let actionDone = back.execWall(gameId,me, wall.x, wall.y, wall.vertical);
 
@@ -269,10 +267,6 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 if (!moved) {
                     let move = back.execRandomMove(gameId,bot.getid());
                     await adaptator.correction(move);
-                    console.log("correction : " + move);
-                }else{
-                    console.log("IA move")
-                    console.log(computemove)
                 }
             }
             aiBoard = back.BoardFor(gameId,bot);
@@ -320,11 +314,8 @@ io.of("/api/Localgame").on('connection', (socket) => {
     let turnNb;
     let gameId;
     socket.on("newGame",async (myId)=>{
-        console.log("CONNEXION")
-        console.log(myId)
         gameId = back.init()
         let me = await apiQuery.getUser(myId)
-        console.log(me)
         let me2 = profile.PlayerAccount.Guest()
         if(!me)me = profile.PlayerAccount.Guest();
         else me2.skins = me.skins
@@ -333,10 +324,6 @@ io.of("/api/Localgame").on('connection', (socket) => {
 
         playerList = back.getPlayerList(gameId)
     //Placer les joueurs
-    //Placer les joueurs
-    console.log(playerList)
-        //Placer les joueurs
-    console.log(playerList)
 
         turnNb = back.getTurnNb(gameId)
         socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]), playerList, turnNb);
@@ -344,7 +331,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
     })
 
     socket.on('move', (move) => {
-        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+        //console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         let actionDone = back.execMove(gameId,back.CurrentPlayer(gameId),move.x,move.y);
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
@@ -359,7 +346,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
     });
 
     socket.on('wall', (wall) => {
-        console.log('x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        //console.log('x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         if(!playerArePlaced)return;
         let actionDone = back.execWall(gameId,back.CurrentPlayer(gameId),wall.x,wall.y,wall.vertical)
         
@@ -406,7 +393,6 @@ io.of("/api/1vs1").on('connection', async (socket) => {
     socket.on('sendInfo', async (playerid) => {
         myId = playerid;
 
-        console.log("playerid: "+playerid)
         let alreadyIn = false;
         for(let i = 0; i < players.length; i++){
             if(players[i].id === playerid){
@@ -430,7 +416,6 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 }
             }
         }
-        console.log("gamePlayers: "+gamePlayers)
 
         if (gamePlayers.length >= 2) {
             let playersForGame = [];
@@ -442,7 +427,6 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                     }
                 }
             }
-            console.log("playersForGame: "+playersForGame)
             gameId = back.init();
             for(let i = 0; i < gamePlayers.length; i++){
                 gamePlayers[i].socket.join('room'+gameId);
@@ -467,7 +451,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         }
     });
     socket.on('move', async (move) => {
-        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+        //console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         playerList = back.getPlayerList(gameId);
         if(myId ===  playerList[turnNb%playerList.length].getid()) {
             
@@ -489,7 +473,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         }
     });
     socket.on('wall', async (wall) => {
-        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        //console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         playerList = back.getPlayerList(gameId);
         if(myId === playerList[turnNb%playerList.length].getid()) {
             
@@ -595,24 +579,64 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 i--; 
             }
         }
-        console.log(playerList);
         connectedPlayers[gameId].filter((e)=>e.getid() != myId )
         if(connectedPlayers[gameId].length==0){
             if (winners != null && winners.length!==0) {
-                console.log("here");
-                console.log(playerList);
-                for(let winner of winners){
-                    for(let player of playerList){
-                        if(player.getid()!==winner){
-                            updateElo(winner,player.getid());
-                        }
-                    }
-                }
+                endGameUpdate()
             }
             back.deleteGame(gameId);
         }
     })
 });
+const GameType = {
+    OneVsOne : "online Game",
+    AgainstFriend : "Friend Game",
+    AgainstAI : "Ai Game",
+    Local : "Local Game"
+
+
+}
+/**
+ * 
+ * @param {GameType} gameType 
+ * @param {String} saveId 
+ * @param {String} gameId 
+ * @param {profile.PlayerAccount[]} playerList 
+ * @param {back.PlayerGameInstance[]} winners 
+ */
+function endGameUpdate(gameType,saveId,gameId,playerList,winners){
+    switch(gameType){
+        case gameType.Local:
+            for(let player of playerList) player.stats.LocalPlay++
+            break;
+        case gameType.AgainstFriend:
+            for(let player of playerList){
+                player.stats.FriendPlay++
+                if(winners.includes(player))player.stats.FriendPlayVictory++
+            }
+            break;
+        case gameType.AgainstAI:
+            for(let player of playerList){
+                player.stats.AiPlay++
+                if(winners.includes(player))player.stats.AiPlayVictory++
+            }
+            break;
+        case gameType.OneVsOne:
+            for(let player of playerList){
+                player.stats.OnlinePlay++
+                if(winners.includes(player))player.stats.OnlinePlayVictory++
+                for(let winner of winners){
+                    if(player.getid()!==winner){
+                        updateElo(winner,player.getid());
+                    }
+                }
+            }
+            break;
+    }
+    for(let player of playerList) db.updateUser(player)
+    apiQuery.deleteGameSave(saveId)
+    back.deleteGame(gameId)
+}
 
 io.of("/api/friendChat").on('connection', async (socket) => {
     socket.on('join', async (nameUser, friendName) => {
@@ -705,7 +729,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         }
     });
     socket.on('move', async (move) => {
-        console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
+        //console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
         playerList = back.getPlayerList(gameId);
         if(myId ===  playerList[turnNb%playerList.length].getid()) {
 
@@ -727,7 +751,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         }
     });
     socket.on('wall', async (wall) => {
-        console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
+        //console.log('playerID: ' + wall.playerID, 'x: ' + wall.x, 'y: ' + wall.y, 'vertical: ' + wall.vertical);
         playerList = back.getPlayerList(gameId);
         if(myId === playerList[turnNb%playerList.length].getid()) {
 
@@ -835,7 +859,6 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
                 i--;
             }
         }
-        console.log(playerList);
         friendMatch[gameId].filter((e)=>e.getid() != myId )
         if(friendMatch[gameId].length==0){
             back.deleteGame(gameId);

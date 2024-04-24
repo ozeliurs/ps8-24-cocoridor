@@ -61,7 +61,6 @@ const handleChat = async () => {
   if(!userMessage) return;
   chatInput.value = "";
   chatInput.style.height = `${inputInitHeight}px`;
-  console.log(nameUser+"/"+friendName+"/"+userMessage);
   const hostname = window.location.hostname;
   let api = "http://"+hostname+":8000/api/addMessage";
   fetch(api, {
@@ -105,7 +104,6 @@ chatInput.addEventListener("keydown", (e) => {
 
 
 async function updateConv(nameUser, friendName) {
-  console.log("updateConv");
   const hostname = window.location.hostname;
   let api="http://"+hostname+":8000/api/getConv";
   await fetch(api, {

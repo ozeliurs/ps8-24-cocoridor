@@ -144,7 +144,6 @@ class GameState{
     }
     firstPlayer = new PlayerGameInstance(firstPlayer,this.topTiles,this.bottomTiles,1,this.gameParams.nbWallsPerPlayer,this.id);
     secondPlayer = new PlayerGameInstance(secondPlayer,this.bottomTiles,this.topTiles,-1,this.gameParams.nbWallsPerPlayer,this.id);
-    console.log(firstPlayer,secondPlayer)
     this.gameParams.playerList = []
     this.gameParams.playerList.push(firstPlayer);
     this.gameParams.playerList.push(secondPlayer);
@@ -243,6 +242,7 @@ class GameState{
     // si c'est le dernier joueur
     // et si il y a des gagnants
     if((this.turnNb%players.length==players.length-1) && (winners.length!=0) ) {
+
       return winners
     }
     
@@ -1039,7 +1039,6 @@ function execRandomMove(gameId,playerId){
  * @returns 
  */
 function setPlayers(gameId,playersAccount,randomise = true){
-  console.log(playersAccount)
   let game = findGame(gameId);
   if(game ==null) return null;
   return game.setPlayers(playersAccount,randomise);
@@ -1092,6 +1091,7 @@ function findGame(gameId){
   exports.placePlayer = placePlayer;
   exports.execRandomMove = execRandomMove;
   exports.deleteGame = deleteGame;
-  exports.PlayerAccount = PlayerAccount;
   exports.retrieveGame = retrieveGame;
   exports.getGameState = findGame;
+  
+  exports.GameState = GameState

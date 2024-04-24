@@ -1,7 +1,6 @@
 const exitBtn = document.getElementById("exit"); // Ajout de l'élément "exit"
 
 exitBtn.addEventListener("click", function() {
-    console.log("exit");
     const popup = document.createElement("div");
     popup.className = "popup";
     popup.innerHTML = `
