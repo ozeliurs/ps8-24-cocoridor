@@ -402,17 +402,19 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 }
             }
         }
-
+        console.log(gamePlayers);
+        console.log(players);
         if (gamePlayers.length >= 2) {
             let playersForGame = [];
             for(let i = 0; i < gamePlayers.length; i++){
                 for(let j = 0; j < players.length; j++){
-                    if(players[j] === gamePlayers[i]){
+                    if(players[j].id === gamePlayers[i].id){
                         playersForGame.push(players[j].id);
                         players.splice(j,1);
                     }
                 }
             }
+            console.log(playersForGame)
             gameId = back.init();
             for(let i = 0; i < gamePlayers.length; i++){
                 gamePlayers[i].socket.join('room'+gameId);
@@ -422,8 +424,9 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 for(let playerId of playersForGame){
                     res.push(await apiQuery.getUser(playerId));
                 }
-                playersForGame = res
+                playersForGame = res;
             }
+            console.log(playersForGame);
             playerList = back.setPlayers(gameId, playersForGame);
             playerList = back.getPlayerList(gameId);
             connectedPlayers[gameId] = [];
