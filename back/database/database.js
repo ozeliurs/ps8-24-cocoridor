@@ -55,7 +55,6 @@ async function getGames() {
 async function getGames(playerId){
     const db = await getMongoDatabase();
     const user = await db.collection('users').findOne({ username: playerId });
-    console.log(user);
 
     return db.collection('games').find({ _id: { $in: user.savedGames } }).toArray();
 }
@@ -95,6 +94,7 @@ async function addFriendRequest(username, friend){
     if(user && !user.friends.request.includes(username) && !user.friends.list.includes(username)){
         user.friends.request.push(username);
         await users.updateOne({ username: friend }, { $set: { friends: user.friends } });
+        return {result: "ok"};
     }
     return null;
 }
@@ -136,12 +136,27 @@ async function getConvN(username){
 async function addMessage(username,friend,message){
     const users = await getUsers();
     const user = await users.findOne({ username: username });
-    user.convs.all.push({username: friend, messages: [username+"/"+message]});
+    let conv = user.convs.all.find(conv => conv.username === friend);
+    if(conv==null) {
+        user.convs.all.push({username: friend, messages: [username + "/" + message]});
+    } else {
+        conv.messages.push(username + "/" + message);
+    }
     await users.updateOne({ username: username }, { $set: { convs: user.convs } });
 
     const friendUser = await users.findOne({ username: friend });
-    friendUser.convs.all.push({username: username, messages: [username+"/"+message]});
-    friendUser.convs.new.push({username: username, messages: [message]});
+    let friendConv = friendUser.convs.all.find(conv => conv.username === username);
+    let friendConvN = friendUser.convs.new.find(conv => conv.username === username);
+    if(friendConv==null) {
+        friendUser.convs.all.push({username: username, messages: [username + "/" + message]});
+    } else {
+        friendConv.messages.push(username + "/" + message);
+    }
+    if(friendConvN==null) {
+        friendUser.convs.new.push({username: username, messages: [username + "/" + message]});
+    } else {
+        friendConvN.messages.push(username + "/" + message);
+    }
     await users.updateOne({ username: friend }, { $set: { convs: friendUser.convs } });
     return;
 }
@@ -150,14 +165,23 @@ async function addMessage(username,friend,message){
 async function getConv(username,friend){
     const users = await getUsers();
     const user=await users.findOne({ username: username });
-    const conv = user.convs.all.find(conv => conv.username === friend);
+    let conv = user.convs.all.find(conv => conv.username === friend);
+    if(conv==null){
+        return [];
+    }
     return conv.messages;
 }
 
 async function getNewConv(username,friend){
     const users = await getUsers();
     const user=await users.findOne({ username: username });
-    const conv = user.convs.new.find(conv => conv.username === friend);
+    let conv = user.convs.new.find(conv => conv.username === friend);
+    if(conv==null){
+        return [];
+    }
+    user.convs.new = user.convs.new.filter(conv => conv.username !== friend);
+    await users.updateOne({ username : username }, { $set: { convs: user.convs } });
+    console.log(conv.messages)
     return conv.messages;
 }
 

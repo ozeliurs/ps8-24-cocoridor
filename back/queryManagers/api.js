@@ -159,7 +159,7 @@ async function getElo(request, response) {
       response.end(JSON.stringify({ error: "Utilisateur non trouvé" }));
       return;
     }
-    if(user.convs.new==undefined){
+    if(user.convs==undefined){
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0}));
         return;
@@ -472,12 +472,17 @@ async function getFriends(request, response) {
         return;
     }
     for(const friend of friends){
-      let nbMessage= newConv.find(newConv => newConv.username === friend).messages
-      if(nbMessage==undefined){
-        nbNewMessage.push({ friend: friend, nbMessage: 0 });
-      }else{
-        nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
-      }
+        let conv= newConv.find(newConv => newConv.username === friend);
+        if(conv==undefined){
+            nbNewMessage.push({ friend: friend, nbMessage: 0 });
+            continue;
+        }
+        let nbMessage=conv.messages;
+        if(nbMessage==undefined){
+            nbNewMessage.push({ friend: friend, nbMessage: 0 });
+        }else{
+            nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
+        }
     }
 
     response.writeHead(200, { "Content-Type": "application/json" });
