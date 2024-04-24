@@ -389,36 +389,14 @@ io.of("/api/Localgame").on('connection', (socket) => {
 });
 
 let players = [];
-let connectedPlayers = {}
+let connectedPlayers = {};
 io.of("/api/1vs1").on('connection', async (socket) => {
-    let myId;
-    let playerList;
-    let gameState;
-    let turnNb;
-    let gameId;
-    let saveId;
-    let winners;
-    socket.on('sendInfo', async (playerid) => {
-        myId = playerid;
-
-        let alreadyIn = false;
-        for(let i = 0; i < players.length; i++){
-            if(players[i].id === playerid){
-                players[i].socket.disconnect();
-                players[i].socket = socket;
-                alreadyIn = true;
-            }
-        }
-        let myElo = await apiQuery.getUserElo(myId);
+    async function matchMaking(myElo){
         let gamePlayers = [];
-        if(!alreadyIn){
-            let newPlayer = {id: playerid, socket: socket, elo: myElo};
-            players.push(newPlayer);
-            gamePlayers.push(newPlayer);
-        }
+        gamePlayers.push({id: myId, socket: socket, elo: myElo});
         for(let player of players) {
             if(player.id !== myId){
-                if(player.elo >=myElo-200 || player.elo <= myElo+200){
+                if(player.elo >=myElo-(50+QueueTimer*3) || player.elo <= myElo+(50+QueueTimer*3)){
                     gamePlayers.push(player);
                     if(gamePlayers.length >= 2) break;
                 }
@@ -457,6 +435,39 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             saveId = await saveGame(gameState);
             io.of("/api/1vs1").to('room'+gameId).emit("initChoosePos",gameId)
         }
+    }
+    let myId;
+    let playerList;
+    let gameState;
+    let turnNb;
+    let gameId;
+    let saveId;
+    let winners;
+    let QueueTimer;
+    let myElo;
+    let timer;
+    let PlayTimer;
+    socket.on('sendInfo', async (playerid) => {
+        myId = playerid;
+        QueueTimer = 0;
+        myElo = await apiQuery.getUserElo(myId);
+        let alreadyIn = false;
+        for(let i = 0; i < players.length; i++){
+            if(players[i].id === playerid){
+                players[i].socket.disconnect();
+                players[i].socket = socket;
+                alreadyIn = true;
+            }
+        }
+        if(!alreadyIn){
+            players.push({id: myId, socket: socket, elo: myElo});
+        }
+        timer = setInterval(() => {
+            QueueTimer++;
+            if(QueueTimer%2===0){
+                matchMaking(myElo);
+            }
+        }, 1000);
     });
     socket.on('move', async (move) => {
         //console.log('playerID: ' + move.playerID, 'x: ' + move.x, 'y: ' + move.y);
@@ -565,6 +576,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         socket.emit("launch",newBoard, turnNb,nbWalls);
     })
     socket.on('askForInitPos', async (gameID) => {
+        clearInterval(timer);
         gameId=gameID;
         turnNb = back.getTurnNb(gameId);
         let me = null;
