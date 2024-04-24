@@ -1101,6 +1101,14 @@ async function copyPlayer(player, gameStateId) {
 function findGame(gameId){
   return GameState.onGoing[gameId]
 }
+
+function getNbWalls(playerList){
+    let res = [];
+    for(let player of playerList){
+        res.push(player.username+":"+player.nbWalls);
+    }
+    return res;
+}
   exports.setPlayers = setPlayers;
   exports.getBoard = getBoard;
   exports.getTurnNb = getTurnNb;
@@ -1117,3 +1125,4 @@ function findGame(gameId){
   exports.deleteGame = deleteGame;
   exports.retrieveGame = retrieveGame;
   exports.getGameState = findGame;
+  exports.getNbWalls = getNbWalls;
