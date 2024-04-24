@@ -458,14 +458,20 @@ async function getFriends(request, response) {
       return;
     }
     let friends = await db.getFriends(body.username);
+    //vérifier si friends est vide
+    if(friends.length==0){
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ nbNewMessage: [] }));
+        return;
+    }
     let newConv= await db.getConvN(body.username);
-
     let nbNewMessage=[];
-
+    if(newConv==undefined){
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ nbNewMessage: []}));
+        return;
+    }
     for(const friend of friends){
-      console.log("newConv :");
-      console.log(newConv)
-  
       let nbMessage= newConv.find(newConv => newConv.username === friend).messages
       if(nbMessage==undefined){
         nbNewMessage.push({ friend: friend, nbMessage: 0 });
