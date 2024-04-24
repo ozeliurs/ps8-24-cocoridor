@@ -91,8 +91,6 @@ class PlayerAccount {
  * @param {{id:Number, email:String, password:String, username:String, friends:{list:Number[],request:Number[]},achievements:Any[],savedGames:Number,skins:{color:Color,wallColor:Any,humanSkin:ImageRef,beastSkin:ImageRef,wallSkin:ImageRef,humanSkins:ImageRef[],beastSkins:ImageRef[],wallSkins:ImageRef[]},stats:{elo:Number,OnlinePlay:Number,OnlinePlayVictory:Number,AiPlay:Number,AiPlayVictory:Number,FriendPlay:Number,FriendPlayVictory:Number,LocalPlay:Number}}} datas 
  */
     constructor(datas = null){
-        console.log("datas")
-        console.log(datas)
         if(datas==null){
             return;
         }
@@ -230,9 +228,6 @@ const Achievements = {
  * @param {PlayerAccount} user 
  */
 async function checkStatsAchievement(user){
-
-    console.log(user.username)
-    console.log(user.stats)
     if(user.stats.AiPlay>=25) await user.addAchievements(Achievements.AiGameTwentyFive);
     if(user.stats.AiPlay>= 5) await user.addAchievements(Achievements.AiGameFive);
     if(user.stats.AiPlay>= 1) await user.addAchievements(Achievements.AiGamePlayed);

@@ -12,7 +12,6 @@ async function manageRequest(request, response) {
     case "print":
       user = await db.getUsers();
       result = await user.find().toArray();
-      console.log(result);
       break;
     case "printConv":
       user = await db.getUsers();
@@ -153,7 +152,6 @@ async function getInfo(request, response) {
     }
 
     let user = await db.getUser(body.username);
-    console.log(user)
     let nbMessage=0;
     if (!user) {
       response.writeHead(404, { "Content-Type": "application/json" });
@@ -536,7 +534,6 @@ async function changeSkin(request,response){
     return;
   }
   parsejson(request).then(async (body) => {
-    console.log(body)
     if (!body.name || !body.beastSkin || !body.humanSkin) {
       response.writeHead(400, { 'Content-Type': 'application/json' });
       response.end(JSON.stringify({ error: 'Données manquantes' }));
@@ -574,7 +571,6 @@ async function addAchievement(userId,achievement){
 async function deleteGameSave(saveId){
     let game =( await db.getGame(saveId)).gameState
     if(game==null)return;
-    console.log(game)
     for(let player of game.gameParams.playerList){
         let user = await getUser(player.username)
         if(user==null) continue;

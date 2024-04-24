@@ -395,20 +395,22 @@ io.of("/api/Localgame").on('connection', (socket) => {
 let players = [];
 let connectedPlayers = {};
 io.of("/api/1vs1").on('connection', async (socket) => {
-    async function matchMaking(myElo){
+    async function matchMaking(){
+        console.log(myElo);
         let gamePlayers = [];
         gamePlayers.push({id: myId, socket: socket, elo: myElo});
         for(let player of players) {
             if(player.id !== myId){
-                if(player.elo >=myElo-(50+QueueTimer*3) || player.elo <= myElo+(50+QueueTimer*3)){
+                if(player.elo >=myElo-(50+QueueTimer*3) && player.elo <= myElo+(50+QueueTimer*3)){
+                    console.log(myElo)
+                    console.log(player.elo)
                     gamePlayers.push(player);
                     if(gamePlayers.length >= 2) break;
                 }
             }
         }
-        console.log(gamePlayers);
-        console.log(players);
         if (gamePlayers.length >= 2) {
+            console.log("QueueTimer: "+QueueTimer)
             let playersForGame = [];
             for(let i = 0; i < gamePlayers.length; i++){
                 for(let j = 0; j < players.length; j++){
@@ -418,7 +420,6 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                     }
                 }
             }
-            console.log(playersForGame)
             gameId = back.init();
             for(let i = 0; i < gamePlayers.length; i++){
                 gamePlayers[i].socket.join('room'+gameId);
@@ -430,7 +431,6 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 }
                 playersForGame = res;
             }
-            console.log(playersForGame);
             playerList = back.setPlayers(gameId, playersForGame);
             playerList = back.getPlayerList(gameId);
             connectedPlayers[gameId] = [];
@@ -472,7 +472,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         timer = setInterval(() => {
             QueueTimer++;
             if(QueueTimer%2===0){
-                matchMaking(myElo);
+                matchMaking();
             }
         }, 1000);
     });
@@ -643,7 +643,6 @@ const GameType = {
         if(winner.fakePlayer)continue;
         winners.push(await db.getUser(winner))
     }
-    console.log(winners)
     switch(gameType){
         case GameType.Local:
             console.log("Local")
@@ -682,7 +681,6 @@ const GameType = {
     }
     for(let player of playerList) {
         await db.updateUser(player)//Envois Stats
-        console.log(player)
        
     }
     console.log("ACHIEVEMENT TIME")
@@ -726,11 +724,8 @@ async function updateElo(winners, playerList) {
                 if (value <= 0) {
                     value = 1;
                 }
-                console.log(winner.username+"+")
-                console.log(player.username+"-")
                 diff[winner.username] = diff[winner.username]+value
                 diff[player.username] = diff[player.username]-value
-                console.log(diff)
 
                 
             }
