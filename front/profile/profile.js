@@ -90,10 +90,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (response.ok) {
                 alert('Modifications enregistrées');
                 window.location.reload();
+                //renvoie sur la main page
+                window.location.href = "../index.html";
             } else {
                 throw new Error('La requête a échoué'); // Gestion des erreurs
             }
         })
+
+
     });
 
 });

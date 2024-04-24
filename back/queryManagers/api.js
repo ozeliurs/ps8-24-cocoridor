@@ -540,6 +540,8 @@ async function changeSkin(request,response){
       return;
     }
     await db.changeSkin(body.name, body.beastSkin, body.humanSkin);
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ message: 'Modifications enregistrées' }));
   });
     
 }

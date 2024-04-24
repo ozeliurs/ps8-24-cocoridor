@@ -927,6 +927,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         friendMatch[gameId].filter((e)=>e.getid() != myId )
         if(friendMatch[gameId].length==0){
             if (winners != null && winners.length!==0) {
+                console.log(winners);
                 endGameUpdate(GameType.AgainstFriend, saveId, gameId, playerList, winners)
             }
         }
