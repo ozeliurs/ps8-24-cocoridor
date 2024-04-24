@@ -23,7 +23,6 @@ async function clearDatabase() {
 }
 
 
-
 async function getUsers() {
     const db = await getMongoDatabase();
 
@@ -37,7 +36,9 @@ async function getUsers() {
  */
 async function getUser(username) {
     const users = await getUsers();
-    return await users.findOne({ username: username });
+    let res = await users.findOne({ username: username })
+    if( res ==null )return null
+    return new profile.PlayerAccount(res);
 }
 
 async function createUser(user) {
@@ -53,13 +54,7 @@ async function createUser(user) {
 async function updateUser(user){
     if(user.fakePlayer) return null;
     const users = await getUsers();
-    await profile.checkStatsAchievement(user.username)
-    let res = await users.updateOne({ username: user.username }, { $set: user });
-    
-    console.log("After")
-    console.log(res)
-
-    return res
+    return await users.updateOne({ username: user.username }, { $set: user });
 }
 
 async function getGames() {

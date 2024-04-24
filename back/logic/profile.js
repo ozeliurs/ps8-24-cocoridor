@@ -91,6 +91,8 @@ class PlayerAccount {
  * @param {{id:Number, email:String, password:String, username:String, friends:{list:Number[],request:Number[]},achievements:Any[],savedGames:Number,skins:{color:Color,wallColor:Any,humanSkin:ImageRef,beastSkin:ImageRef,wallSkin:ImageRef,humanSkins:ImageRef[],beastSkins:ImageRef[],wallSkins:ImageRef[]},stats:{elo:Number,OnlinePlay:Number,OnlinePlayVictory:Number,AiPlay:Number,AiPlayVictory:Number,FriendPlay:Number,FriendPlayVictory:Number,LocalPlay:Number}}} datas 
  */
     constructor(datas = null){
+        console.log("datas")
+        console.log(datas)
         if(datas==null){
             return;
         }
@@ -102,6 +104,7 @@ class PlayerAccount {
         this.savedGames = datas.savedGames,
         this.skins = datas.skins,
         this.stats = datas.stats
+        this.convs = datas.convs
     }
     /**
      * 
@@ -120,8 +123,9 @@ class PlayerAccount {
      * @param {Achievements} achievement 
      */
     async addAchievements(achievement){
-        if(Achievements[achievement]!=null || this.achievements.includes(achievement))return false;
-        if(await apiQuery.addAchievement(this.username,achievement))return false;
+        if(Achievements[achievement.key]==null || this.achievements.includes(achievement)){console.log("false");return false;}
+        for(let achieve of this.achievements) if(achieve.key== achievement.key)return false;
+        if(await apiQuery.addAchievement(this.username,achievement)){console.log("false2");return false;}
         this.achievements.push(achievement)
         return true;
     }
@@ -178,118 +182,94 @@ const ImageRef = {
 }
 const Achievements = {
     // Friends
-    newFriend : "Avoir un amis",
-    FiveFriends : "Avoir 5 amis",
-    TenFriends : "Avoir 10 amis",
+    newFriend : {key:"newFriend",value:"Avoir un amis"},
+    FiveFriends : {key:"FiveFriends",value:"Avoir 5 amis"},
+    TenFriends : {key:"TenFriends",value:"Avoir 10 amis"},
     
     // Features
-    RetrieveGame : "Reprendre une partie",
-    SendMessage : "Envoyer un message a un amis",
+    RetrieveGame : {key:"RetrieveGame",value:"Reprendre une partie"},
+    SendMessage : {key:"SendMessage",value:"Envoyer un message a un amis"},
 
     // General Games
-    OneGame : "Faire votre premiere partie",
-    TenGames : "Faire 10 parties",
-    FiftyGames : "Faire 50 parties",
-    TwoHundredFiftyGames : "Faire 250 parties",
-    OneThousandGames : "Faire 1000 parties",
+    OneGame : {key:"OneGame",value:"Faire votre premiere partie"},
+    TenGames : {key:"TenGames",value:"Faire 10 parties"},
+    FiftyGames : {key:"FiftyGames",value:"Faire 50 parties"},
+    TwoHundredFiftyGames : {key:"TwoHundredFiftyGames",value:"Faire 250 parties"},
+    OneThousandGames : {key:"OneThousandGames",value:"Faire 1000 parties"},
     
 
     // Ai Play
-    AiGamePlayed : "Jouer une partie contre une IA",
-    AiGameFive : "Jouer 5 parties contre une IA",
-    AiGameTwentyFive : "Jouer 25 parties contre une IA",
+    AiGamePlayed : {key:"AiGamePlayed",value:"Jouer une partie contre une IA"},
+    AiGameFive : {key:"AiGameFive",value:"Jouer 5 parties contre une IA"},
+    AiGameTwentyFive : {key:"AiGameTwentyFive",value:"Jouer 25 parties contre une IA"},
 
     // Friend Play
-    FriendGamePlayed : "Jouer une partie contre un amis",
-    FriendGameFive : "Jouer 5 partie contre un amis",
-    FriendGameTwentyFive : "Jouer 25 partie contre un amis",
+    FriendGamePlayed : {key:"FriendGamePlayed",value:"Jouer une partie contre un amis"},
+    FriendGameFive : {key:"FriendGameFive",value:"Jouer 5 partie contre un amis"},
+    FriendGameTwentyFive : {key:"FriendGameTwentyFive",value:"Jouer 25 partie contre un amis"},
 
     // Online Play
-    OnlineGamePlayed : "Jouer une partie classé",
-    OnlineGameTen : "Jouer 10 parties classé",
-    OnlineGameHundred : "Jouer 100 parties classé",
+    OnlineGamePlayed : {key:"OnlineGamePlayed",value:"Jouer une partie classé"},
+    OnlineGameTen : {key:"OnlineGameTen",value:"Jouer 10 parties classé"},
+    OnlineGameHundred : {key:"OnlineGameHundred",value:"Jouer 100 parties classé"},
 
     // ELO
-    EloOneTOneH: "Atteindre 1100 de Elo",
-    EloOneTTwoH: "Atteindre 1200 de Elo",
-    EloOneTThreeH: "Atteindre 1300 de Elo",
-    EloOneTFourH: "Atteindre 1400 de Elo",
-    EloOneTFiveH: "Atteindre 1500 de Elo",
+    EloOneTOneH: {key:"EloOneTOneH",value:"Atteindre 1100 de Elo"},
+    EloOneTTwoH: {key:"EloOneTTwoH",value:"Atteindre 1200 de Elo"},
+    EloOneTThreeH: {key:"EloOneTThreeH",value:"Atteindre 1300 de Elo"},
+    EloOneTFourH: {key:"EloOneTFourH",value:"Atteindre 1400 de Elo"},
+    EloOneTFiveH: {key:"EloOneTFiveH",value:"Atteindre 1500 de Elo"},
 
     // In-Game
-    BerlinWall : "Essayer d'enfermer le joueur adverse",
-    JumpOverPlayer : "Sauter au dessus du joueur adverse"
+    BerlinWall : {key:"BerlinWall",value:"Essayer d'enfermer le joueur adverse"},
+    JumpOverPlayer : {key:"JumpOverPlayer",value:"Sauter au dessus du joueur adverse"}
 }
 
 /**
  * 
  * @param {PlayerAccount} user 
  */
-async function checkStatsAchievement(userId){
-    let user = await db.getUser(userId);
-    switch(user.stats.AiPlay){
-        case 25:
-             user.addAchievements(Achievements.AiGameTwentyFive)
-        case 5:            
-             user.addAchievements(Achievements.AiGameFive)
-        case 1:
-             user.addAchievements(Achievements.AiGamePlayed)
-            break;
+async function checkStatsAchievement(user){
+
+    console.log(user.username)
+    console.log(user.stats)
+    if(user.stats.AiPlay>=25) await user.addAchievements(Achievements.AiGameTwentyFive);
+    if(user.stats.AiPlay>= 5) await user.addAchievements(Achievements.AiGameFive);
+    if(user.stats.AiPlay>= 1) await user.addAchievements(Achievements.AiGamePlayed);
+    
+    if(user.stats.FriendPlay >= 25) await user.addAchievements(Achievements.FriendGameTwentyFive);
+    if(user.stats.FriendPlay >= 5) await user.addAchievements(Achievements.FriendGameFive);
+    if(user.stats.FriendPlay >= 1) await user.addAchievements(Achievements.FriendGamePlayed);
+    
+    if(user.stats.OnlinePlay >= 100) await user.addAchievements(Achievements.OnlineGameHundred);
+    if(user.stats.OnlinePlay >= 10) await user.addAchievements(Achievements.OnlineGameTen);
+    if(user.stats.OnlinePlay >= 1) await user.addAchievements(Achievements.OnlineGamePlayed);
+    {
+        let totalGame = user.stats.AiPlay  + user.stats.FriendPlay + user.stats.LocalPlay + user.stats.OnlinePlay
+        let totalVictory = user.stats.AiPlayVictory + user.stats.FriendPlayVictory + user.stats.OnlinePlayVictory
+
+        if(totalGame>= 1000)await user.addAchievements(Achievements.OneThousandGames);
+        if(totalGame>= 250)await user.addAchievements(Achievements.TwoHundredFiftyGames);
+        if(totalGame>= 50)await user.addAchievements(Achievements.FiftyGames);
+        if(totalGame>= 10)await user.addAchievements(Achievements.TenGames);
+        if(totalGame>= 1)await user.addAchievements(Achievements.OneGame);
+        /*
+        if(totalVictory>= 1000)await user.addAchievements(Achievements.OneThousandGames);
+        if(totalVictory>= 250)await user.addAchievements(Achievements.TwoHundredFiftyGames);
+        if(totalVictory>= 50)await user.addAchievements(Achievements.FiftyGames);
+        if(totalVictory>= 10)await user.addAchievements(Achievements.TenGames);
+        if(totalVictory>= 1)await user.addAchievements(Achievements.OneGame);
+        */
     }
-    switch(user.stats.FriendPlay){
-        case 25:
-             user.addAchievements(Achievements.FriendGameTwentyFive)
-        case 5:            
-             user.addAchievements(Achievements.FriendGameFive)
-        case 1:
-             user.addAchievements(Achievements.FriendGamePlayed)
-            break;
-    }
-    switch(user.stats.OnlinePlay){
-        case 100:
-             user.addAchievements(Achievements.OnlineGameHundred)
-        case 10:
-             user.addAchievements(Achievements.OnlineGameTen)
-        case 1:
-             user.addAchievements(Achievements.OnlineGamePlayed)
-            break;
-    }
-    switch(user.stats.AiPlay  + user.stats.FriendPlay + user.stats.LocalPlay + user.stats.OnlinePlay){
-        case 1000:
-             user.addAchievements(Achievements.OneThousandGames)
-        case 250:
-             user.addAchievements(Achievements.TwoHundredFiftyGames)
-        case 50:
-             user.addAchievements(Achievements.FiftyGames)
-        case 10:
-             user.addAchievements(Achievements.TenGames)
-        case 1:
-             user.addAchievements(Achievements.OneGame)
-            break;
-    }
-    switch(user.stats.elo){
-        case 1500:
-             user.addAchievements(Achievements.EloOneTFiveH)
-        case 1400:
-             user.addAchievements(Achievements.EloOneTFourH)
-        case 1300:
-             user.addAchievements(Achievements.EloOneTThreeH)
-        case 1200:
-             user.addAchievements(Achievements.EloOneTTwoH)
-        case 1100:
-             user.addAchievements(Achievements.EloOneTOneH)
-            break;
-    }
-    switch(user.friends.list.length){
-        case 10:
-             user.addAchievements(Achievements.TenFriends)
-        case 5:
-             user.addAchievements(Achievements.FiveFriends)
-        case 1:
-             user.addAchievements(Achievements.newFriend)
-            break;
-    }
-    console.log(user)
+    if(user.stats.elo>= 1500) await user.addAchievements(Achievements.EloOneTFiveH);
+    if(user.stats.elo>= 1400) await user.addAchievements(Achievements.EloOneTFourH);
+    if(user.stats.elo>= 1300) await user.addAchievements(Achievements.EloOneTThreeH);
+    if(user.stats.elo>= 1200) await user.addAchievements(Achievements.EloOneTTwoH);
+    if(user.stats.elo>= 1100) await user.addAchievements(Achievements.EloOneTOneH);
+
+    if(user.friends.list.length >= 10) await user.addAchievements(Achievements.TenFriends);
+    if(user.friends.list.length >= 5) await user.addAchievements(Achievements.FiveFriends);
+    if(user.friends.list.length >= 1) await user.addAchievements(Achievements.newFriend);
 }
 
 exports.Achievements = Achievements;

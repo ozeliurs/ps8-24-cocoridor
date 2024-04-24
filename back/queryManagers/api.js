@@ -189,6 +189,14 @@ async function updateElo(username, elo) {
     return user.stats.elo;
 }
 
+async function updateUserStats(username, stats){
+    let user = await db.getUser(username);
+    user.stats = stats;
+    await db.updateUser(user);
+    return user.stats;
+
+}
+
 
 async function createGame(gameState, response = null) {
     const NewGame = {
@@ -554,23 +562,24 @@ async function getUser(userId=null){
  * @returns {Promise<Boolean>}
  */
 async function addAchievement(userId,achievement){
-    if(Achievements[achievement]==null) return false;
+    if(Achievements[achievement.key]==null) return false;
     let user = await db.getUser(userId)
     if(!user) return false;
-    if(user.achievements.includes(achievement)) return false;
+    for(achieved of user.achievements)if(achieved.key == achievement.key) return false;
     user.achievements.push(achievement);
     db.updateUser(user);
     return true;
 }
 
 async function deleteGameSave(saveId){
-    let game = await db.getGame(saveId)
+    let game =( await db.getGame(saveId)).gameState
     if(game==null)return;
+    console.log(game)
     for(let player of game.gameParams.playerList){
         let user = await getUser(player.username)
         if(user==null) continue;
         delete user.savedGames[saveId]
-        updateUser(user);
+        db.updateUser(user);
     }
 
     
