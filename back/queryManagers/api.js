@@ -52,8 +52,8 @@ async function manageRequest(request, response) {
     case "getFriends":
       await getFriends(request, response);
       break;
-    case "getElo":
-      await getElo(request, response);
+    case "getInfo":
+      await getInfo(request, response);
       break;
     case "friendRequest":
       await friendRequest(request, response);
@@ -75,6 +75,9 @@ async function manageRequest(request, response) {
       break;
     case "retrieveUserGames":
       await retrieveUserGames(request, response);
+      break;
+    case "changeSkin":
+      await changeSkin(request, response);
       break;
     default:
       response.writeHead(404, { "Content-Type": "application/json" });
@@ -139,7 +142,7 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
   }
 }
 
-async function getElo(request, response) {
+async function getInfo(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ error: "Méthode non autorisée" }));
@@ -153,6 +156,7 @@ async function getElo(request, response) {
     }
 
     let user = await db.getUser(body.username);
+    console.log(user)
     let nbMessage=0;
     if (!user) {
       response.writeHead(404, { "Content-Type": "application/json" });
@@ -161,7 +165,7 @@ async function getElo(request, response) {
     }
     if(user.convNew==undefined){
         response.writeHead(200, { "Content-Type": "application/json" });
-        response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0}));
+        response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0, name: user.username, email: user.email,beastSkins:user.skins.beastSkins,humanSkins:user.skins.humanSkins}));
         return;
     }
     for(const conv of user.convNew){
@@ -169,7 +173,7 @@ async function getElo(request, response) {
     }
     console.log("nbMessage : ", nbMessage);
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: nbMessage}));
+    response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: nbMessage, name: user.username, email: user.email,beastSkins:user.skins.beastSkins,humanSkins:user.skins.humanSkins}));
   });
 
 }
@@ -518,6 +522,24 @@ async function getConv(request, response) {
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ conv: conv ,newConv:newConv}));
   });
+}
+
+async function changeSkin(request,response){
+  if (request.method !== "POST") {
+    response.writeHead(405, { "Content-Type": "application/json" });
+    response.end(JSON.stringify({ error: "Méthode non autorisée" }));
+    return;
+  }
+  parsejson(request).then(async (body) => {
+    console.log(body)
+    if (!body.name || !body.beastSkin || !body.humanSkin) {
+      response.writeHead(400, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ error: 'Données manquantes' }));
+      return;
+    }
+    await db.changeSkin(body.name, body.beastSkin, body.humanSkin);
+  });
+    
 }
 /**
  * 

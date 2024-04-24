@@ -183,6 +183,14 @@ async function getNewConv(username,friend){
     return newConv.messages;
 }
 
+async function changeSkin(username, beast, human) {
+    const users = await getUsers();
+    console.log(username, beast, human)
+    await users.updateOne({ username: username }, { $set: { 
+        "skins.beastSkin": beast, 
+        "skins.humanSkin": human 
+    } });
+}
 
 exports.getUsers = getUsers;
 exports.getUser = getUser;
@@ -203,3 +211,4 @@ exports.getConv = getConv;
 exports.getNewConv = getNewConv;
 exports.getConvN = getConvN;
 exports.addGame = addGame;
+exports.changeSkin = changeSkin;

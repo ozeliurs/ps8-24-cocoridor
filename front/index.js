@@ -33,7 +33,7 @@ let playerName;
         let playerRank = 1000;
         document.getElementById('playerRank').textContent = 'Elo ' + playerRank;
         const hostname = window.location.hostname;
-        let api = "http://" + hostname + ":8000/api/getElo";
+        let api = "http://" + hostname + ":8000/api/getInfo";
         fetch(api, {
             method: 'POST',
             headers: {

@@ -1,0 +1,106 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    justify-content: center;
+    flex-direction: column;
+    display: flex;
+}
+
+h2 {
+    font-size: 60px;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+}
+
+main {
+    margin: 20px auto;
+}
+
+.profile-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.profile-picture {
+    margin-right: 20px;
+}
+
+.profile-picture img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #333;
+}
+
+.profile-info h3 {
+    margin-top: 0;
+}
+
+.profile-info p {
+    margin: 5px 0;
+}
+
+.profile-info p:first-child {
+    font-weight: bold;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 60px;
+    color: red;
+}
+
+a {
+    text-decoration: none;
+}
+
+.nav-arrows {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.arrow-container {
+    display: flex;
+    align-items: center;
+}
+
+.left-arrow,
+.right-arrow {
+    width: 100px;
+    height: 100px;
+    margin: 0 10px;
+}
+
+.images{
+    max-width: 200px; /* Définissez la largeur maximale souhaitée */
+    max-height:200px; /* Définissez la hauteur maximale souhaitée */
+}
+
+.select{
+    display: flex;
+    align-items: center;
+}
+
+#confirm{
+    width: 150px;
+    height: 100px;
+    position: absolute;
+    bottom: 15%;
+}
+
+#arrowLBeast,#arrowLFarm{
+    display: none;
+}

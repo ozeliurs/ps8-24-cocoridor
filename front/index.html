@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <link href="header.css" rel="stylesheet">
     <title>GamePage</title>
 </head>
+
 <body>
     <header>
         <div class="upperBtns">
@@ -25,21 +27,25 @@
             </a>
         </div>
 
-        <a href=".."><h1>CocoRidor</h1></a>
+        <a href="..">
+            <h1>CocoRidor</h1>
+        </a>
 
-        
+
         <div id=playerCard>
-            <div id=playerProfile>
-                <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
-                <div id=playerInfo>
-                    <div id=playerName>
-                        Player
-                    </div>
-                    <div id=playerRank>
-                        Elo 1000
+            <a href="profile">
+                <div id=playerProfile>
+                    <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
+                    <div id=playerInfo>
+                        <div id=playerName>
+                            Player
+                        </div>
+                        <div id=playerRank>
+                            Elo 1000
+                        </div>
                     </div>
                 </div>
-            </div> 
+            </a>
         </div>
     </header>
 
@@ -55,7 +61,7 @@
 
         <div class=buttonContainer>
             <a href="Game-Page?mode=local">
-                <button class=btn class=gameModeButton >
+                <button class=btn class=gameModeButton>
                     Jouer en local
                 </button>
             </a>
@@ -81,7 +87,7 @@
         <div class=buttonContainer>
             <a href="Game-Page?mode=1vs1&playerid=user" class="needID">
                 <button class=btn class=gameModeButton>
-                    Jouer en ligne  
+                    Jouer en ligne
                 </button>
             </a>
             <a href="FriendList/">
@@ -99,4 +105,5 @@
     <script src="index.js"></script>
 
 </body>
+
 </html>
