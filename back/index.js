@@ -287,7 +287,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
         }
 
         let winners = back.GameWinner(gameId);
-        if (winners != null) {
+        if (winners != null && winners.length!=0) {
             endGameUpdate(GameType.AgainstAI,saveId,gameId,playerList,winners)
             socket.emit("endGame", winners);
         }
@@ -347,7 +347,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
             socket.emit("updateBoard",newBoard,back.getTurnNb(gameId),back.getNbWalls(playerList));
         }
         let winners = back.GameWinner(gameId);
-        if(winners !=null){
+        if(winners !=null && winners.length!=0){
             endGameUpdate(GameType.Local,null,gameId,playerList,winners)
             socket.emit("endGame", winners);
         }
@@ -365,7 +365,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
             socket.emit("updateBoard",newBoard,back.getTurnNb(gameId),back.getNbWalls(playerList));
         }
         let winners = back.GameWinner(gameId);
-        if(winners !=null){
+        if(winners !=null && winners.length!=0){
             endGameUpdate(GameType.Local,null,gameId,playerList,winners)
             socket.emit("endGame", winners);
         }
@@ -640,9 +640,11 @@ const GameType = {
     }
     let winners = []
     for(let winner of winnersInstance) {
+        //winner is a string so fakePlayer is undefined
         if(winner.fakePlayer)continue;
         winners.push(await db.getUser(winner))
     }
+    console.log(winners);
     switch(gameType){
         case GameType.Local:
             console.log("Local")
@@ -660,7 +662,8 @@ const GameType = {
             for(let player of playerList){
                 player.stats.AiPlay = player.stats.AiPlay + 1
                 for(let winner of winners){
-                    if(winner.username==player.username){console.log("victory+");player.stats.AiPlayVictory +=1; break;}
+                    if(winner)
+                        if(winner.username==player.username){console.log("victory+");player.stats.AiPlayVictory +=1; break;}
                 }
             }
             break;
@@ -923,7 +926,9 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         }
         friendMatch[gameId].filter((e)=>e.getid() != myId )
         if(friendMatch[gameId].length==0){
-            endGameUpdate(GameType.AgainstFriend,saveId,gameId,playerList,winners)
+            if (winners != null && winners.length!==0) {
+                endGameUpdate(GameType.AgainstFriend, saveId, gameId, playerList, winners)
+            }
         }
     })
 });

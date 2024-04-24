@@ -173,6 +173,8 @@
           socket.emit('sendInfo',user);
           break;
         case "1vs1Friend":
+            document.getElementById("msg").style.display = "block";
+            document.getElementsByClassName("chatbot-toggler")[0].style.display="flex";
           socket = io("/api/1vs1Friend");
           document.getElementById("waiting").style.display = "block";
           document.getElementById("notwaiting").style.display = "none";
