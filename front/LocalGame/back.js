@@ -1,4 +1,3 @@
-const apiQuery = require("../queryManagers/api")
 const profile = require("./profile")
 class GameParams{
   /**
@@ -37,38 +36,6 @@ class GameParams{
 }
 class GameState{
   static onGoing = {}
-
-  /**
-   *
-   * @param {GameState} gameState
-   * @returns
-   */
-  static async loadGame(gameState) {
-    if (GameState.onGoing[gameState.id] == null) {
-      let newGameState = new GameState(null, false);
-      newGameState.gameParams = new GameParams(gameState.gameParams);
-      newGameState.turnNb = gameState.turnNb;
-      newGameState.remainingAction = gameState.remainingAction;
-      newGameState.id = gameState.id;
-      newGameState.Board = [];
-      for (let y = 0; y < gameState.gameParams.boardHeight; y++) {
-        newGameState.Board.push([])
-        for (let x = 0; x < gameState.gameParams.boardLength; x++) {
-          newGameState.Board[y][x] = new Tile(newGameState, x, y, gameState.Board[y][x]);
-        }
-      }
-      newGameState.topTiles = gameState.topTiles;
-      newGameState.bottomTiles = gameState.bottomTiles;
-      let playerList = [];
-      for (let player of gameState.gameParams.playerList) {
-        let newPlayer = await copyPlayer(player, gameState.id);
-        playerList.push(newPlayer);
-      }
-      newGameState.gameParams.playerList = playerList;
-      GameState.onGoing[gameState.id] = newGameState;
-    }
-    return GameState.onGoing[gameState.id];
-  }
 
   /**
    * 
@@ -129,7 +96,6 @@ class GameState{
   async setPlayers(accountList,randomise){
     let firstPlayer;
     let secondPlayer;
-    //TODO Recup player Account thanks to ID
     if(!randomise || Math.round(Math.random())==0){
       firstPlayer = accountList[1];
       secondPlayer = accountList[0];
@@ -539,34 +505,18 @@ class Tile {
    * @param {Number} y
    * @param Tile
    */
-  constructor(gameState, x, y, Tile = null) {
+  constructor(gameState, x, y) {
     this.gameStateId = gameState.id;
-    if (Tile === null) {
-      this.X = Math.floor(x);
-      this.Y = Math.floor(y);
-      this.occupied = null;
-      let gameParams = findGame(this.gameStateId).gameParams
-      if (y + 1 < gameParams.boardHeight / 2) this.visibility = -1;
-      else if (y + 1 == (gameParams.boardHeight / 2) + 0.5) this.visibility = 0;
-      else this.visibility = 1;
-
-      this.BorderR = new Border(this.gameStateId, x, y, true, false);
-      this.BorderD = new Border(this.gameStateId, x, y, false, true);
-      this.Edge = new Border(this.gameStateId, x, y, true, true);
-    } else {
-      this.X = Tile.X;
-      this.Y = Tile.Y;
-
-      if (Tile.occupied != null) {
-        this.occupied = copyPlayer(Tile.occupied, this.gameStateId);
-      }
-      else this.occupied = null;
-      this.visibility = Tile.visibility;
-      this.BorderR = new Border(this.gameStateId, null, null, null, null, Tile.BorderR);
-      this.BorderD = new Border(this.gameStateId, null, null, null, null, Tile.BorderD);
-      this.Edge = new Border(this.gameStateId, null, null, null, null, Tile.Edge);
-    }
-
+    this.X = Math.floor(x);
+    this.Y = Math.floor(y);
+    this.occupied = null;
+    let gameParams = findGame(this.gameStateId).gameParams
+    if (y + 1 < gameParams.boardHeight / 2) this.visibility = -1;
+    else if (y + 1 == (gameParams.boardHeight / 2) + 0.5) this.visibility = 0;
+    else this.visibility = 1;
+    this.BorderR = new Border(this.gameStateId, x, y, true, false);
+    this.BorderD = new Border(this.gameStateId, x, y, false, true);
+    this.Edge = new Border(this.gameStateId, x, y, true, true);
   }
 
   /**
@@ -702,24 +652,13 @@ class Border {
      * @param {Boolean} lat
      * @param {Border} Border
      */
-    constructor(gameStateId, x, y, lng, lat, Border = null) {
+    constructor(gameStateId, x, y, lng, lat) {
       this.gameStateId = gameStateId;
-      if (Border == null) {
-        this.X = Math.floor(x);
-        this.Y = Math.floor(y);
-        this.lng = lng;
-        this.lat = lat;
-        this.wallBy = null;
-      } else {
-        this.X = Border.X;
-        this.Y = Border.Y;
-        this.lng = Border.lng;
-        this.lat = Border.lat;
-        if (Border.wallBy != null){
-          this.wallBy =copyPlayer(Border.wallBy, this.gameStateId);
-        }
-        else this.wallBy = null;
-      }
+      this.X = Math.floor(x);
+      this.Y = Math.floor(y);
+      this.lng = lng;
+      this.lat = lat;
+      this.wallBy = null;
     }
 
   
@@ -1049,6 +988,10 @@ function execRandomMove(gameId,move){
   return game.execRandomMove(move);
 }
 
+function findGame(gameId){
+  return GameState.onGoing[gameId]
+}
+
   
 /**
  * 
@@ -1067,39 +1010,6 @@ function playersCanReachEnd(gameId, additionnalWalls = []){
  */
 function deleteGame(gameId){
   delete GameState.onGoing[gameId]
-}
-
-/**
- *
- * @param {PlayerGameInstance} player
- * @param {Number} gameStateId
- * @returns {PlayerGameInstance}
- */
-async function copyPlayer(player, gameStateId) {
-  //create a PlayerGameInstance with the same attributes as player
-  let newPlayer;
-  if (player.username === profile.PlayerAccount.Guest().username) {
-    newPlayer = new PlayerGameInstance(profile.playerAccount.Guest(), player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
-  } else if (player.username === profile.PlayerAccount.Bot().username) {
-    newPlayer = new PlayerGameInstance(profile.PlayerAccount.Bot(), player.start, player.end, player.modifier, player.nbWalls, newGameState.id);
-  } else {
-    let account = await apiQuery.getUser(player.username);
-    newPlayer = new PlayerGameInstance(account, player.start, player.end, player.modifier, player.nbWalls, gameStateId);
-  }
-  newPlayer.OnTile = player.OnTile;
-  newPlayer.nbWalls = player.nbWalls;
-  newPlayer.playerSkin = player.playerSkin;
-  newPlayer.color = new profile.Color(player.color.R, player.color.G, player.color.B)
-  return newPlayer;
-}
-
-/**
- * 
- * @param {string} gameId 
- * @returns {GameState}
- */
-function findGame(gameId){
-  return GameState.onGoing[gameId]
 }
 
 function getNbWalls(playerList){

@@ -94,7 +94,7 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 back.placePlayer(gameId, bot.getid(), aiMove);
             }
         }
-        socket.emit("choosePos",back.setUpBoard(gameId,me),playerList,turnNb = back.getTurnNb(gameId))
+        socket.emit("choosePos",back.setUpBoard(gameId,me),playerList,turnNb = back.getTurnNb(gameId),back.getNbWalls(playerList));
 
     })
     socket.on("start",async ()=>{
@@ -110,7 +110,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 continue;
             }
         }
-        socket.emit("launch", back.setUpBoard(gameId,me).Board, turnNb, gameId);
+        let nbWalls = back.getNbWalls(playerList);
+        socket.emit("launch", back.setUpBoard(gameId,me).Board, turnNb, gameId, nbWalls);
         if(playerList[turnNb%playerList.length].getid()==bot.getid()){
             let aiBoard = back.BoardFor(gameId, bot);
             {
@@ -133,8 +134,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
             turnNb = back.getTurnNb(gameId);
             saveGame(gameState, saveId);
             newBoard = back.BoardFor(gameId, me);
-
-            socket.emit("updateBoard", newBoard, turnNb);
+            let nbWalls = back.getNbWalls(playerList);
+            socket.emit("updateBoard", newBoard, turnNb,nbWalls);
         }
 
     })
@@ -157,7 +158,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 continue;
             }
         }
-        socket.emit("launch", back.BoardFor(gameId,me), turnNb, gameId);
+        let nbWalls = back.getNbWalls(playerList);
+        socket.emit("launch", back.BoardFor(gameId,me), turnNb, gameId, nbWalls);
         if(playerList[turnNb%playerList.length].getid()==bot.getid()){
             console.log("here")
             let aiBoard = back.BoardFor(gameId, bot);
@@ -181,8 +183,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
             turnNb = back.getTurnNb(gameId);
             await saveGame(gameState, saveId);
             let newBoard = back.BoardFor(gameId, me);
-
-            socket.emit("updateBoard", newBoard, turnNb);
+            let nbWalls = back.getNbWalls(playerList);
+            socket.emit("updateBoard", newBoard, turnNb,nbWalls);
         }
     })
     socket.on('move', async (move) => {
@@ -197,7 +199,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
             await saveGame(gameState, saveId);
             let newBoard = back.BoardFor(gameId, me);
             turnNb = back.getTurnNb(gameId);
-            socket.emit("updateBoard", newBoard,turnNb);
+            let nbWalls = back.getNbWalls(playerList);
+            socket.emit("updateBoard", newBoard,turnNb,nbWalls);
             let winners = back.GameWinner(gameId);
             if (winners != null && winners.length!=0) {
                 socket.emit("endGame", winners);
@@ -221,10 +224,10 @@ io.of("/api/AIgame").on('connection', (socket) => {
                 await adaptator.updateBoard(aiBoard,bot.getid());
                 turnNb = back.getTurnNb(gameId);
                 gameState = back.getGameState(gameId);
-                saveGame(gameState, saveId);
+                await saveGame(gameState, saveId);
                 newBoard = back.BoardFor(gameId, me);
-
-                socket.emit("updateBoard", newBoard, turnNb);
+                nbWalls = back.getNbWalls(playerList);
+                socket.emit("updateBoard", newBoard, turnNb, nbWalls);
 
             
         }
@@ -250,7 +253,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
             let me = getPlayerInList(playerList, myId)
             bot = getPlayerInList(playerList, bot.getid())
             let newBoard = back.BoardFor(gameId,me);
-            socket.emit("updateBoard", newBoard, turnNb);
+            let nbWalls = back.getNbWalls(playerList);
+            socket.emit("updateBoard", newBoard, turnNb, nbWalls);
             let winners = back.GameWinner(gameId);
             if (winners != null && winners.length!=0) {
                 socket.emit("endGame", winners);
@@ -281,7 +285,8 @@ io.of("/api/AIgame").on('connection', (socket) => {
             turnNb = back.getTurnNb(gameId);
             saveGame(gameState, saveId);
             newBoard = back.BoardFor(gameId,me)
-            socket.emit("updateBoard", newBoard,turnNb)
+            nbWalls = back.getNbWalls(playerList);
+            socket.emit("updateBoard", newBoard,turnNb, nbWalls)
         }
 
         let winners = back.GameWinner(gameId);
@@ -339,7 +344,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
     console.log(playerList)
 
         turnNb = back.getTurnNb(gameId)
-        socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]), playerList, turnNb);
+        socket.emit("choosePos",back.setUpBoard(gameId,playerList[0]), playerList, turnNb, back.getNbWalls(playerList));
 
     })
 
@@ -348,7 +353,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
         let actionDone = back.execMove(gameId,back.CurrentPlayer(gameId),move.x,move.y);
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
-            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId));
+            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId),back.getNbWalls(playerList));
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
@@ -365,7 +370,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
         
         if(actionDone){
             let newBoard = back.BoardFor(gameId,back.CurrentPlayer(gameId));
-            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId));
+            socket.emit("updateBoard",newBoard,back.getTurnNb(gameId),back.getNbWalls(playerList));
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
@@ -380,12 +385,13 @@ io.of("/api/Localgame").on('connection', (socket) => {
                 
                 if(playerList[playerList.length-1].OnTile!=null){
                     playerArePlaced = true;
-                    socket.emit("launch",back.BoardFor(gameId,playerList[turnNb%playerList.length]),turnNb)
+                    let nbWalls = back.getNbWalls(playerList);
+                    socket.emit("launch",back.BoardFor(gameId,playerList[turnNb%playerList.length]),turnNb,nbWalls)
                     return;
                 }
 
                 let newBoard = back.setUpBoard(gameId,playerList[i+1])
-                socket.emit("choosePos",newBoard,playerList,turnNb);
+                socket.emit("choosePos",newBoard,playerList,turnNb,back.getNbWalls(playerList));
                 return;
             }
         }
@@ -524,7 +530,8 @@ io.of("/api/1vs1").on('connection', async (socket) => {
             }
         }
         let newBoard = back.BoardFor(gameId,me);
-        socket.emit("updateBoard", newBoard,turnNb);
+        let nbWalls = back.getNbWalls(playerList);
+        socket.emit("updateBoard", newBoard,turnNb,nbWalls);
         winners = back.GameWinner(gameId);
         if (winners != null && winners.length!=0) {
             socket.emit("endGame", winners);
@@ -568,8 +575,8 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         }
 
         let newBoard = back.BoardFor(gameId,me)
-
-        socket.emit("launch",newBoard, turnNb);
+        let nbWalls = back.getNbWalls(playerList);
+        socket.emit("launch",newBoard, turnNb,nbWalls);
     })
     socket.on('askForInitPos', async (gameID) => {
         gameId=gameID;
@@ -581,7 +588,7 @@ io.of("/api/1vs1").on('connection', async (socket) => {
                 me = playerList[i];
             }
         }
-        socket.emit("choosePos", back.setUpBoard(gameId,me),playerList,turnNb);
+        socket.emit("choosePos", back.setUpBoard(gameId,me),playerList,turnNb,back.getNbWalls(playerList));
     });
     socket.on('message', (message,playerName) => {
         io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
@@ -761,7 +768,8 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
             }
         }
         let newBoard = back.BoardFor(gameId,me);
-        socket.emit("updateBoard", newBoard,turnNb);
+        let nbWalls = back.getNbWalls(playerList);
+        socket.emit("updateBoard", newBoard,turnNb,nbWalls);
         winners = back.GameWinner(gameId);
         if (winners != null && winners.length!=0) {
             socket.emit("endGame", winners);
@@ -805,22 +813,20 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         }
 
         let newBoard = back.BoardFor(gameId,me)
-
-        socket.emit("launch",newBoard, turnNb);
+        let nbWalls = back.getNbWalls(playerList);
+        socket.emit("launch",newBoard, turnNb, nbWalls);
     })
     socket.on('askForInitPos', async (gameID) => {
         gameId=gameID;
         turnNb = back.getTurnNb(gameId);
         let me = null;
         playerList= back.getPlayerList(gameId);
-        let playerListId = []
         for(let i=0;i<playerList.length;i++){
             if(playerList[i].getid()==myId){
                 me = playerList[i];
             }
-            playerListId.push(playerList[i].getid())
         }
-        socket.emit("choosePos", back.setUpBoard(gameId,me),playerListId,turnNb);
+        socket.emit("choosePos", back.setUpBoard(gameId,me),playerList,turnNb,back.getNbWalls(playerList));
     });
     socket.on('message', (message,playerName) => {
         io.of("/api/1vs1Friend").to('room' + gameId).emit("message", message,playerName);
