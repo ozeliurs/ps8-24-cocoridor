@@ -18,14 +18,14 @@ async function manageRequest(request, response) {
       user = await db.getUsers();
       result = await user.find().toArray();
       for (const user of result) {
-        for (const conv of user.convNew) {
+        for (const conv of user.convs.new) {
           console.log("voici le userConvNew : ");
           console.log(conv);
         }
       }
 
       for (const user of result) {
-        for (const conv of user.conv) {
+        for (const conv of user.convs.all) {
           console.log("voici le userConv : ");
           console.log(conv);
 
@@ -159,12 +159,12 @@ async function getElo(request, response) {
       response.end(JSON.stringify({ error: "Utilisateur non trouvé" }));
       return;
     }
-    if(user.convNew==undefined){
+    if(user.convs==undefined){
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0}));
         return;
     }
-    for(const conv of user.convNew){
+    for(const conv of user.convs.new){
       nbMessage += conv.messages.length;
     }
     console.log("nbMessage : ", nbMessage);
@@ -472,12 +472,17 @@ async function getFriends(request, response) {
         return;
     }
     for(const friend of friends){
-      let nbMessage= newConv.find(newConv => newConv.username === friend).messages
-      if(nbMessage==undefined){
-        nbNewMessage.push({ friend: friend, nbMessage: 0 });
-      }else{
-        nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
-      }
+        let conv= newConv.find(newConv => newConv.username === friend);
+        if(conv==undefined){
+            nbNewMessage.push({ friend: friend, nbMessage: 0 });
+            continue;
+        }
+        let nbMessage=conv.messages;
+        if(nbMessage==undefined){
+            nbNewMessage.push({ friend: friend, nbMessage: 0 });
+        }else{
+            nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
+        }
     }
 
     response.writeHead(200, { "Content-Type": "application/json" });

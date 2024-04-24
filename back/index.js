@@ -821,14 +821,12 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         turnNb = back.getTurnNb(gameId);
         let me = null;
         playerList= back.getPlayerList(gameId);
-        let playerListId = []
         for(let i=0;i<playerList.length;i++){
             if(playerList[i].getid()==myId){
                 me = playerList[i];
             }
-            playerListId.push(playerList[i].getid())
         }
-        socket.emit("choosePos", back.setUpBoard(gameId,me),playerListId,turnNb,back.getNbWalls(playerList));
+        socket.emit("choosePos", back.setUpBoard(gameId,me),playerList,turnNb,back.getNbWalls(playerList));
     });
     socket.on('message', (message,playerName) => {
         io.of("/api/1vs1Friend").to('room' + gameId).emit("message", message,playerName);
