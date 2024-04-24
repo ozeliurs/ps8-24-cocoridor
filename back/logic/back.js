@@ -499,6 +499,7 @@ class PlayerGameInstance {
     this.modifier = modifier;
     this.username = account.username
     if(account.difficulty!=null)this.difficulty = account.difficulty
+    if(account.fakePlayer!=null)this.fakePlayer = account.fakePlayer
     this.nbWalls = nbWallsPerPlayer;
     this.start=startPos
     this.end = endPos

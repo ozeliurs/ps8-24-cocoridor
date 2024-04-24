@@ -48,12 +48,18 @@ async function createUser(user) {
 /**
  * 
  * @param {profile.PlayerAccount} user 
- * @returns 
+ * @returns {Promise<PlayerAccount>}
  */
 async function updateUser(user){
+    if(user.fakePlayer) return null;
     const users = await getUsers();
     await profile.checkStatsAchievement(user.username)
-    return await users.updateOne({ username: user.username }, { $set: user });
+    let res = await users.updateOne({ username: user.username }, { $set: user });
+    
+    console.log("After")
+    console.log(res)
+
+    return res
 }
 
 async function getGames() {

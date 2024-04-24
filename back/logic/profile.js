@@ -17,6 +17,7 @@ class PlayerAccount {
           wallSkins : []
       }
       bot.difficulty = difficulty
+      bot.fakePlayer = true
       return bot;
     }
 
@@ -33,6 +34,7 @@ class PlayerAccount {
             beastSkins : [ImageRef.Poulet2],
             wallSkins : []
         }
+        guest.fakePlayer = true
         return guest;
     }
     
@@ -178,7 +180,6 @@ const Achievements = {
     // Features
     RetrieveGame : "Reprendre une partie",
     SendMessage : "Envoyer un message a un amis",
-    PlayAgainstFriend : "Jouer une partie contre un amis",
 
     // General Games
     OneGame : "Faire votre premiere partie",
@@ -211,7 +212,8 @@ const Achievements = {
     EloOneTFiveH: "Atteindre 1500 de Elo",
 
     // In-Game
-    BerlinWall : "Essayer d'enfermer le joueur adverse"
+    BerlinWall : "Essayer d'enfermer le joueur adverse",
+    JumpOverPlayer : "Sauter au dessus du joueur adverse"
 }
 
 /**

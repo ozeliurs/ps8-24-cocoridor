@@ -339,6 +339,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
+            endGameUpdate(GameType.Local,null,gameId,playerList,winners)
             socket.emit("endGame", winners);
         }
 
@@ -356,6 +357,7 @@ io.of("/api/Localgame").on('connection', (socket) => {
         }
         let winners = back.GameWinner(gameId);
         if(winners !=null){
+            endGameUpdate(GameType.Local,null,gameId,playerList,winners)
             socket.emit("endGame", winners);
         }
     });
@@ -582,9 +584,8 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         connectedPlayers[gameId].filter((e)=>e.getid() != myId )
         if(connectedPlayers[gameId].length==0){
             if (winners != null && winners.length!==0) {
-                endGameUpdate()
+                endGameUpdate(GameType.OneVsOne,saveId,gameId,playerList,winners)
             }
-            back.deleteGame(gameId);
         }
     })
 });
@@ -604,7 +605,7 @@ const GameType = {
  * @param {profile.PlayerAccount[]} playerList 
  * @param {back.PlayerGameInstance[]} winners 
  */
-function endGameUpdate(gameType,saveId,gameId,playerList,winners){
+function endGameUpdate(gameType,saveId = null,gameId,playerList,winners){
     switch(gameType){
         case gameType.Local:
             for(let player of playerList) player.stats.LocalPlay++
@@ -633,8 +634,10 @@ function endGameUpdate(gameType,saveId,gameId,playerList,winners){
             }
             break;
     }
+    console.log("Before")
+    console.log(playerList)
     for(let player of playerList) db.updateUser(player)
-    apiQuery.deleteGameSave(saveId)
+    if(saveId!=null) apiQuery.deleteGameSave(saveId)
     back.deleteGame(gameId)
 }
 
@@ -789,6 +792,7 @@ io.of("/api/1vs1Friend").on('connection', async (socket) => {
         socket.emit("updateBoard", newBoard,turnNb);
         winners = back.GameWinner(gameId);
         if (winners != null && winners.length!=0) {
+            endGameUpdate(GameType.OneVsOne,saveId,gameId,playerList,winners)
             socket.emit("endGame", winners);
         }
     });
