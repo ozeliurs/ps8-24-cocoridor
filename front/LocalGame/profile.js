@@ -1,5 +1,3 @@
-const db = require("../database/database.js")
-
 class PlayerAccount {
 
     static Bot(difficulty = 1){
@@ -34,48 +32,6 @@ class PlayerAccount {
         }
         return guest;
     }
-    
-    static createUser(email,username,password) {
-        let user = {
-            email : email,
-            password : password,
-            username : username,
-            friends : {
-                request:[],
-                list:[]
-            },
-            achievements : [],
-            savedGames : [],
-            skins : {
-                color : null,
-                wallColor : null,
-                humanSkin : ImageRef.Fermier,
-                beastSkin : ImageRef.Poulet,
-                wallSkin : "",
-                humanSkins : [ImageRef.Fermier],
-                beastSkins : [ImageRef.Poulet],
-                wallSkins : []
-            },
-            stats : {
-                elo : 1000,
-                quickPlayNb : 0,
-                quickPlayVictory : 0,
-                rankedPlayNb : 0
-            },
-            convs : {
-                new : [],
-                all : []
-            }
-
-        }
-        return db.createUser(user);
-    }
-
-    static retrieveUser(accountId){
-        db.getUser(accountId).then( (data) => {
-            return new PlayerAccount(data);
-        })
-    }
 /**
  * 
  * @param {{id:Number, email:String, password:String, username:String, friends:{list:Number[],request:Number[]},achievements:Any[],savedGames:Number,skins:{color:Color,wallColor:Any,humanSkin:ImageRef,beastSkin:ImageRef,wallSkin:ImageRef,humanSkins:ImageRef[],beastSkins:ImageRef[],wallSkins:ImageRef[]}}} datas 
@@ -92,18 +48,6 @@ class PlayerAccount {
         this.savedGames = datas.savedGames,
         this.skins = datas.skins,
         this.stats = datas.stats
-    }
-    /**
-     * 
-     * @param {String} friendId 
-     * @returns 
-     */
-    addFriend(friendId){
-        return db.addFriend(this.username, friendId)
-    }
-    friendsRequest(friendId){
-        if(this.friends.request.includes(friendId)) return db.addFriend(this.username, friendId)
-        return db.addFriendRequest(this.username,friendId)
     }
     toJson(){
         return {

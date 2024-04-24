@@ -18,14 +18,14 @@ async function manageRequest(request, response) {
       user = await db.getUsers();
       result = await user.find().toArray();
       for (const user of result) {
-        for (const conv of user.convNew) {
+        for (const conv of user.convs.new) {
           console.log("voici le userConvNew : ");
           console.log(conv);
         }
       }
 
       for (const user of result) {
-        for (const conv of user.conv) {
+        for (const conv of user.convs.all) {
           console.log("voici le userConv : ");
           console.log(conv);
 
@@ -159,12 +159,12 @@ async function getElo(request, response) {
       response.end(JSON.stringify({ error: "Utilisateur non trouvé" }));
       return;
     }
-    if(user.convNew==undefined){
+    if(user.convs.new==undefined){
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0}));
         return;
     }
-    for(const conv of user.convNew){
+    for(const conv of user.convs.new){
       nbMessage += conv.messages.length;
     }
     console.log("nbMessage : ", nbMessage);

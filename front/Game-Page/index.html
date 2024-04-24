@@ -129,7 +129,6 @@
       let gameSetUp = false;
       switch (mode) {
         case "local":
-          console.log(user)
           socket = io("/api/Localgame");
           socket.emit("newGame",user)
           break;
