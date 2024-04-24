@@ -360,7 +360,7 @@ function DisplayBoard(board,positions=null){
   img.src = playerList[turnNb%playerList.length].playerSkin
   playerTurn.appendChild(img)
   if(turnNb==0){playerTurn.appendChild(document.createTextNode("Veuillez placer votre personnage "+playerList[turnNb%playerList.length].username+" puis jouez"));}
-  else{playerTurn.appendChild(document.createTextNode("Au tour du "+playerList[turnNb%playerList.length].username+" de jouer"))};
+  else{playerTurn.appendChild(document.createTextNode("Au tour de "+playerList[turnNb%playerList.length].username+" de jouer"))};
   if(mode === "local") {
     let gC = document.getElementById("gameCover");
     gC.style.cssText = "display : block; font-size: 50px;  text-align: center; margin:auto; padding-top: 200px;padding-bottom: 400px;";

@@ -1,6 +1,13 @@
-const exitBtn = document.getElementById("exit"); // Ajout de l'élément "exit"
+document.getElementById("exit").addEventListener("click", function() {
+    swap('../index.html');
+} );
 
-exitBtn.addEventListener("click", function() {
+document.getElementById("profile").addEventListener("click",function(){
+    swap('../profile') 
+});
+
+function swap(route){
+    console.log(route)
     const popup = document.createElement("div");
     popup.className = "popup";
     popup.innerHTML = `
@@ -17,11 +24,11 @@ exitBtn.addEventListener("click", function() {
 
     confirmBtn.addEventListener("click", function() {
         // Rediriger l'utilisateur
-        window.location.href = '../index.html'; // Changer le chemin selon votre besoin
+        window.location.href =route; // Changer le chemin selon votre besoin
         document.body.removeChild(popup); // Supprimer la popup
     });
 
     cancelBtn.addEventListener("click", function() {
         document.body.removeChild(popup); // Supprimer la popup
     });
-});
+}

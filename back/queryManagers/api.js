@@ -18,14 +18,14 @@ async function manageRequest(request, response) {
       user = await db.getUsers();
       result = await user.find().toArray();
       for (const user of result) {
-        for (const conv of user.convNew) {
+        for (const conv of user.convs.new) {
           console.log("voici le userConvNew : ");
           console.log(conv);
         }
       }
 
       for (const user of result) {
-        for (const conv of user.conv) {
+        for (const conv of user.convs.all) {
           console.log("voici le userConv : ");
           console.log(conv);
 
@@ -52,8 +52,8 @@ async function manageRequest(request, response) {
     case "getFriends":
       await getFriends(request, response);
       break;
-    case "getElo":
-      await getElo(request, response);
+    case "getInfo":
+      await getInfo(request, response);
       break;
     case "friendRequest":
       await friendRequest(request, response);
@@ -75,6 +75,9 @@ async function manageRequest(request, response) {
       break;
     case "retrieveUserGames":
       await retrieveUserGames(request, response);
+      break;
+    case "changeSkin":
+      await changeSkin(request, response);
       break;
     default:
       response.writeHead(404, { "Content-Type": "application/json" });
@@ -136,7 +139,7 @@ async function createOrUpdateUser(email, username, password,response, isNewUser)
   }
 }
 
-async function getElo(request, response) {
+async function getInfo(request, response) {
   if (request.method !== "POST") {
     response.writeHead(405, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ error: "Méthode non autorisée" }));
@@ -150,17 +153,23 @@ async function getElo(request, response) {
     }
 
     let user = await db.getUser(body.username);
+    console.log(user)
     let nbMessage=0;
     if (!user) {
       response.writeHead(404, { "Content-Type": "application/json" });
       response.end(JSON.stringify({ error: "Utilisateur non trouvé" }));
       return;
     }
-    for(const conv of user.convNew){
+    if(user.convs==undefined){
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: 0, name: user.username, email: user.email,beastSkins:user.skins.beastSkins,humanSkins:user.skins.humanSkins}));
+        return;
+    }
+    for(const conv of user.convs.new){
       nbMessage += conv.messages.length;
     }
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: nbMessage}));
+    response.end(JSON.stringify({ elo: user.stats.elo , nbMessage: nbMessage, name: user.username, email: user.email,beastSkins:user.skins.beastSkins,humanSkins:user.skins.humanSkins}));
   });
 
 }
@@ -197,8 +206,9 @@ async function createGame(gameState, response = null) {
     }
     let playerList = gameState.getPlayerList();
     for(let i=0;i<playerList.length;i++){
-        if(playerList[i].account.id === undefined || playerList[i].account.difficulty !== undefined) continue;
-        await db.addGame(playerList[i].account.id,NewGame._id);
+        console.log(playerList[i].username+" "+playerList[i].difficulty);
+        if(playerList[i].username === undefined || playerList[i].difficulty !== undefined) continue;
+        await db.addGame(playerList[i].username,NewGame._id);
     }
     return NewGame._id;
 }
@@ -444,18 +454,31 @@ async function getFriends(request, response) {
       return;
     }
     let friends = await db.getFriends(body.username);
+    //vérifier si friends est vide
+    if(friends.length==0){
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ nbNewMessage: [] }));
+        return;
+    }
     let newConv= await db.getConvN(body.username);
-
     let nbNewMessage=[];
-
+    if(newConv==undefined){
+        response.writeHead(200, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ nbNewMessage: []}));
+        return;
+    }
     for(const friend of friends){
-  
-      let nbMessage= newConv.find(newConv => newConv.username === friend).messages
-      if(nbMessage==undefined){
-        nbNewMessage.push({ friend: friend, nbMessage: 0 });
-      }else{
-        nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
-      }
+        let conv= newConv.find(newConv => newConv.username === friend);
+        if(conv==undefined){
+            nbNewMessage.push({ friend: friend, nbMessage: 0 });
+            continue;
+        }
+        let nbMessage=conv.messages;
+        if(nbMessage==undefined){
+            nbNewMessage.push({ friend: friend, nbMessage: 0 });
+        }else{
+            nbNewMessage.push({ friend: friend, nbMessage: nbMessage.length });
+        }
     }
 
     response.writeHead(200, { "Content-Type": "application/json" });
@@ -496,6 +519,24 @@ async function getConv(request, response) {
     response.writeHead(200, { "Content-Type": "application/json" });
     response.end(JSON.stringify({ conv: conv ,newConv:newConv}));
   });
+}
+
+async function changeSkin(request,response){
+  if (request.method !== "POST") {
+    response.writeHead(405, { "Content-Type": "application/json" });
+    response.end(JSON.stringify({ error: "Méthode non autorisée" }));
+    return;
+  }
+  parsejson(request).then(async (body) => {
+    console.log(body)
+    if (!body.name || !body.beastSkin || !body.humanSkin) {
+      response.writeHead(400, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ error: 'Données manquantes' }));
+      return;
+    }
+    await db.changeSkin(body.name, body.beastSkin, body.humanSkin);
+  });
+    
 }
 /**
  * 

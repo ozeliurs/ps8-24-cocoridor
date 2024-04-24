@@ -26,7 +26,8 @@
      <h1 id="exit">CocoRidor</h1>
 
       
-      <div id=playerCard>
+     <div id=playerCard>
+      <a id="profile">
           <div id=playerProfile>
               <img src="../Main-Page/logo.png" id="playerPicture" alt="Photo de profil">
               <div id=playerInfo>
@@ -37,8 +38,9 @@
                       Elo 1000
                   </div>
               </div>
-          </div> 
-      </div>
+          </div>
+      </a>
+  </div>
   </header>
 
     <section id="notwaiting">
@@ -105,7 +107,7 @@
 
     <div id="waiting">
       <h1 class="attente">En attente d'un joueur</h1>
-      <img id="attente" src="../Game-Page/polos.gif" alt="Loading" />
+      <img id="attente" src="../assets/img/polos.gif" alt="Loading" />
       <a href="../index.html"><button>Annuler</button></a>
     </div>
     <script src="../index.js"></script>
@@ -187,16 +189,26 @@
           document.getElementById("waiting").style.display = "none";
           document.getElementById("notwaiting").style.display = "block";
         })
-        socket.on("choosePos",(boardPos,playerL,turnNumber)=>{
+        socket.on("choosePos",(boardPos,playerL,turnNumber,nbWalls)=>{
             turnNb = turnNumber
             gameSetUp=true;
             playerList = playerL;
+            res = nbWalls[0]+"";
+            for(let walls of nbWalls.slice(1)){
+                res+=" \n "+walls;
+            }
+            document.getElementById("wallCount").innerHTML = res;
             DisplayBoard(boardPos.Board,boardPos.Positions);
         })
-        socket.on("launch",(board,turnNb)=>{
+        socket.on("launch",(board,turnNb,nbWalls)=>{
             gameSetUp=false;
             init(board,mode,turnNb);
             DisplayBoard(board);
+            res = nbWalls[0]+"";
+            for(let walls of nbWalls.slice(1)){
+                res+=" \n "+walls;
+            }
+            document.getElementById("wallCount").innerHTML = res;
             for(let i=0;i<waiting.length;i++){
                 waiting[i].style.display = "none";
             }
@@ -207,8 +219,13 @@
         socket.on("moved",()=>{
             socket.emit('update');
         })
-        socket.on("updateBoard",(board,turnNumber)=>{
+        socket.on("updateBoard",(board,turnNumber,nbWalls)=>{
             turnNb=turnNumber;
+            res = nbWalls[0]+"";
+            for(let walls of nbWalls.slice(1)){
+                res+=" \n "+walls;
+            }
+            document.getElementById("wallCount").innerHTML = res;
             DisplayBoard(board);
         })
         socket.on("endGame",(winners)=>{

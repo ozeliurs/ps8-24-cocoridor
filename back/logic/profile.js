@@ -55,8 +55,8 @@ class PlayerAccount {
                 humanSkin : ImageRef.Fermier,
                 beastSkin : ImageRef.Poulet,
                 wallSkin : "",
-                humanSkins : [ImageRef.Fermier],
-                beastSkins : [ImageRef.Poulet],
+                humanSkins : [ImageRef.Fermier,ImageRef.Fermier2],
+                beastSkins : [ImageRef.Poulet,ImageRef.Poulet2],
                 wallSkins : []
             },
             stats : {
@@ -71,7 +71,12 @@ class PlayerAccount {
 
                 FriendPlay : 0,
                 FriendPlayVictory : 0,
+            },
+            convs : {
+                new : [],
+                all : []
             }
+
         }
         return db.createUser(user);
     }
