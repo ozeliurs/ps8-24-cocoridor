@@ -1,10 +1,39 @@
+/* Main Page Styling */
+html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #f7e9b3, #f5a56f, #fff2be); 
+    margin: 0;
+}
+
+
+.shell{
+    width: 125px;
+    height: auto;
+    object-fit: cover;
+    z-index: 1; 
+    margin-top: -3px;
+}
+
+
+.buttonContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    width: 100%;
+    gap:10px;
+    /* margin-bottom:70px; */
+}
+
+
 #GamePlaySelection{
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-around;
     gap:40px;
-    width: 100vw;
+    padding-top: 60px; /* Ajout de marge pour compenser l'en-tête fixe */
+
 }
 
 
@@ -36,151 +65,4 @@
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-html, body {
-    height: 100vh;
-    background: linear-gradient(to bottom right, #f7e9b3, #f5a56f, #fff2be); 
-    margin: 0;
-    font-family: "Inter", sans-serif;
-    font-optical-sizing: auto;
-    font-style: normal;
-    font-variation-settings: "slnt" 0;
-    
-}
-
-#upperZone{
-    flex-direction: row;
-    width: 90%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: space-between;
-    padding: 0 20px;
-    margin-bottom: 20px;
-    align-items: center;
-}
-
-.upperBtns{
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-}
-
-#playerProfile {
-    display: flex;
-    justify-content:center;
-    background-color: #fff45c;
-    padding: 10px;
-    padding-left: 15px;
-    padding-right: 15px;
-    gap: 10px;
-    width: 200px;
-    flex-direction: row;
-    justify-content: space-between ;
-    align-items: center;
-    /* margin-left: -50px;
-    margin-right:-50px; */
-}
-
-#playerInfo {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-
-}
-
-#playerPicture {
-    width: 50px;
-    height: 60px;
-    overflow: hidden;
-}
-
-#playerPicture img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-#playerName {
-    font-size: 20px;
-    color: white;
-    background-color: red;
-    text-align: center;
-    padding: 5px;
-}
-
-
-#playerRank {
-    font-size: 22px;
-    background-color: red;
-    color: #fff;
-    padding: 5px;
-    width: fit-content;
-}
-
-.shell{
-    width: 125px;
-    height: auto;
-    object-fit: cover;
-    z-index: 1; 
-    margin-top: -3px;
-}
-
-
-.buttonContainer{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    flex-wrap: wrap;
-    width: 100%;
-    gap:10px;
-    /* margin-bottom:70px; */
-}
-
-
-/* Styling for the Sign Up button */
-#signUp {
-    margin-top: 15px;
-    background-color: #baff1b; /* Green background */
-    border-color: #c00;
-    color: black;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    transition-duration: 0.4s;
-    cursor: pointer;
-}
-
-#signUp:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px #00000028;
-}
-
-/* Styling for the Sign In button */
-#signIn {
-    margin-top: 15px;
-    background-color: #e1f05a; /* Blue background */
-    border-color: #c00;
-    color: black;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    transition-duration: 0.4s;
-    cursor: pointer;
-}
-
-#signIn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px #00000028;
 }
