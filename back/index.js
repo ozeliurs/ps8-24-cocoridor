@@ -627,12 +627,12 @@ io.of("/api/1vs1").on('connection', async (socket) => {
         io.of("/api/1vs1").to('room' + gameId).emit("message", message,playerName);
     });
     socket.on("disconnect",()=>{
-
+        clearInterval(timer);
         if(!connectedPlayers.hasOwnProperty(gameId))return;
         for (let i = 0; i < connectedPlayers[gameId].length; i++) {
             if (connectedPlayers[gameId][i].getid() === myId) {
                 connectedPlayers[gameId].splice(i, 1);
-                i--; 
+                i--;
             }
         }
         connectedPlayers[gameId].filter((e)=>e.getid() != myId )
@@ -689,6 +689,7 @@ const GameType = {
             for(let player of playerList){
                 player.stats.AiPlay = player.stats.AiPlay + 1
                 for(let winner of winners){
+                    if(winner)
                         if(winner.username==player.username){console.log("victory+");player.stats.AiPlayVictory +=1; break;}
                 }
             }
