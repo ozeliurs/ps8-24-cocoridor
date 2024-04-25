@@ -232,7 +232,7 @@ class GameState{
       if(player.end.length == 0 || player.getTile()==null)continue;
       for(let coords of player.end){
         let currentCoords = player.getTile().getCoords();
-        if(currentCoords.X == coords.X && currentCoords.Y == coords.Y)winners.push(player.getid());
+        if(currentCoords.X == coords.X && currentCoords.Y == coords.Y)winners.push(player);
       }
     }
     // si c'est le dernier joueur
